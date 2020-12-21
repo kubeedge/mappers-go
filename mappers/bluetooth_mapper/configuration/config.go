@@ -25,8 +25,6 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/kubeedge/kubeedge/cloud/pkg/apis/devices/v1alpha2"
-	"github.com/kubeedge/kubeedge/cloud/pkg/devicecontroller/types"
 	actionmanager "github.com/kubeedge/kubeedge/mappers/bluetooth_mapper/action_manager"
 	dataconverter "github.com/kubeedge/kubeedge/mappers/bluetooth_mapper/data_converter"
 	"github.com/kubeedge/kubeedge/mappers/bluetooth_mapper/scheduler"
@@ -112,25 +110,23 @@ func (readConfigFile *ReadConfigFile) ReadFromConfigFile() error {
 //Load is used to consolidate the information loaded from the configuration file and the configmaps
 func (b *BLEConfig) Load() error {
 	readConfigFile := ReadConfigFile{}
-	readConfigMap := &types.DeviceProfile{}
+	readConfigMap := DeviceProfile{}
 	err := readConfigFile.ReadFromConfigFile()
 	if err != nil {
 		return errors.New("Error while reading from configuration file " + err.Error())
 	}
-	err = ReadFromConfigMap(readConfigMap)
+	err = readConfigMap.ReadFromConfigMap()
 	if err != nil {
 		return errors.New("Error while reading from config map " + err.Error())
 	}
 	b.Mqtt = readConfigFile.Mqtt
 	b.Scheduler = readConfigFile.Scheduler
 	b.Watcher = readConfigFile.Watcher
-	propertyVisitors := make([]*types.PropertyVisitor, 0)
 	// Assign device information obtained from config file
 	for _, device := range readConfigMap.DeviceInstances {
 		if strings.EqualFold(device.Model, readConfigFile.DeviceModelName) {
 			b.Device.ID = device.ID
 			b.Device.Name = device.Model
-			propertyVisitors = device.PropertyVisitors
 		}
 	}
 	// Assign information required by action manager
@@ -139,19 +135,19 @@ func (b *BLEConfig) Load() error {
 		action.Name = actionConfig.Name
 		action.PerformImmediately = actionConfig.PerformImmediately
 
-		for _, propertyVisitor := range propertyVisitors {
+		for _, propertyVisitor := range readConfigMap.PropertyVisitors {
 			if strings.EqualFold(propertyVisitor.ModelName, b.Device.Name) && strings.EqualFold(propertyVisitor.PropertyName, actionConfig.PropertyName) && strings.ToUpper(propertyVisitor.Protocol) == ProtocolName {
 				propertyVisitorBytes, err := json.Marshal(propertyVisitor.VisitorConfig)
 				if err != nil {
 					return errors.New("Error in marshalling data property visitor configuration: " + err.Error())
 				}
-				bluetoothPropertyVisitor := v1alpha2.VisitorConfigBluetooth{}
+				bluetoothPropertyVisitor := VisitorConfigBluetooth{}
 				err = json.Unmarshal(propertyVisitorBytes, &bluetoothPropertyVisitor)
 				if err != nil {
 					return errors.New("Error in unmarshalling data property visitor configuration: " + err.Error())
 				}
 				action.Operation.CharacteristicUUID = bluetoothPropertyVisitor.CharacteristicUUID
-				newBluetoothVisitorConfig := v1alpha2.VisitorConfigBluetooth{}
+				newBluetoothVisitorConfig := VisitorConfigBluetooth{}
 				if !reflect.DeepEqual(bluetoothPropertyVisitor.BluetoothDataConverter, newBluetoothVisitorConfig.BluetoothDataConverter) {
 					readAction := dataconverter.ReadAction{}
 					readAction.ActionName = actionConfig.Name
@@ -160,15 +156,15 @@ func (b *BLEConfig) Load() error {
 					readAction.ConversionOperation.ShiftRight = bluetoothPropertyVisitor.BluetoothDataConverter.ShiftRight
 					readAction.ConversionOperation.ShiftLeft = bluetoothPropertyVisitor.BluetoothDataConverter.ShiftLeft
 					for _, readOperations := range bluetoothPropertyVisitor.BluetoothDataConverter.OrderOfOperations {
-						readAction.ConversionOperation.OrderOfExecution = append(readAction.ConversionOperation.OrderOfExecution, string(readOperations.BluetoothOperationType))
-						switch strings.ToUpper(string(readOperations.BluetoothOperationType)) {
-						case strings.ToUpper(string(v1alpha2.BluetoothAdd)):
+						readAction.ConversionOperation.OrderOfExecution = append(readAction.ConversionOperation.OrderOfExecution, readOperations.BluetoothOperationType)
+						switch strings.ToUpper(readOperations.BluetoothOperationType) {
+						case strings.ToUpper(BluetoothAdd):
 							readAction.ConversionOperation.Add = readOperations.BluetoothOperationValue
-						case strings.ToUpper(string(v1alpha2.BluetoothSubtract)):
+						case strings.ToUpper(BluetoothSubtract):
 							readAction.ConversionOperation.Subtract = readOperations.BluetoothOperationValue
-						case strings.ToUpper(string(v1alpha2.BluetoothMultiply)):
+						case strings.ToUpper(BluetoothMultiply):
 							readAction.ConversionOperation.Multiply = readOperations.BluetoothOperationValue
-						case strings.ToUpper(string(v1alpha2.BluetoothDivide)):
+						case strings.ToUpper(BluetoothDivide):
 							readAction.ConversionOperation.Divide = readOperations.BluetoothOperationValue
 						}
 					}
