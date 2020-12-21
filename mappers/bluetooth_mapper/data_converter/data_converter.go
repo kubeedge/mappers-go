@@ -19,8 +19,14 @@ package dataconverter
 import (
 	"strconv"
 	"strings"
+)
 
-	"github.com/kubeedge/kubeedge/cloud/pkg/apis/devices/v1alpha2"
+// Bluetooth Protocol Operation type
+const (
+	BluetoothAdd      string = "Add"
+	BluetoothSubtract string = "Subtract"
+	BluetoothMultiply string = "Multiply"
+	BluetoothDivide   string = "Divide"
 )
 
 //Converter is the structure that contains data conversion specific configuration
@@ -97,13 +103,13 @@ func (operation *ReadOperation) ConvertReadData(data []byte) float64 {
 	finalResult := float64(intermediateResult)
 	for _, executeOperation := range operation.OrderOfExecution {
 		switch strings.ToUpper(executeOperation) {
-		case strings.ToUpper(string(v1alpha2.BluetoothAdd)):
+		case strings.ToUpper(BluetoothAdd):
 			finalResult = finalResult + operation.Add
-		case strings.ToUpper(string(v1alpha2.BluetoothSubtract)):
+		case strings.ToUpper(BluetoothSubtract):
 			finalResult = finalResult - operation.Subtract
-		case strings.ToUpper(string(v1alpha2.BluetoothMultiply)):
+		case strings.ToUpper(BluetoothMultiply):
 			finalResult = finalResult * operation.Multiply
-		case strings.ToUpper(string(v1alpha2.BluetoothDivide)):
+		case strings.ToUpper(BluetoothDivide):
 			finalResult = finalResult / operation.Divide
 		}
 	}
