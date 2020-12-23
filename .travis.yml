@@ -1,0 +1,56 @@
+language: go
+
+git:
+  depth: false
+
+os: linux
+
+dist: focal
+
+services:
+  - docker
+
+go:
+  - 1.14
+
+env:
+  - HOME=/home/travis
+
+cache:
+  directories:
+    - $HOME/.cache/go-build
+    - $HOME/gopath/pkg/mod
+
+before_install:
+  - |
+      if ! git diff --name-only $TRAVIS_COMMIT_RANGE | grep -qvE '(\.md)|(\.png)|(\.pdf)|(\.html)|^(LICENSE)|^(docs)|^(OWNERS)|^(MAINTAINERS)'
+      then
+        echo "Only doc files were updated, skip running the CI."
+        travis_terminate 0
+      fi
+
+install: skip
+
+jobs:
+  include:
+    - stage: "build test"
+      name: "build test"
+      arch: arm64
+      before_script:
+        - export GOFLAGS=-mod=vendor
+        - sudo apt-get install upx-ucl -y
+      script:
+        - make
+        - make modbusmapper
+        - make bluetoothmapper
+    - name: "unit tests of mappers"
+      arch: arm64
+      before_script:
+        - export GOFLAGS=-mod=mod
+      script:
+        - make test
+    - name: "build docker images of mappers on arm64"
+      arch: arm64
+      script:
+        - make bluetoothmapper_image
+        - make modbusmapper_image
