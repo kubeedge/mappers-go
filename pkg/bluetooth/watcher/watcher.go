@@ -26,9 +26,9 @@ import (
 	"github.com/paypal/gatt"
 	"k8s.io/klog/v2"
 
-	actionmanager "github.com/kubeedge/kubeedge/mappers/bluetooth_mapper/action_manager"
-	dataconverter "github.com/kubeedge/kubeedge/mappers/bluetooth_mapper/data_converter"
-	"github.com/kubeedge/kubeedge/mappers/bluetooth_mapper/helper"
+	actionmanager "github.com/kubeedge/mappers-go/pkg/bluetooth/action_manager"
+	dataconverter "github.com/kubeedge/mappers-go/pkg/bluetooth/data_converter"
+	"github.com/kubeedge/mappers-go/pkg/bluetooth/helper"
 )
 
 var DeviceConnected = make(chan bool)

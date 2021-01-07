@@ -23,8 +23,8 @@ import (
 	"github.com/spf13/pflag"
 	"k8s.io/klog/v2"
 
-	"github.com/kubeedge/kubeedge/mappers/bluetooth_mapper/configuration"
-	"github.com/kubeedge/kubeedge/mappers/bluetooth_mapper/controller"
+	"github.com/kubeedge/mappers-go/pkg/bluetooth/configuration"
+	"github.com/kubeedge/mappers-go/pkg/bluetooth/controller"
 )
 
 // main function

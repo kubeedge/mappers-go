@@ -24,7 +24,7 @@ import (
 	"github.com/paypal/gatt"
 	"k8s.io/klog/v2"
 
-	dataconverter "github.com/kubeedge/kubeedge/mappers/bluetooth_mapper/data_converter"
+	dataconverter "github.com/kubeedge/mappers-go/pkg/bluetooth/data_converter"
 )
 
 const (
