@@ -32,8 +32,8 @@ import (
 	"github.com/kubeedge/kubeedge/cloud/pkg/apis/devices/v1alpha2"
 	"github.com/kubeedge/kubeedge/edge/test/integration/utils/common"
 	"github.com/kubeedge/kubeedge/edge/test/integration/utils/helpers"
-	"github.com/kubeedge/kubeedge/mappers/bluetooth_mapper/scheduler"
-	"github.com/kubeedge/kubeedge/mappers/bluetooth_mapper/watcher"
+	"github.com/kubeedge/mappers-go/pkg/bluetooth/scheduler"
+	"github.com/kubeedge/mappers-go/pkg/bluetooth/watcher"
 	"github.com/kubeedge/kubeedge/tests/e2e/utils"
 )
 

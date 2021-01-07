@@ -23,7 +23,7 @@ import (
 
 	"github.com/kubeedge/mappers-go/pkg/common"
 	"github.com/kubeedge/mappers-go/pkg/modbus/globals"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 // Parse parse the configmap.

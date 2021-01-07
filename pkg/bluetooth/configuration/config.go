@@ -27,10 +27,10 @@ import (
 
 	"github.com/kubeedge/kubeedge/cloud/pkg/apis/devices/v1alpha2"
 	"github.com/kubeedge/kubeedge/cloud/pkg/devicecontroller/types"
-	actionmanager "github.com/kubeedge/kubeedge/mappers/bluetooth_mapper/action_manager"
-	dataconverter "github.com/kubeedge/kubeedge/mappers/bluetooth_mapper/data_converter"
-	"github.com/kubeedge/kubeedge/mappers/bluetooth_mapper/scheduler"
-	"github.com/kubeedge/kubeedge/mappers/bluetooth_mapper/watcher"
+	actionmanager "github.com/kubeedge/mappers-go/pkg/bluetooth/action_manager"
+	dataconverter "github.com/kubeedge/mappers-go/pkg/bluetooth/data_converter"
+	"github.com/kubeedge/mappers-go/pkg/bluetooth/scheduler"
+	"github.com/kubeedge/mappers-go/pkg/bluetooth/watcher"
 )
 
 //ConfigFilePath contains the location of the configuration file
@@ -157,8 +157,8 @@ func (b *BLEConfig) Load() error {
 					readAction.ActionName = actionConfig.Name
 					readAction.ConversionOperation.StartIndex = bluetoothPropertyVisitor.BluetoothDataConverter.StartIndex
 					readAction.ConversionOperation.EndIndex = bluetoothPropertyVisitor.BluetoothDataConverter.EndIndex
-					readAction.ConversionOperation.ShiftRight = bluetoothPropertyVisitor.BluetoothDataConverter.ShiftRight
-					readAction.ConversionOperation.ShiftLeft = bluetoothPropertyVisitor.BluetoothDataConverter.ShiftLeft
+					readAction.ConversionOperation.ShiftRight = uint(bluetoothPropertyVisitor.BluetoothDataConverter.ShiftRight)
+					readAction.ConversionOperation.ShiftLeft = uint(bluetoothPropertyVisitor.BluetoothDataConverter.ShiftLeft)
 					for _, readOperations := range bluetoothPropertyVisitor.BluetoothDataConverter.OrderOfOperations {
 						readAction.ConversionOperation.OrderOfExecution = append(readAction.ConversionOperation.OrderOfExecution, string(readOperations.BluetoothOperationType))
 						switch strings.ToUpper(string(readOperations.BluetoothOperationType)) {

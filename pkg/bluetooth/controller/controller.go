@@ -25,12 +25,12 @@ import (
 	"github.com/paypal/gatt/examples/option"
 	"k8s.io/klog/v2"
 
-	actionmanager "github.com/kubeedge/kubeedge/mappers/bluetooth_mapper/action_manager"
-	"github.com/kubeedge/kubeedge/mappers/bluetooth_mapper/configuration"
-	dataconverter "github.com/kubeedge/kubeedge/mappers/bluetooth_mapper/data_converter"
-	"github.com/kubeedge/kubeedge/mappers/bluetooth_mapper/helper"
-	"github.com/kubeedge/kubeedge/mappers/bluetooth_mapper/scheduler"
-	"github.com/kubeedge/kubeedge/mappers/bluetooth_mapper/watcher"
+	actionmanager "github.com/kubeedge/mappers-go/pkg/bluetooth/action_manager"
+	"github.com/kubeedge/mappers-go/pkg/bluetooth/configuration"
+	dataconverter "github.com/kubeedge/mappers-go/pkg/bluetooth/data_converter"
+	"github.com/kubeedge/mappers-go/pkg/bluetooth/helper"
+	"github.com/kubeedge/mappers-go/pkg/bluetooth/scheduler"
+	"github.com/kubeedge/mappers-go/pkg/bluetooth/watcher"
 )
 
 // constants which can be used to convey topic information
