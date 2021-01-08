@@ -2,7 +2,7 @@
 Please configuration the device instance and device model. You could refer to the example in build/crd-samples/devices/. 
 # Notes
 - Please configure the remote certification file if you use certification&key authentication.
-- The format of all return values is string.
+- The format of all return values is a string.
 - Not all value types are support now. The supported types include:
   Boolean
   String
@@ -20,4 +20,4 @@ Please configuration the device instance and device model. You could refer to th
   Uint64
   Float
   Double
-- Get device status function "driver.GetStatus" should be written depending the device.
+- The get device status function "driver.GetStatus" should be written depending the device.
