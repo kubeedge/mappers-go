@@ -19,6 +19,7 @@ package common
 import (
 	"crypto/tls"
 	"encoding/json"
+	"regexp"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -153,4 +154,10 @@ func CreateMessageState(state string) (msg []byte, err error) {
 
 	msg, err = json.Marshal(stateMsg)
 	return
+}
+
+// GetDeviceID extract the device ID from Mqtt topic.
+func GetDeviceID(topic string) (id string) {
+	re := regexp.MustCompile(`hw/events/device/(.+)/twin/update/delta`)
+	return re.FindStringSubmatch(topic)[1]
 }

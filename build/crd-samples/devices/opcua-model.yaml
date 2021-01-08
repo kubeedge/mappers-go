@@ -1,0 +1,19 @@
+apiVersion: devices.kubeedge.io/v1alpha2
+kind: DeviceModel
+metadata:
+ name: opcua-model
+ namespace: default
+spec:
+ properties:
+  - name: temperature
+    description: temperature in degree celsius
+    type:
+      int:
+        accessMode: ReadOnly
+        defaultValue: 1
+  - name: switcher
+    description: turn on or turn off
+    type:
+      boolean:
+        accessMode: ReadWrite
+

@@ -60,13 +60,8 @@ type Property struct {
 type Protocol struct {
 	Name                 string          `json:"name,omitempty"`
 	Protocol             string          `json:"protocol,omitempty"`
-	ProtocolConfigs      ProtocolConfig  `json:"protocolConfig,omitempty"`
+	ProtocolConfigs      json.RawMessage `json:"protocolConfig,omitempty"`
 	ProtocolCommonConfig json.RawMessage `json:"protocolCommonConfig,omitempty"`
-}
-
-// ProtocolConfig is the protocol configuration.
-type ProtocolConfig struct {
-	SlaveID int16 `json:"slaveID,omitempty"`
 }
 
 // PropertyVisitor is structure to store propertyVisitor in deviceProfile.json in configmap.
