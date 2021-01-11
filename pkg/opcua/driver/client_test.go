@@ -1,5 +1,5 @@
 /*
-Copyright 2020 The KubeEdge Authors.
+Copyright 2021 The KubeEdge Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// This application needs physical devices.
+// This application needs OPCUA server and device.
 // Please edit by demand for testing.
 
 package driver
@@ -26,24 +26,45 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRead(t *testing.T) {
+func TestReadWithoutAuth(t *testing.T) {
 
+	c := &OPCUAConfig{URL: "opc.tcp://localhost:4840"}
+
+	client, err := NewClient(*c)
+	assert.Nil(t, err)
+	results, err := client.Get("ns=2;i=3")
+	if err != nil {
+		fmt.Println("Read error: ", err)
+		return
+	}
+	fmt.Println("result: ", results)
+}
+
+func TestReadWithUserPass(t *testing.T) {
 	c := &OPCUAConfig{URL: "opc.tcp://localhost:4840",
-		/*
 		User:           "testuser",
 		Passwordfile:   "/home/wei/ca/pass",
 		SecurityPolicy: "None",
 		SecurityMode:   "None",
-		*/
-		/*
-			SecurityPolicy: "Basic256Sha256",
-			SecurityMode:   "Sign",
-			Certfile:       "/home/wei/ca/clientcert.pem",
-			Keyfile:        "/home/wei/ca/clientkey.pem",
-			RemoteCertfile: "/home/wei/ca/servercert.pem",
-		*/
 	}
+	client, err := NewClient(*c)
+	assert.Nil(t, err)
+	results, err := client.Get("ns=2;i=3")
+	if err != nil {
+		fmt.Println("Read error: ", err)
+		return
+	}
+	fmt.Println("result: ", results)
+}
 
+func TestReadWithCert(t *testing.T) {
+	c := &OPCUAConfig{URL: "opc.tcp://localhost:4840",
+		SecurityPolicy: "Basic256Sha256",
+		SecurityMode:   "Sign",
+		Certfile:       "/home/wei/ca/clientcert.pem",
+		Keyfile:        "/home/wei/ca/clientkey.pem",
+		RemoteCertfile: "/home/wei/ca/servercert.pem",
+	}
 	client, err := NewClient(*c)
 	assert.Nil(t, err)
 	results, err := client.Get("ns=2;i=3")

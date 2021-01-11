@@ -16,4 +16,4 @@ opcuamapper_image:opcuamapper
 	sudo docker build -t opcuamapper:v1.0 ./pkg/opcua
 
 clean:
-	rm -f ./pkg/modbus/modbus ./pkg/opcua/modbus
+	rm -f ./pkg/modbus/modbus ./pkg/opcua/opcua

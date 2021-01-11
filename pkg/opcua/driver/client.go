@@ -118,7 +118,7 @@ func valueToString(v *ua.Variant) string {
 	case ua.TypeIDByteString:
 		return string(v.ByteString())
 	case ua.TypeIDFloat, ua.TypeIDDouble:
-		return strconv.FormateFloat(v.Float(), 'E', -1, 32)
+		return strconv.FormatFloat(v.Float(), 'E', -1, 32)
 	default:
 		return ""
 	}
