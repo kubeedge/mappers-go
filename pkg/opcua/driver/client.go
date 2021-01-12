@@ -1,5 +1,5 @@
 /*
-Copyright 2020 The KubeEdge Authors.
+Copyright 2021 The KubeEdge Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package driver
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"strconv"
 
@@ -28,6 +27,7 @@ import (
 	"k8s.io/klog"
 )
 
+// OPCUAConfig configurations for OPCUA.
 type OPCUAConfig struct {
 	URL            string
 	User           string
@@ -39,17 +39,12 @@ type OPCUAConfig struct {
 	Keyfile        string
 }
 
+// OPCUAClient is the client structure.
 type OPCUAClient struct {
 	Client *opcua.Client
 }
 
 var clients map[string]*OPCUAClient
-
-func isConfigValid(config OPCUAConfig) error {
-	// If Security policy is set, then security mode, cert and key should be set.
-
-	return nil
-}
 
 func readPassword(filename string) (string, error) {
 	b, err := ioutil.ReadFile(filename)
@@ -61,12 +56,8 @@ func readPassword(filename string) (string, error) {
 
 }
 
+// NewClient new the OPCUA client.
 func NewClient(config OPCUAConfig) (client *OPCUAClient, err error) {
-	err = isConfigValid(config)
-	if err != nil {
-		return nil, err
-	}
-
 	ctx := context.Background()
 	var opts []opcua.Option
 	if config.Certfile != "" {
@@ -93,7 +84,6 @@ func NewClient(config OPCUAConfig) (client *OPCUAClient, err error) {
 
 	c := opcua.NewClient(config.URL, opts...)
 	if err = c.Connect(ctx); err != nil {
-		fmt.Println("NEWCLIENT:", err)
 		return &OPCUAClient{}, err
 	}
 	return &OPCUAClient{Client: c}, nil

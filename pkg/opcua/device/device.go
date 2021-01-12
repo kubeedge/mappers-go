@@ -1,5 +1,5 @@
 /*
-Copyright 2020 The KubeEdge Authors.
+Copyright 2021 The KubeEdge Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -98,7 +98,7 @@ func onMessage(client mqtt.Client, message mqtt.Message) {
 	}
 }
 
-// .
+// getRemoteCertfile get configuration of remote certification file.
 func getRemoteCertfile(customizedValue configmap.CustomizedValue) string {
 	if len(customizedValue) != 0 {
 		klog.Error("getRemoteCertfile len is not 0")
@@ -113,6 +113,12 @@ func getRemoteCertfile(customizedValue configmap.CustomizedValue) string {
 
 // initOPCUA initialize OPCUA client
 func initOPCUA(protocolConfig configmap.ProtocolConfigOPCUA, protocolCommConfig configmap.ProtocolCommonConfigOPCUA) (client *driver.OPCUAClient, err error) {
+	if protocolConfig.SecurityPolicy == "" {
+		protocolConfig.SecurityPolicy = "None"
+	}
+	if protocolConfig.SecurityMode == "" {
+		protocolConfig.SecurityMode = "None"
+	}
 	config := driver.OPCUAConfig{
 		URL:            protocolConfig.URL,
 		User:           protocolConfig.UserName,

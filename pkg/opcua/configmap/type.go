@@ -1,5 +1,5 @@
 /*
-Copyright 2020 The KubeEdge Authors.
+Copyright 2021 The KubeEdge Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ type VisitorConfigOPCUA struct {
 	BrowseName string `json:"browseName,omitempty"`
 }
 
+// Configuration for opc-ua protocol.
 type ProtocolConfigOPCUA struct {
 	// Required: The URL for opc server endpoint.
 	URL string `json:"url,omitempty"`
@@ -51,10 +52,10 @@ type ProtocolConfigOPCUA struct {
 	Timeout int64 `json:"timeout,omitempty"`
 }
 
-// ProtocolCommonConfigOPCUA is the OPCUA configuration.
+// ProtocolCommonConfigOPCUA is the opc-ua configuration.
 type ProtocolCommonConfigOPCUA struct {
 	CustomizedValues CustomizedValue `json:"customizedValues,omitempty"`
 }
 
-// CustomizedValue is the customized part for modbus protocol.
+// CustomizedValue is the customized part for opc-ua protocol.
 type CustomizedValue map[string]interface{}
