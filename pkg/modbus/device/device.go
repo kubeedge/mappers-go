@@ -233,13 +233,19 @@ func initGetStatus(dev *globals.ModbusDev) {
 
 // start start the device.
 func start(dev *globals.ModbusDev) {
-	var protocolConfig configmap.ModbusProtocolCommonConfig
-	if err := json.Unmarshal([]byte(dev.Instance.PProtocol.ProtocolCommonConfig), &protocolConfig); err != nil {
+	var protocolCommConfig configmap.ModbusProtocolCommonConfig
+	if err := json.Unmarshal([]byte(dev.Instance.PProtocol.ProtocolCommonConfig), &protocolCommConfig); err != nil {
 		klog.Error(err)
 		return
 	}
 
-	client, err := initModbus(protocolConfig, dev.Instance.PProtocol.ProtocolConfigs.SlaveID)
+	var protocolConfig configmap.ModbusProtocolConfig
+	if err := json.Unmarshal([]byte(dev.Instance.PProtocol.ProtocolConfigs), &protocolConfig); err != nil {
+		klog.Error(err)
+		return
+	}
+
+	client, err := initModbus(protocolCommConfig, protocolConfig.SlaveID)
 	if err != nil {
 		klog.Error(err)
 		return

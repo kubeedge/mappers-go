@@ -1,0 +1,54 @@
+apiVersion: devices.kubeedge.io/v1alpha2
+kind: Device
+metadata:
+  name: lamp
+  labels:
+    model: sample
+spec:
+  deviceModelRef:
+    name: opcua-model
+  protocol:
+    opcua:
+      url: opc.tcp://192.168.56.103:4840
+      userName: testuser
+      password: /ca/pass
+      certificate: /ca/clientcert.pem
+      privateKey: /ca/clientkey.pem
+      securityMode: Sign
+      securityPolicy: Basic256Sha256
+    common:
+      customizedValues:
+        remoteCertificate: /ca/servercert.pem
+  nodeSelector:
+    nodeSelectorTerms:
+    - matchExpressions:
+      - key: ''
+        operator: In
+        values:
+        - test 
+  propertyVisitors:
+    - propertyName: temperature
+      opcua:
+        nodeID: ns=2;i=2
+    - propertyName: switcher
+      opcua:
+        nodeID: ns=2;i=3
+status:
+  twins:
+    - propertyName: switcher
+      reported:
+        metadata:
+          timestamp: '1550049403598'
+          type: boolean
+        value: "false"
+      desired:
+        metadata:
+          timestamp: '1550049403598'
+          type: boolean
+        value: "false"
+    - propertyName: temperature
+      reported:
+        metadata:
+          timestamp: '1550049403598'
+          type: integer
+        value: "0"

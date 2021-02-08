@@ -26,6 +26,11 @@ type ModbusVisitorConfig struct {
 	IsRegisterSwap bool   `json:"isRegisterSwap,omitempty"`
 }
 
+// ModbusProtocolConfig is the protocol configuration.
+type ModbusProtocolConfig struct {
+	SlaveID int16 `json:"slaveID,omitempty"`
+}
+
 // ModbusProtocolCommonConfig is the modbus protocol configuration.
 type ModbusProtocolCommonConfig struct {
 	COM              COMStruct       `json:"com,omitempty"`
