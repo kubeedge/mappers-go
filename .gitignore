@@ -1,3 +1,5 @@
 pkg/opcua/opcua
 pkg/modbus/modbus
+pkg/bluetooth/bluetooth
 .idea
+vendor/
