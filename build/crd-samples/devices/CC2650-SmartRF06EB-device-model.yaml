@@ -1,0 +1,19 @@
+apiVersion: devices.kubeedge.io/v1alpha2
+kind: DeviceModel
+metadata:
+  name: simplebleperipheral
+namespace: default
+spec:
+  properties:
+    - name: simpleprofilechar1 
+      description: Simple Profile Char 1 
+      type:
+        int:
+          accessMode: ReadWrite
+          defaultValue: 0
+
+    - name: simpleprofilechar2
+      defaultValue: Simple Profile Char 2
+      type:
+        int:
+          accessMode: ReadOnly
