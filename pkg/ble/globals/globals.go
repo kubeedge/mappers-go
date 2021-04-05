@@ -24,7 +24,7 @@ import (
 // ModbusDev is the modbus device configuration and client information.
 type BluetoothDev struct {
 	Instance        common.DeviceInstance
-	BluetoothClient *driver.BluetoothDevice
+	BluetoothClient *driver.BluetoothClient
 }
 
 var MqttClient common.MqttClient
