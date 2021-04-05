@@ -76,8 +76,8 @@ func (c *Config) parseFlags() error {
 	pflag.StringVar(&c.Mqtt.Cert, "mqtt-certification", c.Mqtt.Cert, "certification file path")
 	pflag.StringVar(&c.Mqtt.PrivateKey, "mqtt-priviatekey", c.Mqtt.PrivateKey, "private key file path")
 	pflag.Parse()
-
-	if c.Mqtt.Cert == "" || c.Mqtt.PrivateKey == "" {
+	if (c.Mqtt.Cert != "" && c.Mqtt.PrivateKey == "") ||
+		(c.Mqtt.Cert == "" && c.Mqtt.PrivateKey != "") {
 		return ErrConfigCert
 	}
 	return nil

@@ -38,7 +38,7 @@ func main() {
 	}
 	klog.V(4).Info(config.Configmap)
 
-	globals.MqttClient = common.MqttClient{IP: config.Mqtt.ServerAddress,
+	globals.MqttClient = &common.MqttClient{IP: config.Mqtt.ServerAddress,
 		User:       config.Mqtt.Username,
 		Passwd:     config.Mqtt.Password,
 		Cert:       config.Mqtt.Cert,

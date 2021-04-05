@@ -17,9 +17,9 @@ limitations under the License.
 package device
 
 import (
-	"github.com/kubeedge/mappers-go/pkg/common"
 	"github.com/kubeedge/mappers-go/pkg/ble/driver"
-	"github.com/kubeedge/mappers-go/pkg/modbus/globals"
+	"github.com/kubeedge/mappers-go/pkg/ble/globals"
+	"github.com/kubeedge/mappers-go/pkg/common"
 	"k8s.io/klog/v2"
 )
 
@@ -33,7 +33,6 @@ type GetStatus struct {
 // Run timer function.
 func (gs *GetStatus) Run() {
 	gs.Status = gs.Client.GetStatus()
-
 	var payload []byte
 	var err error
 	if payload, err = common.CreateMessageState(gs.Status); err != nil {

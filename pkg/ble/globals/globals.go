@@ -27,4 +27,4 @@ type BluetoothDev struct {
 	BluetoothClient *driver.BluetoothClient
 }
 
-var MqttClient common.MqttClient
+var MqttClient *common.MqttClient

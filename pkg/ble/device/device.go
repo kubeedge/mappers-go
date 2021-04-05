@@ -19,6 +19,10 @@ package device
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
+	"sync"
+	"time"
+
 	"github.com/currantlabs/ble"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/kubeedge/mappers-go/pkg/ble/configmap"
@@ -27,9 +31,6 @@ import (
 	"github.com/kubeedge/mappers-go/pkg/common"
 	mappercommon "github.com/kubeedge/mappers-go/pkg/common"
 	"k8s.io/klog/v2"
-	"regexp"
-	"sync"
-	"time"
 )
 
 var devices map[string]*globals.BluetoothDev
@@ -128,14 +129,14 @@ func initBluetooth(protocolConfig configmap.BluetoothProtocolConfig, name string
 func initTwin(dev *globals.BluetoothDev) {
 	for i := 0; i < len(dev.Instance.Twins); i++ {
 		var visitorConfig configmap.BluetoothVisitorConfig
-		if err := json.Unmarshal([]byte(dev.Instance.Twins[i].PVisitor.VisitorConfig), &visitorConfig); err != nil {
+		if err := json.Unmarshal(dev.Instance.Twins[i].PVisitor.VisitorConfig, &visitorConfig); err != nil {
 			klog.Error(err)
 			continue
 		}
 		setVisitor(&visitorConfig, &dev.Instance.Twins[i], dev.BluetoothClient)
 
 		twinData := TwinData{
-			BluetoothClient: dev.BluetoothClient,
+			BluetoothClient:        dev.BluetoothClient,
 			Name:                   dev.Instance.Twins[i].PropertyName,
 			Type:                   dev.Instance.Twins[i].Desired.Metadatas.Type,
 			BluetoothVisitorConfig: visitorConfig,
@@ -164,7 +165,7 @@ func initData(dev *globals.BluetoothDev) {
 		}
 
 		twinData := TwinData{
-			BluetoothClient: dev.BluetoothClient,
+			BluetoothClient:        dev.BluetoothClient,
 			Name:                   dev.Instance.Datas.Properties[i].PropertyName,
 			Type:                   dev.Instance.Datas.Properties[i].Metadatas.Type,
 			BluetoothVisitorConfig: visitorConfig,

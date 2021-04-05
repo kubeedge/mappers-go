@@ -20,7 +20,7 @@ package configmap
 type BluetoothVisitorConfig struct {
 	CharacteristicUUID string            `json:"characteristicUUID"`
 	DataWrite          map[string][]byte `json:"dataWrite"`
-	DataConvert        DataConvert       `json:"dataConvert"`
+	DataConvert        DataConvert       `json:"dataConverter"`
 }
 
 type DataConvert struct {
