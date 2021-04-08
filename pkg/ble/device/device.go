@@ -147,18 +147,18 @@ func initTwin(dev *globals.BluetoothDev) {
 			collectCycle = 1 * time.Second
 		}
 		uuid := ble.MustParse(twinData.BluetoothVisitorConfig.CharacteristicUUID)
-		if p, err := twinData.BluetoothClient.Client.DiscoverProfile(true); err != nil {
+		if p, err := twinData.BluetoothClient.Client.DiscoverProfile(true); err == nil {
 			if u := p.Find(ble.NewCharacteristic(uuid)); u == nil {
 				klog.Errorf("can't find uuid %s", uuid.String())
 				continue
 			}
+			timer := mappercommon.Timer{Function: twinData.Run, Duration: collectCycle, Times: 0}
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				timer.Start()
+			}()
 		}
-		timer := mappercommon.Timer{Function: twinData.Run, Duration: collectCycle, Times: 0}
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			timer.Start()
-		}()
 	}
 }
 
@@ -182,12 +182,19 @@ func initData(dev *globals.BluetoothDev) {
 		if collectCycle == 0 {
 			collectCycle = 1 * time.Second
 		}
-		timer := mappercommon.Timer{Function: twinData.Run, Duration: collectCycle, Times: 0}
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			timer.Start()
-		}()
+		uuid := ble.MustParse(twinData.BluetoothVisitorConfig.CharacteristicUUID)
+		if p, err := twinData.BluetoothClient.Client.DiscoverProfile(true); err == nil {
+			if u := p.Find(ble.NewCharacteristic(uuid)); u == nil {
+				klog.Errorf("can't find uuid %s", uuid.String())
+				continue
+			}
+			timer := mappercommon.Timer{Function: twinData.Run, Duration: collectCycle, Times: 0}
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				timer.Start()
+			}()
+		}
 	}
 }
 
