@@ -148,7 +148,7 @@ func initTwin(dev *globals.BluetoothDev) {
 		}
 		uuid := ble.MustParse(twinData.BluetoothVisitorConfig.CharacteristicUUID)
 		if p, err := twinData.BluetoothClient.Client.DiscoverProfile(true); err == nil {
-			if u := p.Find(ble.NewCharacteristic(uuid)); u == nil {
+			if twinData.FindedCharacteristic = p.Find(ble.NewCharacteristic(uuid)); twinData.FindedCharacteristic == nil {
 				klog.Errorf("can't find uuid %s", uuid.String())
 				continue
 			}

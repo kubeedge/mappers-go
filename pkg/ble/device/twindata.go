@@ -22,12 +22,12 @@ type TwinData struct {
 	BluetoothVisitorConfig configmap.BluetoothVisitorConfig
 	Result                 string
 	Topic                  string
+	FindedCharacteristic   interface{}
 }
 
 // Run timer function.
 func (td *TwinData) Run() {
-	uuid := ble.MustParse(td.BluetoothVisitorConfig.CharacteristicUUID)
-	c := ble.NewCharacteristic(uuid)
+	c := td.FindedCharacteristic.(*ble.Characteristic)
 	// read data actively
 	if (c.Property & ble.CharRead) != 0 {
 		b, err := td.BluetoothClient.Read(c)
