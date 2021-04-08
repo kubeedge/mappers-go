@@ -48,6 +48,10 @@ func (bc *BluetoothClient) Set(c ble.UUID, b []byte) error {
 	return nil
 }
 
+func (bc *BluetoothClient) Read(c *ble.Characteristic) ([]byte, error) {
+	return bc.Client.ReadCharacteristic(c)
+}
+
 // GetStatus get device status.
 // Now we could only get the connection status.
 func (bc *BluetoothClient) GetStatus() string {

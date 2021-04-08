@@ -27,29 +27,25 @@ type TwinData struct {
 // Run timer function.
 func (td *TwinData) Run() {
 	uuid := ble.MustParse(td.BluetoothVisitorConfig.CharacteristicUUID)
-	if p, err := td.BluetoothClient.Client.DiscoverProfile(true); err == nil {
-		if u := p.Find(ble.NewCharacteristic(uuid)); u != nil {
-			c := u.(*ble.Characteristic)
-			// read data actively
-			if (c.Property & ble.CharRead) != 0 {
-				b, err := td.BluetoothClient.Client.ReadCharacteristic(c)
-				if err != nil {
-					klog.Errorf("Failed to read characteristic: %s\n", err)
-					return
-				}
-				td.Result = fmt.Sprintf("%f", td.ConvertReadData(b))
-				if err = td.handlerPublish(); err != nil {
-					klog.Error("publish data to mq failed")
-					return
-				}
-			}
-			// If this Characteristic suports notifications and there's a CCCD
-			// Then subscribe to it
-			if (c.Property&ble.CharNotify) != 0 && c.CCCD != nil {
-				if err := td.BluetoothClient.Client.Subscribe(c, false, td.notificationHandler()); err != nil {
-					klog.Error(err)
-				}
-			}
+	c := ble.NewCharacteristic(uuid)
+	// read data actively
+	if (c.Property & ble.CharRead) != 0 {
+		b, err := td.BluetoothClient.Read(c)
+		if err != nil {
+			klog.Errorf("Failed to read characteristic: %s\n", err)
+		}
+
+		td.Result = fmt.Sprintf("%f", td.ConvertReadData(b))
+
+		if err = td.handlerPublish(); err != nil {
+			klog.Error("publish data to mqtt failed")
+		}
+	}
+	// If this Characteristic suports notifications and there's a CCCD
+	// Then subscribe to it
+	if (c.Property&ble.CharNotify) != 0 && c.CCCD != nil {
+		if err := td.BluetoothClient.Client.Subscribe(c, false, td.notificationHandler()); err != nil {
+			klog.Error(err)
 		}
 	}
 }
@@ -85,8 +81,8 @@ func (td *TwinData) handlerPublish() (err error) {
 	return
 }
 
-// ConvertReadData is the function responsible to convert the data read from the device into meaningful data
-// If currently logic of Convert data is not suitbale for your deive,you can change ConvertReadData function manually
+// ConvertReadData is the function responsible to convert the data read from the device into meaningful data.
+// If currently logic of converting data is not suitbale for your deive, you can change ConvertReadData function manually.
 func (td *TwinData) ConvertReadData(data []byte) float64 {
 	var intermediateResult uint64
 	var initialValue []byte
