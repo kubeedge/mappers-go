@@ -29,24 +29,15 @@ type TwinData struct {
 func (td *TwinData) Run() {
 	c := td.FindedCharacteristic.(*ble.Characteristic)
 	// read data actively
-	if (c.Property & ble.CharRead) != 0 {
-		b, err := td.BluetoothClient.Read(c)
-		if err != nil {
-			klog.Errorf("Failed to read characteristic: %s\n", err)
-		}
-
-		td.Result = fmt.Sprintf("%f", td.ConvertReadData(b))
-
-		if err = td.handlerPublish(); err != nil {
-			klog.Error("publish data to mqtt failed")
-		}
+	b, err := td.BluetoothClient.Read(c)
+	if err != nil {
+		klog.Errorf("Failed to read characteristic: %s\n", err)
 	}
-	// If this Characteristic suports notifications and there's a CCCD
-	// Then subscribe to it
-	if (c.Property&ble.CharNotify) != 0 && c.CCCD != nil {
-		if err := td.BluetoothClient.Client.Subscribe(c, false, td.notificationHandler()); err != nil {
-			klog.Error(err)
-		}
+
+	td.Result = fmt.Sprintf("%f", td.ConvertReadData(b))
+
+	if err = td.handlerPublish(); err != nil {
+		klog.Error("publish data to mqtt failed")
 	}
 }
 

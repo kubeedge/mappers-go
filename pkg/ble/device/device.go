@@ -152,12 +152,26 @@ func initTwin(dev *globals.BluetoothDev) {
 				klog.Errorf("can't find uuid %s", uuid.String())
 				continue
 			}
-			timer := mappercommon.Timer{Function: twinData.Run, Duration: collectCycle, Times: 0}
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				timer.Start()
-			}()
+			c := twinData.FindedCharacteristic.(*ble.Characteristic)
+			// If this Characteristic suports notifications and there's a CCCD
+			// Then subscribe to it, the notifications operation is different from reading operation, notifications will keep looping when connected
+			// so we can't use imer.Start() for notifications
+			if (c.Property&ble.CharNotify) != 0 && c.CCCD != nil {
+				wg.Add(1)
+				go func() {
+					if err := twinData.BluetoothClient.Client.Subscribe(c, false, twinData.notificationHandler()); err != nil {
+						klog.Error(err)
+						wg.Done()
+					}
+				}()
+			} else if (c.Property & ble.CharRead) != 0 { // // read data actively
+				timer := mappercommon.Timer{Function: twinData.Run, Duration: collectCycle, Times: 0}
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					timer.Start()
+				}()
+			}
 		}
 	}
 }
@@ -189,6 +203,18 @@ func initData(dev *globals.BluetoothDev) {
 				continue
 			}
 			timer := mappercommon.Timer{Function: twinData.Run, Duration: collectCycle, Times: 0}
+			// If this Characteristic suports notifications and there's a CCCD
+			// Then subscribe to it, the notifications operation is different from reading operation, notifications will keep looping when connected
+			// so we can't use imer.Start() for notifications
+			wg.Add(1)
+			go func() {
+				c := twinData.FindedCharacteristic.(*ble.Characteristic)
+				if (c.Property&ble.CharNotify) != 0 && c.CCCD != nil {
+					if err := twinData.BluetoothClient.Client.Subscribe(c, false, twinData.notificationHandler()); err != nil {
+						klog.Error(err)
+					}
+				}
+			}()
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
