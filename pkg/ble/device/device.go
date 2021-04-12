@@ -114,7 +114,7 @@ func onMessage(client mqtt.Client, message mqtt.Message) {
 	}
 }
 
-// initModbus initialize modbus client
+// initBLE initialize ble client
 func initBluetooth(protocolConfig configmap.BluetoothProtocolConfig, name string) (client driver.BluetoothClient, err error) {
 	if protocolConfig.MacAddress != "" {
 		config := driver.BluetoothConfig{
@@ -155,7 +155,7 @@ func initTwin(dev *globals.BluetoothDev) {
 			c := twinData.FindedCharacteristic.(*ble.Characteristic)
 			// If this Characteristic suports notifications and there's a CCCD
 			// Then subscribe to it, the notifications operation is different from reading operation, notifications will keep looping when connected
-			// so we can't use imer.Start() for notifications
+			// so we can't use timer.Start() for notifications
 			if (c.Property&ble.CharNotify) != 0 && c.CCCD != nil {
 				wg.Add(1)
 				go func() {

@@ -1,5 +1,5 @@
 /*
-Copyright 2020 The KubeEdge Authors.
+Copyright 2021 The KubeEdge Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@ limitations under the License.
 
 package configmap
 
-// ModbusVisitorConfig is the modbus register configuration.
+// BLEVisitorConfig is the BLE register configuration.
 type BluetoothVisitorConfig struct {
 	CharacteristicUUID string            `json:"characteristicUUID"`
 	DataWrite          map[string][]byte `json:"dataWrite"`

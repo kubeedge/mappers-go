@@ -1,7 +1,7 @@
 SHELL = /bin/bash
 
 build:
-	@GOOS=linux CGO_ENABLED=0 GOARCH=arm go build -o ble-go
+	@GOOS=linux CGO_ENABLED=0 GOARCH=arm go build -o ble-go # please give your own arch, the arm here is a example
 	@docker build -t gopherlv/ble-go .  # please give your own image repo here
 	@rm ble-go
 

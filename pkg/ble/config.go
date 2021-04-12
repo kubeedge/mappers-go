@@ -1,5 +1,5 @@
 /*
-Copyright 2020 The KubeEdge Authors.
+Copyright 2021 The KubeEdge Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import (
 	"k8s.io/klog/v2"
 )
 
-// Config is the modbus mapper configuration.
+// Config is the ble mapper configuration.
 type Config struct {
 	Mqtt      Mqtt   `yaml:"mqtt,omitempty"`
 	Configmap string `yaml:"configmap"`

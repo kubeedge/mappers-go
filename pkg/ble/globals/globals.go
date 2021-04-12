@@ -1,5 +1,5 @@
 /*
-Copyright 2020 The KubeEdge Authors.
+Copyright 2021 The KubeEdge Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import (
 	"github.com/kubeedge/mappers-go/pkg/common"
 )
 
-// ModbusDev is the modbus device configuration and client information.
+// BLEDev is the ble device configuration and client information.
 type BluetoothDev struct {
 	Instance        common.DeviceInstance
 	BluetoothClient *driver.BluetoothClient
