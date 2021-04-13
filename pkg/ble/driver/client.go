@@ -25,17 +25,17 @@ import (
 	"time"
 )
 
-type BluetoothConfig struct {
+type BleConfig struct {
 	Addr string
 }
 
-// BluetoothClient is the client structure.
-type BluetoothClient struct {
+// BleClient is the client structure.
+type BleClient struct {
 	Client ble.Client
 	mu     sync.Mutex
 }
 
-func NewClient(config BluetoothConfig) (bc BluetoothClient, err error) {
+func NewClient(config BleConfig) (bc BleClient, err error) {
 	ctx := ble.WithSigHandler(context.WithTimeout(context.Background(), 1*time.Minute))
 	host, err := linux.NewDevice()
 	if err != nil {
@@ -47,11 +47,11 @@ func NewClient(config BluetoothConfig) (bc BluetoothClient, err error) {
 }
 
 // Disconnect from a Device
-func (bc *BluetoothClient) Disconnect() error {
+func (bc *BleClient) Disconnect() error {
 	return bc.Client.CancelConnection()
 }
 
-func (bc *BluetoothClient) Set(c ble.UUID, b []byte) error {
+func (bc *BleClient) Set(c ble.UUID, b []byte) error {
 	if p, err := bc.Client.DiscoverProfile(true); err == nil {
 		if u := p.Find(ble.NewCharacteristic(c)); u != nil {
 			c := u.(*ble.Characteristic)
@@ -64,13 +64,13 @@ func (bc *BluetoothClient) Set(c ble.UUID, b []byte) error {
 	return nil
 }
 
-func (bc *BluetoothClient) Read(c *ble.Characteristic) ([]byte, error) {
+func (bc *BleClient) Read(c *ble.Characteristic) ([]byte, error) {
 	return bc.Client.ReadCharacteristic(c)
 }
 
 // GetStatus get device status.
 // Now we could only get the connection status.
-func (bc *BluetoothClient) GetStatus() string {
+func (bc *BleClient) GetStatus() string {
 	bc.mu.Lock()
 	defer bc.mu.Unlock()
 

@@ -28,7 +28,7 @@ import (
 
 // Parse parse the configmap.
 func Parse(path string,
-	devices map[string]*globals.BluetoothDev,
+	devices map[string]*globals.BleDev,
 	dms map[string]common.DeviceModel,
 	protocols map[string]common.Protocol) error {
 	var deviceProfile common.DeviceProfile
@@ -115,7 +115,7 @@ func Parse(path string,
 			}
 		}
 
-		devices[instance.ID] = new(globals.BluetoothDev)
+		devices[instance.ID] = new(globals.BleDev)
 		devices[instance.ID].Instance = instance
 		klog.V(4).Info("Instance: ", instance.ID, instance)
 	}

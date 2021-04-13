@@ -25,7 +25,7 @@ import (
 
 // GetStatus is the timer structure for getting device status.
 type GetStatus struct {
-	Client *driver.BluetoothClient
+	Client *driver.BleClient
 	Status string
 	topic  string
 }

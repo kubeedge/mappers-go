@@ -17,7 +17,7 @@ limitations under the License.
 package configmap
 
 // BLEVisitorConfig is the BLE register configuration.
-type BluetoothVisitorConfig struct {
+type BleVisitorConfig struct {
 	CharacteristicUUID string            `json:"characteristicUUID"`
 	DataWrite          map[string][]byte `json:"dataWrite"`
 	DataConvert        DataConvert       `json:"dataConverter"`
@@ -36,6 +36,6 @@ type OrderOfOperations struct {
 	OperationValue float64 `json:"operationValue"`
 }
 
-type BluetoothProtocolConfig struct {
+type BleProtocolConfig struct {
 	MacAddress string `json:"macAddress"`
 }
