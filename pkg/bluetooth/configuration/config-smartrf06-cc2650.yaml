@@ -1,0 +1,28 @@
+mqtt:
+  mode: 0       # 0 -internal mqtt broker  1 - external mqtt broker
+  server: tcp://127.0.0.1:1883 # external mqtt broker url.
+  internal-server: tcp://127.0.0.1:1883 # internal mqtt broker url.
+device-model-name: simplebleperipheral
+action-manager:
+  actions:
+    - name: SimpleProfileChar1In 
+      perform-immediately: true 
+      device-property-name: simpleprofilechar1
+
+    - name: SimpleProfileChar2
+      perform-immediately: false 
+      device-property-name: simpleprofilechar2
+
+scheduler:
+  schedules:
+    - name: simpleprofilechar2
+      interval: 3000
+      occurrence-limit: 10            # if it is 0, then the event will execute infinitely
+      actions:
+        - SimpleProfileChar2          # Action name defined in the action-manager section
+
+watcher:
+  device-twin-attributes :
+    - device-property-name: simpleprofilechar1                     # the twin attribute name defined while creating device
+      actions: 
+      - SimpleProfileChar1In

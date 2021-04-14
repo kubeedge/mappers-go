@@ -1,5 +1,5 @@
 .PHONY: all
-all: modbusmapper opcuamapper
+all: modbusmapper opcuamapper bluetoothmapper
 
 .PHONY: modbusmapper
 modbusmapper:
@@ -15,5 +15,12 @@ opcuamapper:
 opcuamapper_image:opcuamapper
 	sudo docker build -t opcuamapper:v1.0 ./pkg/opcua
 
+.PHONY: bluetoothmapper 
+bluetoothmapper:
+	go build -o ./pkg/bluetooth/bluetooth ./pkg/bluetooth
+.PHONY: bluetoothmapper_image 
+bluetoothmapper_image:bluetoothmapper
+	sudo docker build -t bluetoothmapper:v1.0 ./pkg/bluetooth
+
 clean:
-	rm -f ./pkg/modbus/modbus ./pkg/opcua/opcua
+	rm -f ./pkg/modbus/modbus ./pkg/opcua/opcua ./pkg/bluetooth/bluetooth
