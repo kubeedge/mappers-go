@@ -25,7 +25,7 @@ More details on bluetooth mapper can be found [here]
 1. Clone and run KubeEdge.
     Please ensure that the kubeedge setup is up and running before execution of step 4 (mentioned below).
 
-2. Clone the kubeedge/mapper-go repository.
+2. Clone the kubeedge/mappers-go repository.
 
 ```console
 git clone https://github.com/kubeedge/mappers-go.git $GOPATH/src/github.com/kubeedge/mappers-go
