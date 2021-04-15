@@ -166,11 +166,9 @@ func initTwin(dev *globals.ModbusDev) {
 		twinData := TwinData{Client: dev.ModbusClient,
 			Name:         dev.Instance.Twins[i].PropertyName,
 			Type:         dev.Instance.Twins[i].Desired.Metadatas.Type,
-			RegisterType: visitorConfig.Register,
-			Address:      visitorConfig.Offset,
-			Quantity:     uint16(visitorConfig.Limit),
+			VisitorConfig: &visitorConfig,
 			Topic:        fmt.Sprintf(common.TopicTwinUpdate, dev.Instance.ID)}
-		collectCycle := time.Duration(dev.Instance.Twins[i].PVisitor.CollectCycle)
+		collectCycle := time.Duration(dev.Instance.Twins[i].PVisitor.CollectCycle * 1e6)
 		// If the collect cycle is not set, set it to 1 second.
 		if collectCycle == 0 {
 			collectCycle = 1 * time.Second
@@ -194,11 +192,9 @@ func initData(dev *globals.ModbusDev) {
 		twinData := TwinData{Client: dev.ModbusClient,
 			Name:         dev.Instance.Datas.Properties[i].PropertyName,
 			Type:         dev.Instance.Datas.Properties[i].Metadatas.Type,
-			RegisterType: visitorConfig.Register,
-			Address:      visitorConfig.Offset,
-			Quantity:     uint16(visitorConfig.Limit),
+			VisitorConfig: &visitorConfig,
 			Topic:        fmt.Sprintf(common.TopicDataUpdate, dev.Instance.ID)}
-		collectCycle := time.Duration(dev.Instance.Datas.Properties[i].PVisitor.CollectCycle)
+		collectCycle := time.Duration(dev.Instance.Datas.Properties[i].PVisitor.CollectCycle * 1e6)
 		// If the collect cycle is not set, set it to 1 second.
 		if collectCycle == 0 {
 			collectCycle = 1 * time.Second

@@ -21,7 +21,7 @@ type ModbusVisitorConfig struct {
 	Register       string `json:"register"`
 	Offset         uint16 `json:"offset"`
 	Limit          int    `json:"limit"`
-	Scale          int    `json:"scale,omitempty"`
+	Scale          float64 `json:"scale,omitempty"`
 	IsSwap         bool   `json:"isSwap,omitempty"`
 	IsRegisterSwap bool   `json:"isRegisterSwap,omitempty"`
 }
