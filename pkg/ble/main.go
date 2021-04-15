@@ -19,10 +19,11 @@ package main
 import (
 	"os"
 
+	"k8s.io/klog/v2"
+
 	"github.com/kubeedge/mappers-go/pkg/ble/device"
 	"github.com/kubeedge/mappers-go/pkg/ble/globals"
 	"github.com/kubeedge/mappers-go/pkg/common"
-	"k8s.io/klog/v2"
 )
 
 func main() {

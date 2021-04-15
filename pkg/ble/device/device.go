@@ -25,12 +25,13 @@ import (
 
 	"github.com/currantlabs/ble"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"k8s.io/klog/v2"
+
 	"github.com/kubeedge/mappers-go/pkg/ble/configmap"
 	"github.com/kubeedge/mappers-go/pkg/ble/driver"
 	"github.com/kubeedge/mappers-go/pkg/ble/globals"
 	"github.com/kubeedge/mappers-go/pkg/common"
 	mappercommon "github.com/kubeedge/mappers-go/pkg/common"
-	"k8s.io/klog/v2"
 )
 
 var devices map[string]*globals.BleDev

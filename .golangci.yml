@@ -47,7 +47,6 @@ linters-settings:
 linters:
   disable-all: true
   enable:
-    - gci
     - goconst
     - errcheck
     - gofmt
@@ -60,10 +59,7 @@ linters:
 issues:
     # Excluding configuration per-path, per-linter, per-text and per-source
     exclude-rules:
-      - path: edge
+      - path: pkg/opcua/driver/client.go
         linters:
-          - errcheck
-      - path: cloud/pkg/client
-        linters:
-          - gci
+          - gofmt
 

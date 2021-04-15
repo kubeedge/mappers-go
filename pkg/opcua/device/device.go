@@ -23,12 +23,12 @@ import (
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	mappercommon "github.com/kubeedge/mappers-go/pkg/common"
+	"k8s.io/klog/v2"
 
+	mappercommon "github.com/kubeedge/mappers-go/pkg/common"
 	"github.com/kubeedge/mappers-go/pkg/opcua/configmap"
 	"github.com/kubeedge/mappers-go/pkg/opcua/driver"
 	"github.com/kubeedge/mappers-go/pkg/opcua/globals"
-	"k8s.io/klog/v2"
 )
 
 var devices map[string]*globals.OPCUADev

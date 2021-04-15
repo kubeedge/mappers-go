@@ -21,9 +21,10 @@ import (
 	"errors"
 	"io/ioutil"
 
+	"k8s.io/klog/v2"
+
 	"github.com/kubeedge/mappers-go/pkg/ble/globals"
 	"github.com/kubeedge/mappers-go/pkg/common"
-	"k8s.io/klog/v2"
 )
 
 // Parse parse the configmap.

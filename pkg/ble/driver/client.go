@@ -17,12 +17,13 @@ limitations under the License.
 package driver
 
 import (
+	"sync"
+	"time"
+
 	"github.com/currantlabs/ble"
 	"github.com/currantlabs/ble/linux"
 	"golang.org/x/net/context"
 	"k8s.io/klog/v2"
-	"sync"
-	"time"
 )
 
 type BleConfig struct {

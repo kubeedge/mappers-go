@@ -24,7 +24,7 @@ import (
 
 	"github.com/gopcua/opcua"
 	"github.com/gopcua/opcua/ua"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 // OPCUAConfig configurations for OPCUA.
@@ -51,9 +51,8 @@ func readPassword(filename string) (string, error) {
 	if err != nil {
 		return "", errors.New("Failed to load certificate")
 	}
-	// Remove the last charactor '\n'
+	// Remove the last character '\n'
 	return string(b[:len(b)-1]), nil
-
 }
 
 // NewClient new the OPCUA client.
@@ -118,25 +117,27 @@ func valueToString(v *ua.Variant) string {
 func (c *OPCUAClient) Get(nodeID string) (results string, err error) {
 	id, err := ua.ParseNodeID(nodeID)
 	if err != nil {
-		klog.Error("invalid node id: %v", err)
+		klog.Errorf("invalid node id: %v", err)
 		return "", errors.New("Invalid node ID")
 	}
 
 	req := &ua.ReadRequest{
 		MaxAge: 2000,
 		NodesToRead: []*ua.ReadValueID{
-			&ua.ReadValueID{NodeID: id},
+			&ua.ReadValueID{
+				NodeID: id,
+			},
 		},
 		TimestampsToReturn: ua.TimestampsToReturnBoth,
 	}
 
 	resp, err := c.Client.Read(req)
 	if err != nil {
-		klog.Error("Read failed: %v", err)
+		klog.Errorf("Read failed: %v", err)
 		return "", err
 	}
 	if resp.Results[0].Status != ua.StatusOK {
-		klog.Error("Read status failed: %v", resp.Results[0].Status)
+		klog.Errorf("Read status failed: %v", resp.Results[0].Status)
 		return "", errors.New(resp.Results[0].Status.Error())
 	}
 	return valueToString(resp.Results[0].Value), nil
@@ -146,13 +147,13 @@ func (c *OPCUAClient) Get(nodeID string) (results string, err error) {
 func (c *OPCUAClient) Set(nodeID string, value string) (results string, err error) {
 	id, err := ua.ParseNodeID(nodeID)
 	if err != nil {
-		klog.Error("invalid node id: %v", err)
+		klog.Errorf("invalid node id: %v", err)
 		return "", errors.New("Invalid node ID")
 	}
 
 	v, err := ua.NewVariant(value)
 	if err != nil {
-		klog.Error("invalid value: %v", err)
+		klog.Errorf("invalid value: %v", err)
 		return "", errors.New("Invalid value")
 	}
 
@@ -171,7 +172,7 @@ func (c *OPCUAClient) Set(nodeID string, value string) (results string, err erro
 
 	resp, err := c.Client.Write(req)
 	if err != nil {
-		klog.Error("Write failed: %v", err)
+		klog.Errorf("Write failed: %v", err)
 		return "", err
 	}
 	klog.V(4).Info("Set node ", nodeID, value)

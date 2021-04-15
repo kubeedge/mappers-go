@@ -27,7 +27,6 @@ import (
 )
 
 func TestReadWithoutAuth(t *testing.T) {
-
 	c := &OPCUAConfig{URL: "opc.tcp://localhost:4840"}
 
 	client, err := NewClient(*c)
