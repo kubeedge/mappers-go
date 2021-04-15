@@ -32,20 +32,20 @@ import (
 
 // TwinData is the timer structure for getting twin/data.
 type TwinData struct {
-	BluetoothClient        *driver.BluetoothClient
-	Name                   string
-	Type                   string
-	BluetoothVisitorConfig configmap.BluetoothVisitorConfig
-	Result                 string
-	Topic                  string
-	FindedCharacteristic   interface{}
+	BleClient            *driver.BleClient
+	Name                 string
+	Type                 string
+	BleVisitorConfig     configmap.BleVisitorConfig
+	Result               string
+	Topic                string
+	FindedCharacteristic interface{}
 }
 
 // Run timer function.
 func (td *TwinData) Run() {
 	c := td.FindedCharacteristic.(*ble.Characteristic)
 	// read data actively
-	b, err := td.BluetoothClient.Read(c)
+	b, err := td.BleClient.Read(c)
 	if err != nil {
 		klog.Errorf("Failed to read characteristic: %s\n", err)
 	}
@@ -94,12 +94,12 @@ func (td *TwinData) ConvertReadData(data []byte) float64 {
 	var intermediateResult uint64
 	var initialValue []byte
 	var initialStringValue = ""
-	if td.BluetoothVisitorConfig.DataConvert.StartIndex <= td.BluetoothVisitorConfig.DataConvert.EndIndex {
-		for index := td.BluetoothVisitorConfig.DataConvert.StartIndex; index <= td.BluetoothVisitorConfig.DataConvert.EndIndex; index++ {
+	if td.BleVisitorConfig.DataConvert.StartIndex <= td.BleVisitorConfig.DataConvert.EndIndex {
+		for index := td.BleVisitorConfig.DataConvert.StartIndex; index <= td.BleVisitorConfig.DataConvert.EndIndex; index++ {
 			initialValue = append(initialValue, data[index])
 		}
 	} else {
-		for index := td.BluetoothVisitorConfig.DataConvert.StartIndex; index >= td.BluetoothVisitorConfig.DataConvert.EndIndex; index-- {
+		for index := td.BleVisitorConfig.DataConvert.StartIndex; index >= td.BleVisitorConfig.DataConvert.EndIndex; index-- {
 			initialValue = append(initialValue, data[index])
 		}
 	}
@@ -107,15 +107,15 @@ func (td *TwinData) ConvertReadData(data []byte) float64 {
 		initialStringValue = initialStringValue + strconv.Itoa(int(value))
 	}
 	initialByteValue, _ := strconv.ParseUint(initialStringValue, 10, 64)
-	if td.BluetoothVisitorConfig.DataConvert.ShiftLeft != 0 {
-		intermediateResult = initialByteValue << td.BluetoothVisitorConfig.DataConvert.ShiftLeft
-	} else if td.BluetoothVisitorConfig.DataConvert.ShiftRight != 0 {
-		intermediateResult = initialByteValue >> td.BluetoothVisitorConfig.DataConvert.ShiftRight
+	if td.BleVisitorConfig.DataConvert.ShiftLeft != 0 {
+		intermediateResult = initialByteValue << td.BleVisitorConfig.DataConvert.ShiftLeft
+	} else if td.BleVisitorConfig.DataConvert.ShiftRight != 0 {
+		intermediateResult = initialByteValue >> td.BleVisitorConfig.DataConvert.ShiftRight
 	} else {
 		intermediateResult = initialByteValue
 	}
 	finalResult := float64(intermediateResult)
-	for _, orderOfOperations := range td.BluetoothVisitorConfig.DataConvert.OrderOfOperations {
+	for _, orderOfOperations := range td.BleVisitorConfig.DataConvert.OrderOfOperations {
 		if strings.ToUpper(orderOfOperations.OperationType) == strings.ToUpper(string(v1alpha2.BluetoothAdd)) {
 			finalResult = finalResult + orderOfOperations.OperationValue
 		} else if strings.ToUpper(orderOfOperations.OperationType) == strings.ToUpper(string(v1alpha2.BluetoothSubtract)) {

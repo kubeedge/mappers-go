@@ -22,9 +22,9 @@ import (
 )
 
 // BLEDev is the ble device configuration and client information.
-type BluetoothDev struct {
+type BleDev struct {
 	Instance        common.DeviceInstance
-	BluetoothClient *driver.BluetoothClient
+	BleClient *driver.BleClient
 }
 
 var MqttClient *common.MqttClient

@@ -33,13 +33,13 @@ import (
 	"k8s.io/klog/v2"
 )
 
-var devices map[string]*globals.BluetoothDev
+var devices map[string]*globals.BleDev
 var models map[string]common.DeviceModel
 var protocols map[string]common.Protocol
 var wg sync.WaitGroup
 
 // setVisitor check if visitory is readonly, if not then set it.
-func setVisitor(visitorConfig *configmap.BluetoothVisitorConfig, twin *common.Twin, bleClient *driver.BluetoothClient) {
+func setVisitor(visitorConfig *configmap.BleVisitorConfig, twin *common.Twin, bleClient *driver.BleClient) {
 	if twin.PVisitor.PProperty.AccessMode == "ReadOnly" {
 		klog.V(1).Info("Visit readonly characteristicUUID: ", visitorConfig.CharacteristicUUID)
 		return
@@ -77,7 +77,7 @@ func onMessage(client mqtt.Client, message mqtt.Message) {
 	}
 	klog.V(2).Info("Device id: ", id)
 
-	var dev *globals.BluetoothDev
+	var dev *globals.BleDev
 	var ok bool
 	if dev, ok = devices[id]; !ok {
 		klog.Error("Device not exist")
@@ -106,18 +106,18 @@ func onMessage(client mqtt.Client, message mqtt.Message) {
 			continue
 		}
 		dev.Instance.Twins[i].Desired.Value = twinValue
-		var visitorConfig configmap.BluetoothVisitorConfig
+		var visitorConfig configmap.BleVisitorConfig
 		if err := json.Unmarshal([]byte(dev.Instance.Twins[i].PVisitor.VisitorConfig), &visitorConfig); err != nil {
 			klog.Error("Unmarshal visitor config failed")
 		}
-		setVisitor(&visitorConfig, &dev.Instance.Twins[i], dev.BluetoothClient)
+		setVisitor(&visitorConfig, &dev.Instance.Twins[i], dev.BleClient)
 	}
 }
 
 // initBLE initialize ble client
-func initBluetooth(protocolConfig configmap.BluetoothProtocolConfig, name string) (client driver.BluetoothClient, err error) {
+func initBle(protocolConfig configmap.BleProtocolConfig, name string) (client driver.BleClient, err error) {
 	if protocolConfig.MacAddress != "" {
-		config := driver.BluetoothConfig{
+		config := driver.BleConfig{
 			Addr: protocolConfig.MacAddress,
 		}
 		client, err = driver.NewClient(config)
@@ -126,28 +126,28 @@ func initBluetooth(protocolConfig configmap.BluetoothProtocolConfig, name string
 }
 
 // initTwin initialize the timer to get twin value.
-func initTwin(dev *globals.BluetoothDev) {
+func initTwin(dev *globals.BleDev) {
 	for i := 0; i < len(dev.Instance.Twins); i++ {
-		var visitorConfig configmap.BluetoothVisitorConfig
+		var visitorConfig configmap.BleVisitorConfig
 		if err := json.Unmarshal(dev.Instance.Twins[i].PVisitor.VisitorConfig, &visitorConfig); err != nil {
 			klog.Error(err)
 			continue
 		}
-		setVisitor(&visitorConfig, &dev.Instance.Twins[i], dev.BluetoothClient)
+		setVisitor(&visitorConfig, &dev.Instance.Twins[i], dev.BleClient)
 
 		twinData := TwinData{
-			BluetoothClient:        dev.BluetoothClient,
-			Name:                   dev.Instance.Twins[i].PropertyName,
-			Type:                   dev.Instance.Twins[i].Desired.Metadatas.Type,
-			BluetoothVisitorConfig: visitorConfig,
-			Topic:                  fmt.Sprintf(mappercommon.TopicTwinUpdate, dev.Instance.ID)}
+			BleClient:        dev.BleClient,
+			Name:             dev.Instance.Twins[i].PropertyName,
+			Type:             dev.Instance.Twins[i].Desired.Metadatas.Type,
+			BleVisitorConfig: visitorConfig,
+			Topic:            fmt.Sprintf(mappercommon.TopicTwinUpdate, dev.Instance.ID)}
 		collectCycle := time.Duration(dev.Instance.Twins[i].PVisitor.CollectCycle)
 		// If the collect cycle is not set, set it to 1 second.
 		if collectCycle == 0 {
 			collectCycle = 1 * time.Second
 		}
-		uuid := ble.MustParse(twinData.BluetoothVisitorConfig.CharacteristicUUID)
-		if p, err := twinData.BluetoothClient.Client.DiscoverProfile(true); err == nil {
+		uuid := ble.MustParse(twinData.BleVisitorConfig.CharacteristicUUID)
+		if p, err := twinData.BleClient.Client.DiscoverProfile(true); err == nil {
 			if twinData.FindedCharacteristic = p.Find(ble.NewCharacteristic(uuid)); twinData.FindedCharacteristic == nil {
 				klog.Errorf("can't find uuid %s", uuid.String())
 				continue
@@ -159,7 +159,7 @@ func initTwin(dev *globals.BluetoothDev) {
 			if (c.Property&ble.CharNotify) != 0 && c.CCCD != nil {
 				wg.Add(1)
 				go func() {
-					if err := twinData.BluetoothClient.Client.Subscribe(c, false, twinData.notificationHandler()); err != nil {
+					if err := twinData.BleClient.Client.Subscribe(c, false, twinData.notificationHandler()); err != nil {
 						klog.Error(err)
 						wg.Done()
 					}
@@ -177,27 +177,27 @@ func initTwin(dev *globals.BluetoothDev) {
 }
 
 // initData initialize the timer to get data.
-func initData(dev *globals.BluetoothDev) {
+func initData(dev *globals.BleDev) {
 	for i := 0; i < len(dev.Instance.Datas.Properties); i++ {
-		var visitorConfig configmap.BluetoothVisitorConfig
+		var visitorConfig configmap.BleVisitorConfig
 		if err := json.Unmarshal([]byte(dev.Instance.Twins[i].PVisitor.VisitorConfig), &visitorConfig); err != nil {
 			klog.Error(err)
 			continue
 		}
 
 		twinData := TwinData{
-			BluetoothClient:        dev.BluetoothClient,
-			Name:                   dev.Instance.Datas.Properties[i].PropertyName,
-			Type:                   dev.Instance.Datas.Properties[i].Metadatas.Type,
-			BluetoothVisitorConfig: visitorConfig,
-			Topic:                  fmt.Sprintf(mappercommon.TopicDataUpdate, dev.Instance.ID)}
+			BleClient:        dev.BleClient,
+			Name:             dev.Instance.Datas.Properties[i].PropertyName,
+			Type:             dev.Instance.Datas.Properties[i].Metadatas.Type,
+			BleVisitorConfig: visitorConfig,
+			Topic:            fmt.Sprintf(mappercommon.TopicDataUpdate, dev.Instance.ID)}
 		collectCycle := time.Duration(dev.Instance.Datas.Properties[i].PVisitor.CollectCycle)
 		// If the collect cycle is not set, set it to 1 second.
 		if collectCycle == 0 {
 			collectCycle = 1 * time.Second
 		}
-		uuid := ble.MustParse(twinData.BluetoothVisitorConfig.CharacteristicUUID)
-		if p, err := twinData.BluetoothClient.Client.DiscoverProfile(true); err == nil {
+		uuid := ble.MustParse(twinData.BleVisitorConfig.CharacteristicUUID)
+		if p, err := twinData.BleClient.Client.DiscoverProfile(true); err == nil {
 			if u := p.Find(ble.NewCharacteristic(uuid)); u == nil {
 				klog.Errorf("can't find uuid %s", uuid.String())
 				continue
@@ -210,7 +210,7 @@ func initData(dev *globals.BluetoothDev) {
 			go func() {
 				c := twinData.FindedCharacteristic.(*ble.Characteristic)
 				if (c.Property&ble.CharNotify) != 0 && c.CCCD != nil {
-					if err := twinData.BluetoothClient.Client.Subscribe(c, false, twinData.notificationHandler()); err != nil {
+					if err := twinData.BleClient.Client.Subscribe(c, false, twinData.notificationHandler()); err != nil {
 						klog.Error(err)
 					}
 				}
@@ -232,8 +232,8 @@ func initSubscribeMqtt(instanceID string) error {
 }
 
 // initGetStatus start timer to get device status and send to eventbus.
-func initGetStatus(dev *globals.BluetoothDev) {
-	getStatus := GetStatus{Client: dev.BluetoothClient,
+func initGetStatus(dev *globals.BleDev) {
+	getStatus := GetStatus{Client: dev.BleClient,
 		topic: fmt.Sprintf(mappercommon.TopicStateUpdate, dev.Instance.ID)}
 	timer := mappercommon.Timer{Function: getStatus.Run, Duration: 1 * time.Second, Times: 0}
 	wg.Add(1)
@@ -244,19 +244,19 @@ func initGetStatus(dev *globals.BluetoothDev) {
 }
 
 // start start the device.
-func start(dev *globals.BluetoothDev) {
-	var protocolConfig configmap.BluetoothProtocolConfig
+func start(dev *globals.BleDev) {
+	var protocolConfig configmap.BleProtocolConfig
 	if err := json.Unmarshal([]byte(dev.Instance.PProtocol.ProtocolConfigs), &protocolConfig); err != nil {
 		klog.Error(err)
 		return
 	}
 
-	client, err := initBluetooth(protocolConfig, protocolConfig.MacAddress)
+	client, err := initBle(protocolConfig, protocolConfig.MacAddress)
 	if err != nil {
 		klog.Error(err)
 		return
 	}
-	dev.BluetoothClient = &client
+	dev.BleClient = &client
 
 	initTwin(dev)
 	initData(dev)
@@ -271,7 +271,7 @@ func start(dev *globals.BluetoothDev) {
 
 // DevInit initialize the device datas.
 func DevInit(configmapPath string) error {
-	devices = make(map[string]*globals.BluetoothDev)
+	devices = make(map[string]*globals.BleDev)
 	models = make(map[string]mappercommon.DeviceModel)
 	protocols = make(map[string]mappercommon.Protocol)
 	return configmap.Parse(configmapPath, devices, models, protocols)
