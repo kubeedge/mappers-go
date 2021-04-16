@@ -24,9 +24,11 @@ Please configuration the device instance and device model. You could refer to th
 
 # Notice
 
-There's a bug about gopcua library. https://github.com/gopcua/opcua/issues/410.
+There's a bug about gopcua library. https://github.com/gopcua/opcua/issues/410. The source code is at: 
+https://github.com/gopcua/opcua/blob/main/uasc/secure_channel_crypto.go#L67
+
 If you want to use username&password mode, please modify the file as this:
-vendor/github.com/gopcua/opcua/uasc/secure_channel_crypto.go line 67:
+vendor/github.com/gopcua/opcua/uasc/secure_channel_crypto.go#67:
 
 ```
  67 func (s *SecureChannel) EncryptUserPassword(policyURI, password string, cert, nonce []byte) ([]byte, string, error) {
