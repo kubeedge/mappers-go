@@ -23,7 +23,7 @@ import (
 
 // BLEDev is the ble device configuration and client information.
 type BleDev struct {
-	Instance        common.DeviceInstance
+	Instance  common.DeviceInstance
 	BleClient *driver.BleClient
 }
 

@@ -17,10 +17,11 @@ limitations under the License.
 package device
 
 import (
+	"k8s.io/klog/v2"
+
 	"github.com/kubeedge/mappers-go/pkg/ble/driver"
 	"github.com/kubeedge/mappers-go/pkg/ble/globals"
 	"github.com/kubeedge/mappers-go/pkg/common"
-	"k8s.io/klog/v2"
 )
 
 // GetStatus is the timer structure for getting device status.

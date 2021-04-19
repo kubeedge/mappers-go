@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	mappercommon "github.com/kubeedge/mappers-go/pkg/common"
 	. "github.com/kubeedge/mappers-go/pkg/opcua/globals"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestParse(t *testing.T) {
@@ -20,8 +21,8 @@ func TestParse(t *testing.T) {
 
 	assert.Nil(t, Parse("./configmap_test.json", devices, models, protocols))
 	for _, device := range devices {
-		var pcc ProtocolConfigOpcUA
-		assert.Nil(t, json.Unmarshal([]byte(device.Instance.PProtocol.ProtocolConfig), &pcc))
-		assert.Equal(pcc.UserName, "testuser")
+		var pcc ProtocolConfigOPCUA
+		assert.Nil(t, json.Unmarshal([]byte(device.Instance.PProtocol.ProtocolConfigs), &pcc))
+		assert.Equal(t, pcc.UserName, "testuser")
 	}
 }
