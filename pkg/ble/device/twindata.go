@@ -22,12 +22,13 @@ import (
 	"strings"
 
 	"github.com/currantlabs/ble"
+	"k8s.io/klog/v2"
+
 	"github.com/kubeedge/kubeedge/cloud/pkg/apis/devices/v1alpha2"
 	"github.com/kubeedge/mappers-go/pkg/ble/configmap"
 	"github.com/kubeedge/mappers-go/pkg/ble/driver"
 	"github.com/kubeedge/mappers-go/pkg/ble/globals"
 	"github.com/kubeedge/mappers-go/pkg/common"
-	"k8s.io/klog/v2"
 )
 
 // TwinData is the timer structure for getting twin/data.

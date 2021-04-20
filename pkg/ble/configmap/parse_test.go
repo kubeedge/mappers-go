@@ -18,10 +18,12 @@ package configmap
 
 import (
 	"encoding/json"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
 	"github.com/kubeedge/mappers-go/pkg/ble/globals"
 	"github.com/kubeedge/mappers-go/pkg/common"
-	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestParse(t *testing.T) {
