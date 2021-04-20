@@ -25,9 +25,8 @@ import (
 )
 
 func SwitchRegister(value []byte) []byte {
-
-	for i := 0; i < len(value)/2; i = i+2 {
-		j := len(value)-i-2
+	for i := 0; i < len(value)/2; i = i + 2 {
+		j := len(value) - i - 2
 		value[i], value[j] = value[j], value[i]
 		value[i+1], value[j+1] = value[j+1], value[i+1]
 	}
@@ -36,9 +35,8 @@ func SwitchRegister(value []byte) []byte {
 }
 
 func SwitchByte(value []byte) []byte {
-
-	for i := 0; i < len(value); i = i+2 {
-		value[i], value[i + 1] = value[i + 1], value[i]
+	for i := 0; i < len(value); i = i + 2 {
+		value[i], value[i+1] = value[i+1], value[i]
 	}
 	return value
 }
@@ -46,7 +44,6 @@ func SwitchByte(value []byte) []byte {
 func TransferData(isRegisterSwap bool, isSwap bool,
 	dataType string, scale float64,
 	value []byte) (string, error) {
-
 	// accord IsSwap/IsRegisterSwap to transfer byte array
 	if isRegisterSwap {
 		SwitchRegister(value)
@@ -101,21 +98,19 @@ func TransferData(isRegisterSwap bool, isSwap bool,
 	case "double":
 		if len(value) != 8 {
 			return "", errors.New("BytesToDouble bytes length is invalid")
-		} else {
-			bits := binary.BigEndian.Uint64(value)
-			data := math.Float64frombits(bits) * scale
-			sData := strconv.FormatFloat(data,'f', 6, 64)
-			return sData, nil
 		}
+		bits := binary.BigEndian.Uint64(value)
+		data := math.Float64frombits(bits) * scale
+		sData := strconv.FormatFloat(data, 'f', 6, 64)
+		return sData, nil
 	case "float":
 		if len(value) != 4 {
 			return "", errors.New("BytesToFloat bytes length is invalid")
-		} else {
-			bits := binary.BigEndian.Uint32(value)
-			data := float64(math.Float32frombits(bits)) * scale
-			sData := strconv.FormatFloat(data,'f', 6, 64)
-			return sData, nil
 		}
+		bits := binary.BigEndian.Uint32(value)
+		data := float64(math.Float32frombits(bits)) * scale
+		sData := strconv.FormatFloat(data, 'f', 6, 64)
+		return sData, nil
 	case "boolean":
 		return strconv.FormatBool(value[0] == 1), nil
 	case "string":
