@@ -18,12 +18,12 @@ package configmap
 
 // ModbusVisitorConfig is the modbus register configuration.
 type ModbusVisitorConfig struct {
-	Register       string `json:"register"`
-	Offset         uint16 `json:"offset"`
-	Limit          int    `json:"limit"`
-	Scale          int    `json:"scale,omitempty"`
-	IsSwap         bool   `json:"isSwap,omitempty"`
-	IsRegisterSwap bool   `json:"isRegisterSwap,omitempty"`
+	Register       string  `json:"register"`
+	Offset         uint16  `json:"offset"`
+	Limit          int     `json:"limit"`
+	Scale          float64 `json:"scale,omitempty"`
+	IsSwap         bool    `json:"isSwap,omitempty"`
+	IsRegisterSwap bool    `json:"isRegisterSwap,omitempty"`
 }
 
 // ModbusProtocolConfig is the protocol configuration.
