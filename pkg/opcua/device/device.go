@@ -36,7 +36,7 @@ var models map[string]mappercommon.DeviceModel
 var protocols map[string]mappercommon.Protocol
 var wg sync.WaitGroup
 
-// setVisitor check if visitory is readonly, if not then set it.
+// setVisitor check if visitor property is readonly, if not then set it.
 func setVisitor(visitorConfig *configmap.VisitorConfigOPCUA, twin *mappercommon.Twin, client *driver.OPCUAClient) {
 	if twin.PVisitor.PProperty.AccessMode == "ReadOnly" {
 		klog.V(1).Info("Visit readonly register: ", visitorConfig.NodeID)

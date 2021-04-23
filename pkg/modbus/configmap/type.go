@@ -50,7 +50,7 @@ type COMStruct struct {
 	StopBits   int64  `json:"stopBits"`
 }
 
-// TCPStruct is the TCP configuation.
+// TCPStruct is the TCP configuration.
 type TCPStruct struct {
 	IP   string `json:"ip"`
 	Port int64  `json:"port"`
