@@ -1,5 +1,5 @@
 .PHONY: all
-all: modbusmapper opcuamapper
+all: modbusmapper opcuamapper blemapper
 
 .PHONY: modbusmapper
 modbusmapper:
@@ -17,8 +17,16 @@ opcuamapper:
 opcuamapper_image:opcuamapper
 	sudo docker build -t opcuamapper:v1.0 ./pkg/opcua
 
+.PHONY: blemapper
+blemapper:
+	go build -o ./pkg/ble/ble ./pkg/ble
+
+.PHONY: blemapper_image
+blemapper_image:blemapper
+	sudo docker build -t blemapper:v1.0 ./pkg/ble
+
 clean:
-	rm -f ./pkg/modbus/modbus ./pkg/opcua/opcua
+	rm -f ./pkg/modbus/modbus ./pkg/opcua/opcua ./pkg/ble/ble
 
 define VERIFY_HELP_INFO
 # verify golang,vendor and codegen

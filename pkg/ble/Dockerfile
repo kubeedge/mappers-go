@@ -1,5 +1,10 @@
 FROM alpine
-RUN mkdir -p /opt/kubeedge/
-ADD config.yaml /bin
-ADD ble-go /bin
-CMD ["/bin/ble-go","--v","5"]
+
+RUN mkdir -p kubeedge
+
+COPY ./config.yaml kubeedge/
+COPY ./ble kubeedge/
+
+WORKDIR kubeedge
+
+CMD ["/kubeedge/ble","--v","5"]
