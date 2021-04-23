@@ -179,7 +179,7 @@ func (c *ModbusClient) Set(registerType string, addr uint16, value uint16) (resu
 	return results, err
 }
 
-// parity convert into the format that modbus drvier requires.
+// parity convert into the format that modbus driver requires.
 func parity(ori string) string {
 	var p string
 	switch ori {

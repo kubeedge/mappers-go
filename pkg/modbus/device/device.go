@@ -39,7 +39,7 @@ var models map[string]common.DeviceModel
 var protocols map[string]common.Protocol
 var wg sync.WaitGroup
 
-// setVisitor check if visitory is readonly, if not then set it.
+// setVisitor check if visitor property is readonly, if not then set it.
 func setVisitor(visitorConfig *configmap.ModbusVisitorConfig, twin *common.Twin, client *driver.ModbusClient) {
 	if twin.PVisitor.PProperty.AccessMode == "ReadOnly" {
 		klog.V(1).Info("Visit readonly register: ", visitorConfig.Offset)
@@ -109,7 +109,7 @@ func onMessage(client mqtt.Client, message mqtt.Message) {
 		dev.Instance.Twins[i].Desired.Value = twinValue
 		var visitorConfig configmap.ModbusVisitorConfig
 		if err := json.Unmarshal([]byte(dev.Instance.Twins[i].PVisitor.VisitorConfig), &visitorConfig); err != nil {
-			klog.Error("Unmarshal visitor config failed")
+			klog.Error("Unmarshal visitor config failed: %v", err)
 		}
 		setVisitor(&visitorConfig, &dev.Instance.Twins[i], dev.ModbusClient)
 	}
