@@ -39,7 +39,7 @@ var models map[string]common.DeviceModel
 var protocols map[string]common.Protocol
 var wg sync.WaitGroup
 
-// setVisitor check if visitory is readonly, if not then set it.
+// setVisitor check if visitor property is readonly, if not then set it.
 func setVisitor(visitorConfig *configmap.ModbusVisitorConfig, twin *common.Twin, client *driver.ModbusClient) {
 	if twin.PVisitor.PProperty.AccessMode == "ReadOnly" {
 		klog.V(1).Info("Visit readonly register: ", visitorConfig.Offset)
