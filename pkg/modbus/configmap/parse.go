@@ -18,7 +18,6 @@ package configmap
 
 import (
 	"encoding/json"
-	"errors"
 	"io/ioutil"
 
 	"k8s.io/klog/v2"
@@ -45,75 +44,12 @@ func Parse(path string,
 
 	for i := 0; i < len(deviceProfile.DeviceInstances); i++ {
 		instance := deviceProfile.DeviceInstances[i]
-		j := 0
-		for j = 0; j < len(deviceProfile.Protocols); j++ {
-			if instance.ProtocolName == deviceProfile.Protocols[j].Name {
-				instance.PProtocol = deviceProfile.Protocols[j]
-				break
-			}
-		}
-		if j == len(deviceProfile.Protocols) {
-			err = errors.New("Protocol not found")
-			return err
-		}
-
-		if instance.PProtocol.Protocol != "modbus" {
+		err := common.ValidateProfileDeviceInstance(&instance, &deviceProfile, "modbus")
+		if err == common.ErrorProtocolNotExpected {
 			continue
-		}
-
-		for k := 0; k < len(instance.PropertyVisitors); k++ {
-			modelName := instance.PropertyVisitors[k].ModelName
-			propertyName := instance.PropertyVisitors[k].PropertyName
-			l := 0
-			for l = 0; l < len(deviceProfile.DeviceModels); l++ {
-				if modelName == deviceProfile.DeviceModels[l].Name {
-					m := 0
-					for m = 0; m < len(deviceProfile.DeviceModels[l].Properties); m++ {
-						if propertyName == deviceProfile.DeviceModels[l].Properties[m].Name {
-							instance.PropertyVisitors[k].PProperty = deviceProfile.DeviceModels[l].Properties[m]
-							break
-						}
-					}
-
-					if m == len(deviceProfile.DeviceModels[l].Properties) {
-						err = errors.New("Property not found")
-						return err
-					}
-					break
-				}
-			}
-			if l == len(deviceProfile.DeviceModels) {
-				err = errors.New("Device model not found")
-				return err
-			}
-		}
-
-		for k := 0; k < len(instance.Twins); k++ {
-			name := instance.Twins[k].PropertyName
-			l := 0
-			for l = 0; l < len(instance.PropertyVisitors); l++ {
-				if name == instance.PropertyVisitors[l].PropertyName {
-					instance.Twins[k].PVisitor = &instance.PropertyVisitors[l]
-					break
-				}
-			}
-			if l == len(instance.PropertyVisitors) {
-				return errors.New("PropertyVisitor not found")
-			}
-		}
-
-		for k := 0; k < len(instance.Datas.Properties); k++ {
-			name := instance.Datas.Properties[k].PropertyName
-			l := 0
-			for l = 0; l < len(instance.PropertyVisitors); l++ {
-				if name == instance.PropertyVisitors[l].PropertyName {
-					instance.Datas.Properties[k].PVisitor = &instance.PropertyVisitors[l]
-					break
-				}
-			}
-			if l == len(instance.PropertyVisitors) {
-				return errors.New("PropertyVisitor not found")
-			}
+		} else if err != nil {
+			klog.Errorf("validate device profile failed: %v", err)
+			return err
 		}
 
 		devices[instance.ID] = new(globals.ModbusDev)
