@@ -1,5 +1,6 @@
 SHELL := /bin/bash
 
+GOPATH?=$(shell go env GOPATH)
 curr_dir := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 rest_args := $(wordlist 2, $(words $(MAKECMDGOALS)), $(MAKECMDGOALS))
 $(eval $(rest_args):;@:)
