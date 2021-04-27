@@ -65,7 +65,7 @@ func (c *Config) Parse() error {
 func (c *Config) parseFlags() error {
 	common.ParseMqttConfig(&c.Mqtt)
 
-	if c.Mqtt.Cert == "" || c.Mqtt.PrivateKey == "" {
+	if (c.Mqtt.Cert != "" && c.Mqtt.PrivateKey == "") || (c.Mqtt.Cert == "" && c.Mqtt.PrivateKey != "") {
 		return ErrConfigCert
 	}
 	return nil
