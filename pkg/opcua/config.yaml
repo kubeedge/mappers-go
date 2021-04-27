@@ -2,8 +2,8 @@ mqtt:
   server: tcp://127.0.0.1:1883
   username: ""
   password: ""
-  certificationFile: ""
-  privateKeyFile: ""
+  certification: ""
+  privatekey: ""
 configmap: /opt/kubeedge/deviceProfile.json
 opcua:
   username: ""
