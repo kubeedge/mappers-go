@@ -40,10 +40,10 @@ func main() {
 	klog.V(4).Info(config.Configmap)
 
 	globals.MqttClient = mappercommon.MqttClient{IP: config.Mqtt.ServerAddress,
-		User:       config.Mqtt.UserName,
+		User:       config.Mqtt.Username,
 		Passwd:     config.Mqtt.Password,
-		Cert:       config.Mqtt.CertFile,
-		PrivateKey: config.Mqtt.PrivateKeyFile}
+		Cert:       config.Mqtt.Cert,
+		PrivateKey: config.Mqtt.PrivateKey}
 	if err = globals.MqttClient.Connect(); err != nil {
 		klog.Fatal(err)
 		os.Exit(1)
