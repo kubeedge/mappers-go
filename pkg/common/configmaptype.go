@@ -70,7 +70,7 @@ type PropertyVisitor struct {
 	PropertyName  string `json:"propertyName,omitempty"`
 	ModelName     string `json:"modelName,omitempty"`
 	CollectCycle  int64  `json:"collectCycle"`
-	ReportCycle   int64  `json:"reportcycle,omitempty"`
+	ReportCycle   int64  `json:"reportCycle,omitempty"`
 	PProperty     Property
 	Protocol      string          `json:"protocol,omitempty"`
 	VisitorConfig json.RawMessage `json:"visitorConfig"`
@@ -79,7 +79,7 @@ type PropertyVisitor struct {
 // Data is data structure for the message that only be subscribed in edge node internal.
 type Data struct {
 	Properties []DataProperty `json:"dataProperties,omitempty"`
-	Topic      string         `json:"datatopic,omitempty"`
+	Topic      string         `json:"dataTopic,omitempty"`
 }
 
 // DataProperty is data property.
