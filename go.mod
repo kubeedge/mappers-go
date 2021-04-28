@@ -5,16 +5,13 @@ go 1.14
 require (
 	github.com/currantlabs/ble v0.0.0-20171229162446-c1d21c164cf8
 	github.com/eclipse/paho.mqtt.golang v1.3.0
-	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/gopcua/opcua v0.1.13
 	github.com/kubeedge/kubeedge v1.5.0
-	github.com/lib/pq v1.3.0 // indirect
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
 	github.com/mgutz/logxi v0.0.0-20161027140823-aebf8a7d67ab // indirect
 	github.com/onsi/ginkgo v1.15.0
 	github.com/onsi/gomega v1.10.5
-	github.com/paypal/gatt v0.0.0-20151011220935-4ae819d591cf
 	github.com/sailorvii/modbus v0.1.2
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1
@@ -22,7 +19,6 @@ require (
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.19.3
-	k8s.io/klog v1.0.0
 	k8s.io/klog/v2 v2.4.0
 )
 

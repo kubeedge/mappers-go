@@ -8,41 +8,6 @@ on:
   pull_request:
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    name: Verify vendor, do lint
-    env:
-      GOPATH: /home/runner/work/${{ github.repository }}
-    steps:
-      - name: Install Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.14.x
-
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          path: ./src/github.com/${{ github.repository }}
-
-      - uses: actions/cache@v2
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-
-      - name: Install dependences
-        run: |
-          sudo apt-get install -y jq
-
-      - name: Run verify test
-        run: make verify
-        working-directory: ./src/github.com/${{ github.repository }}
-
-      - name: Run lint test
-        run: make lint
-        working-directory: ./src/github.com/${{ github.repository }}
-
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -60,6 +25,9 @@ jobs:
 
       - name: Install dependences
         run: sudo apt-get install -y upx-ucl gcc-aarch64-linux-gnu libc6-dev-arm64-cross gcc-arm-linux-gnueabi libc6-dev-armel-cross
+
+      - name: Install golangci-lint
+        run: curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.39.0
 
       - name: Checkout code
         uses: actions/checkout@v2
@@ -83,11 +51,15 @@ jobs:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
+      - name: Install dependences
+        run: sudo apt-get install -y upx-ucl gcc-aarch64-linux-gnu libc6-dev-arm64-cross gcc-arm-linux-gnueabi libc6-dev-armel-cross
+
+      - name: Install golangci-lint
+        run: curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.39.0
+
       - name: Checkout code
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
 
-      - run: make modbusmapper_image
-
-      - run: make opcuamapper_image
+      - run: make all package
