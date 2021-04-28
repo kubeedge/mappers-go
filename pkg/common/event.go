@@ -24,6 +24,7 @@ import (
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/spf13/pflag"
 )
 
 // Joint the topic like topic := fmt.Sprintf(TopicTwinUpdateDelta, deviceID)
@@ -46,6 +47,24 @@ type MqttClient struct {
 	Cert       string
 	PrivateKey string
 	Client     mqtt.Client
+}
+
+// Mqtt is the Mqtt configuration.
+type Mqtt struct {
+	ServerAddress string `yaml:"server,omitempty"`
+	Username      string `yaml:"username,omitempty"`
+	Password      string `yaml:"password,omitempty"`
+	Cert          string `yaml:"certification,omitempty"`
+	PrivateKey    string `yaml:"privatekey,omitempty"`
+}
+
+func ParseMqttConfig(mqtt *Mqtt) {
+	pflag.StringVar(&mqtt.ServerAddress, "mqtt-address", mqtt.ServerAddress, "MQTT broker address")
+	pflag.StringVar(&mqtt.Username, "mqtt-username", mqtt.Username, "username")
+	pflag.StringVar(&mqtt.Password, "mqtt-password", mqtt.Password, "password")
+	pflag.StringVar(&mqtt.Cert, "mqtt-certification", mqtt.Cert, "certification file path")
+	pflag.StringVar(&mqtt.PrivateKey, "mqtt-priviatekey", mqtt.PrivateKey, "private key file path")
+	pflag.Parse()
 }
 
 // newTLSConfig new TLS configuration.

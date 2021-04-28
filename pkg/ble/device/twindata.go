@@ -82,7 +82,8 @@ func (td *TwinData) handlerPublish() (err error) {
 		}
 	}
 	if err = globals.MqttClient.Publish(td.Topic, payload); err != nil {
-		klog.Error(err)
+		klog.Errorf("Publish topic %v failed, err: %v", td.Topic, err)
+		return
 	}
 
 	klog.V(2).Infof("Update value: %s, topic: %s", td.Result, td.Topic)

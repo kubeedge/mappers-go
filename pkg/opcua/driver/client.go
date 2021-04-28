@@ -19,6 +19,7 @@ package driver
 import (
 	"context"
 	"errors"
+	"github.com/kubeedge/mappers-go/pkg/common"
 	"io/ioutil"
 	"strconv"
 
@@ -91,7 +92,7 @@ func NewClient(config OPCUAConfig) (client *OPCUAClient, err error) {
 // GetStatus get device status.
 // Please rewrite this function depending on your devices.
 func (c *OPCUAClient) GetStatus() string {
-	return "OK"
+	return common.DEVSTOK
 }
 
 func valueToString(v *ua.Variant) string {
