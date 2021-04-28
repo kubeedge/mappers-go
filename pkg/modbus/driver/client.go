@@ -23,6 +23,8 @@ import (
 
 	"github.com/sailorvii/modbus"
 	"k8s.io/klog/v2"
+
+	"github.com/kubeedge/mappers-go/pkg/common"
 )
 
 // ModbusTCP is the configurations of modbus TCP.
@@ -125,9 +127,9 @@ func (c *ModbusClient) GetStatus() string {
 
 	err := c.Client.Connect()
 	if err == nil {
-		return DEVSTOK
+		return common.DEVSTOK
 	}
-	return DEVSTDISCONN
+	return common.DEVSTDISCONN
 }
 
 // Get get register.
