@@ -24,7 +24,7 @@ import (
 	"github.com/currantlabs/ble/linux"
 	"golang.org/x/net/context"
 	"k8s.io/klog/v2"
-	
+
 	"github.com/kubeedge/mappers-go/mappers/common"
 )
 

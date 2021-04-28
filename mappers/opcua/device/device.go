@@ -24,9 +24,8 @@ import (
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"k8s.io/klog/v2"
-	
-	mappercommon "github.com/kubeedge/mappers-go/mappers/common"
 
+	mappercommon "github.com/kubeedge/mappers-go/mappers/common"
 	"github.com/kubeedge/mappers-go/mappers/opcua/configmap"
 	"github.com/kubeedge/mappers-go/mappers/opcua/driver"
 	"github.com/kubeedge/mappers-go/mappers/opcua/globals"

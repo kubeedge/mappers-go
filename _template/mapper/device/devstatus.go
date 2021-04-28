@@ -19,9 +19,9 @@ package device
 import (
 	"k8s.io/klog/v2"
 
-	"github.com/kubeedge/mappers-go/mappers/common"
 	"github.com/kubeedge/mappers-go/mappers/Template/driver"
 	"github.com/kubeedge/mappers-go/mappers/Template/globals"
+	"github.com/kubeedge/mappers-go/mappers/common"
 )
 
 // GetStatus is the timer structure for getting device status.

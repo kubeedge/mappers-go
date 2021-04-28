@@ -1,0 +1,76 @@
+apiVersion: devices.kubeedge.io/v1alpha2
+kind: Device
+metadata:
+  name: camera01
+  labels:
+    model: sample
+spec:
+  deviceModelRef:
+    name: onvif-model
+  protocol:
+    customizedProtocol:
+      protocolName: onvif
+      configData:
+        url: 192.168.168.64:80
+        userName: admin
+        password: /ca/pass
+  nodeSelector:
+    nodeSelectorTerms:
+    - matchExpressions:
+      - key: ''
+        operator: In
+        values:
+        - test 
+  propertyVisitors:
+    - propertyName: reboot
+      customizedProtocol:
+        protocolName: onvif
+        configData:
+          method: SystemReboot
+      customizedValues:
+        reportNumber: 1
+    - propertyName: saveFrame
+      customizedProtocol:
+        protocolName: onvif
+        configData:
+          method: SaveFrame
+          format: jpg
+          outputDir: /output
+          frameCount: 50
+          frameInterval: 1000
+      customizedValues:
+        reportNumber: 1
+    - propertyName: saveVideo
+      customizedProtocol:
+        protocolName: onvif
+        configData:
+          method: SaveVideo
+          frameCount: 1000
+          format: mp4
+          outputDir: /output
+      customizedValues:
+        reportNumber: 1
+status:
+  twins:
+    - propertyName: saveFrame
+      reported:
+        metadata:
+          timestamp: '1550049403598'
+          type: boolean
+        value: "false"
+      desired:
+        metadata:
+          timestamp: '1550049403598'
+          type: boolean
+        value: "true"
+    - propertyName: saveVideo
+      reported:
+        metadata:
+          timestamp: '1550049403598'
+          type: boolean
+        value: "false"
+      desired:
+        metadata:
+          timestamp: '1550049403598'
+          type: boolean
+        value: "true"
