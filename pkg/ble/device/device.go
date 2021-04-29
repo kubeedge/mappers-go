@@ -109,7 +109,8 @@ func onMessage(client mqtt.Client, message mqtt.Message) {
 		dev.Instance.Twins[i].Desired.Value = twinValue
 		var visitorConfig configmap.BleVisitorConfig
 		if err := json.Unmarshal([]byte(dev.Instance.Twins[i].PVisitor.VisitorConfig), &visitorConfig); err != nil {
-			klog.Error("Unmarshal visitor config failed")
+			klog.Errorf("Unmarshal visitor config failed, err is %v", err)
+			continue
 		}
 		setVisitor(&visitorConfig, &dev.Instance.Twins[i], dev.BleClient)
 	}

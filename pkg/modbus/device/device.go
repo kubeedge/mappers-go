@@ -110,6 +110,7 @@ func onMessage(client mqtt.Client, message mqtt.Message) {
 		var visitorConfig configmap.ModbusVisitorConfig
 		if err := json.Unmarshal([]byte(dev.Instance.Twins[i].PVisitor.VisitorConfig), &visitorConfig); err != nil {
 			klog.Errorf("Unmarshal visitor config failed: %v", err)
+			continue
 		}
 		setVisitor(&visitorConfig, &dev.Instance.Twins[i], dev.ModbusClient)
 	}

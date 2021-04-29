@@ -92,7 +92,8 @@ func onMessage(client mqtt.Client, message mqtt.Message) {
 		dev.Instance.Twins[i].Desired.Value = twinValue
 		var visitorConfig configmap.VisitorConfigOPCUA
 		if err := json.Unmarshal([]byte(dev.Instance.Twins[i].PVisitor.VisitorConfig), &visitorConfig); err != nil {
-			klog.Error("Unmarshal visitor config failed")
+			klog.Errorf("Unmarshal visitor config failed: %v", err)
+			continue
 		}
 		setVisitor(&visitorConfig, &dev.Instance.Twins[i], dev.OPCUAClient)
 	}
