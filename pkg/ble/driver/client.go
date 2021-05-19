@@ -24,6 +24,8 @@ import (
 	"github.com/currantlabs/ble/linux"
 	"golang.org/x/net/context"
 	"k8s.io/klog/v2"
+
+	"github.com/kubeedge/mappers-go/pkg/common"
 )
 
 type BleConfig struct {
@@ -77,7 +79,7 @@ func (bc *BleClient) GetStatus() string {
 
 	rssi := bc.Client.ReadRSSI()
 	if rssi < 0 {
-		return DEVSTOK
+		return common.DEVSTOK
 	}
-	return DEVSTDISCONN
+	return common.DEVSTDISCONN
 }

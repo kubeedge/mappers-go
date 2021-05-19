@@ -82,7 +82,8 @@ func (td *TwinData) handlerPublish() (err error) {
 		}
 	}
 	if err = globals.MqttClient.Publish(td.Topic, payload); err != nil {
-		klog.Error(err)
+		klog.Errorf("Publish topic %v failed, err: %v", td.Topic, err)
+		return
 	}
 
 	klog.V(2).Infof("Update value: %s, topic: %s", td.Result, td.Topic)
@@ -90,7 +91,7 @@ func (td *TwinData) handlerPublish() (err error) {
 }
 
 // ConvertReadData is the function responsible to convert the data read from the device into meaningful data.
-// If currently logic of converting data is not suitbale for your deive, you can change ConvertReadData function manually.
+// If currently logic of converting data is not suitable for your device, you can change ConvertReadData function manually.
 func (td *TwinData) ConvertReadData(data []byte) float64 {
 	var intermediateResult uint64
 	var initialValue []byte

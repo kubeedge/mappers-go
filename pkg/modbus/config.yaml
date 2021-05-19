@@ -3,4 +3,5 @@ mqtt:
   username: ""
   password: ""
   certification: ""
+  privatekey: ""
 configmap: /opt/kubeedge/deviceProfile.json

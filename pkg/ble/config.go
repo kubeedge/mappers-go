@@ -23,21 +23,14 @@ import (
 	"github.com/spf13/pflag"
 	"gopkg.in/yaml.v2"
 	"k8s.io/klog/v2"
+
+	"github.com/kubeedge/mappers-go/pkg/common"
 )
 
 // Config is the ble mapper configuration.
 type Config struct {
-	Mqtt      Mqtt   `yaml:"mqtt,omitempty"`
-	Configmap string `yaml:"configmap"`
-}
-
-// Mqtt is the Mqtt configuration.
-type Mqtt struct {
-	ServerAddress string `yaml:"server,omitempty"`
-	Username      string `yaml:"username,omitempty"`
-	Password      string `yaml:"password,omitempty"`
-	Cert          string `yaml:"certification,omitempty"`
-	PrivateKey    string `yaml:"privatekey,omitempty"`
+	Mqtt      common.Mqtt `yaml:"mqtt,omitempty"`
+	Configmap string      `yaml:"configmap"`
 }
 
 // ErrConfigCert error of certification configuration.
@@ -70,12 +63,8 @@ func (c *Config) Parse() error {
 
 // parseFlags parse flags. Certification and Private key must be provided at the same time.
 func (c *Config) parseFlags() error {
-	pflag.StringVar(&c.Mqtt.ServerAddress, "mqtt-address", c.Mqtt.ServerAddress, "MQTT broker address")
-	pflag.StringVar(&c.Mqtt.Username, "mqtt-username", c.Mqtt.Username, "username")
-	pflag.StringVar(&c.Mqtt.Password, "mqtt-password", c.Mqtt.Password, "password")
-	pflag.StringVar(&c.Mqtt.Cert, "mqtt-certification", c.Mqtt.Cert, "certification file path")
-	pflag.StringVar(&c.Mqtt.PrivateKey, "mqtt-priviatekey", c.Mqtt.PrivateKey, "private key file path")
-	pflag.Parse()
+	common.ParseMqttConfig(&c.Mqtt)
+
 	if (c.Mqtt.Cert != "" && c.Mqtt.PrivateKey == "") ||
 		(c.Mqtt.Cert == "" && c.Mqtt.PrivateKey != "") {
 		return ErrConfigCert

@@ -39,7 +39,7 @@ var models map[string]common.DeviceModel
 var protocols map[string]common.Protocol
 var wg sync.WaitGroup
 
-// setVisitor check if visitory is readonly, if not then set it.
+// setVisitor check if visitor property is readonly, if not then set it.
 func setVisitor(visitorConfig *configmap.BleVisitorConfig, twin *common.Twin, bleClient *driver.BleClient) {
 	if twin.PVisitor.PProperty.AccessMode == "ReadOnly" {
 		klog.V(1).Info("Visit readonly characteristicUUID: ", visitorConfig.CharacteristicUUID)
@@ -109,7 +109,8 @@ func onMessage(client mqtt.Client, message mqtt.Message) {
 		dev.Instance.Twins[i].Desired.Value = twinValue
 		var visitorConfig configmap.BleVisitorConfig
 		if err := json.Unmarshal([]byte(dev.Instance.Twins[i].PVisitor.VisitorConfig), &visitorConfig); err != nil {
-			klog.Error("Unmarshal visitor config failed")
+			klog.Errorf("Unmarshal visitor config failed, err is %v", err)
+			continue
 		}
 		setVisitor(&visitorConfig, &dev.Instance.Twins[i], dev.BleClient)
 	}
@@ -154,7 +155,7 @@ func initTwin(dev *globals.BleDev) {
 				continue
 			}
 			c := twinData.FindedCharacteristic.(*ble.Characteristic)
-			// If this Characteristic suports notifications and there's a CCCD
+			// If this Characteristic supports notifications and there's a CCCD
 			// Then subscribe to it, the notifications operation is different from reading operation, notifications will keep looping when connected
 			// so we can't use timer.Start() for notifications
 			if (c.Property&ble.CharNotify) != 0 && c.CCCD != nil {
@@ -204,9 +205,9 @@ func initData(dev *globals.BleDev) {
 				continue
 			}
 			timer := mappercommon.Timer{Function: twinData.Run, Duration: collectCycle, Times: 0}
-			// If this Characteristic suports notifications and there's a CCCD
+			// If this Characteristic supports notifications and there's a CCCD
 			// Then subscribe to it, the notifications operation is different from reading operation, notifications will keep looping when connected
-			// so we can't use imer.Start() for notifications
+			// so we can't use timer.Start() for notifications
 			wg.Add(1)
 			go func() {
 				c := twinData.FindedCharacteristic.(*ble.Characteristic)
