@@ -19,11 +19,12 @@ package common
 import (
 	"crypto/tls"
 	"encoding/json"
-	"github.com/spf13/pflag"
+	"errors"
 	"regexp"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/spf13/pflag"
 )
 
 // Joint the topic like topic := fmt.Sprintf(TopicTwinUpdateDelta, deviceID)
@@ -33,6 +34,8 @@ const (
 	TopicStateUpdate     = "$hw/events/device/%s/state/update"
 	TopicDataUpdate      = "$ke/events/device/%s/data/update"
 )
+
+var ErrorProtocolNotExpected = errors.New("protocol not expected")
 
 // MqttClient is parameters for Mqtt client.
 type MqttClient struct {
@@ -179,4 +182,112 @@ func CreateMessageState(state string) (msg []byte, err error) {
 func GetDeviceID(topic string) (id string) {
 	re := regexp.MustCompile(`hw/events/device/(.+)/twin/update/delta`)
 	return re.FindStringSubmatch(topic)[1]
+}
+
+// validateProfilePropertyVisitor validate device instance propertyVisitors
+func validateProfilePropertyVisitor(instance *DeviceInstance, deviceModels []DeviceModel) error {
+	for k := 0; k < len(instance.PropertyVisitors); k++ {
+		modelName := instance.PropertyVisitors[k].ModelName
+		propertyName := instance.PropertyVisitors[k].PropertyName
+		l := 0
+		for l = 0; l < len(deviceModels); l++ {
+			if modelName == deviceModels[l].Name {
+				m := 0
+				for m = 0; m < len(deviceModels[l].Properties); m++ {
+					if propertyName == deviceModels[l].Properties[m].Name {
+						instance.PropertyVisitors[k].PProperty = deviceModels[l].Properties[m]
+						break
+					}
+				}
+
+				if m == len(deviceModels[l].Properties) {
+					err := errors.New("Property not found")
+					return err
+				}
+				break
+			}
+		}
+		if l == len(deviceModels) {
+			err := errors.New("Device model not found")
+			return err
+		}
+	}
+	return nil
+}
+
+// validateProfileTwin validate device instance twins
+func validateProfileTwin(instance *DeviceInstance) error {
+	for k := 0; k < len(instance.Twins); k++ {
+		name := instance.Twins[k].PropertyName
+		l := 0
+		for l = 0; l < len(instance.PropertyVisitors); l++ {
+			if name == instance.PropertyVisitors[l].PropertyName {
+				instance.Twins[k].PVisitor = &instance.PropertyVisitors[l]
+				break
+			}
+		}
+		if l == len(instance.PropertyVisitors) {
+			return errors.New("PropertyVisitor not found")
+		}
+	}
+	return nil
+}
+
+// validateProfileData validate device instance data
+func validateProfileData(instance *DeviceInstance) error {
+	for k := 0; k < len(instance.Datas.Properties); k++ {
+		name := instance.Datas.Properties[k].PropertyName
+		l := 0
+		for l = 0; l < len(instance.PropertyVisitors); l++ {
+			if name == instance.PropertyVisitors[l].PropertyName {
+				instance.Datas.Properties[k].PVisitor = &instance.PropertyVisitors[l]
+				break
+			}
+		}
+		if l == len(instance.PropertyVisitors) {
+			return errors.New("PropertyVisitor not found")
+		}
+	}
+	return nil
+}
+
+// validateProfileProtocol validate device protocol
+func validateProfileProtocol(instance *DeviceInstance, protocols []Protocol, expectedProtocol string) error {
+	j := 0
+	for j = 0; j < len(protocols); j++ {
+		if instance.ProtocolName == protocols[j].Name {
+			instance.PProtocol = protocols[j]
+			break
+		}
+	}
+	if j == len(protocols) {
+		err := errors.New("Protocol not found")
+		return err
+	}
+
+	if instance.PProtocol.Protocol != expectedProtocol {
+		return ErrorProtocolNotExpected
+	}
+	return nil
+}
+
+// ValidateProfileDeviceInstance validate device instance
+func ValidateProfileDeviceInstance(instance *DeviceInstance, deviceProfile *DeviceProfile, protocol string) error {
+	if err := validateProfileProtocol(instance, deviceProfile.Protocols, protocol); err != nil {
+		return err
+	}
+
+	if err := validateProfilePropertyVisitor(instance, deviceProfile.DeviceModels); err != nil {
+		return err
+	}
+
+	if err := validateProfileTwin(instance); err != nil {
+		return err
+	}
+
+	if err := validateProfileData(instance); err != nil {
+		return err
+	}
+
+	return nil
 }
