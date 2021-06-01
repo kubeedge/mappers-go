@@ -1,0 +1,7 @@
+mqtt:
+  server: tcp://127.0.0.1:1883
+  username: ""
+  password: ""
+  certification: ""
+  privatekey: ""
+configmap: /opt/kubeedge/deviceProfile.json

@@ -1,57 +1,36 @@
-.PHONY: all
-all: modbusmapper opcuamapper
+SHELL := /bin/bash
 
-.PHONY: modbusmapper
-modbusmapper:
-	go build -o ./pkg/modbus/modbus ./pkg/modbus
+curr_dir := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
+rest_args := $(wordlist 2, $(words $(MAKECMDGOALS)), $(MAKECMDGOALS))
+$(eval $(rest_args):;@:)
 
-.PHONY: modbusmapper_image
-modbusmapper_image:modbusmapper
-	sudo docker build -t modbusmapper:v1.0 ./pkg/modbus
+help:
+	#
+	# Usage:
+	#   make template :  create a mapper based on a template.
+	#   make mapper {mapper-name} <action> <parameter>:  execute mapper building process.
+	#   make all :  execute building process to all mappers.
+	#
+	# Actions:
+	#   -           mod, m  :  download code dependencies.
+	#   -          lint, l  :  verify code via go fmt and `golangci-lint`.
+	#   -         build, b  :  compile code.
+	#   -       package, p  :  package docker image.
+	#   -          test, t  :  run unit tests.
+	#   -         clean, c  :  clean output binary.
+	#
+	# Parameters:
+	#   ARM   : true or undefined
+	#   ARM64 : true or undefined
+	#
+	# Example:
+	#   -  make mapper modbus ARM64=true :  execute `build` "modbus" mapper for ARM64.
+	#   -        make mapper modbus test :  execute `test` "modbus" mapper.
+	@echo
 
-.PHONY: opcuamapper
-opcuamapper:
-	go build -o ./pkg/opcua/opcua ./pkg/opcua
+make_rules := $(shell ls $(curr_dir)/hack/make-rules | sed 's/.sh//g')
+$(make_rules):
+	@$(curr_dir)/hack/make-rules/$@.sh $(rest_args)
 
-.PHONY: opcuamapper_image
-opcuamapper_image:opcuamapper
-	sudo docker build -t opcuamapper:v1.0 ./pkg/opcua
-
-clean:
-	rm -f ./pkg/modbus/modbus ./pkg/opcua/opcua
-
-define VERIFY_HELP_INFO
-# verify golang,vendor and codegen
-#
-# Example:
-# make verify
-endef
-.PHONY: verify
-ifeq ($(HELP),y)
-verify:
-	@echo "$$VERIFY_HELP_INFO"
-else
-verify:verify-golang
-endif
-
-.PHONY: verify-golang
-verify-golang:
-	hack/verify-golang.sh
-
-
-define LINT_HELP_INFO
-# run golang lint check.
-#
-# Example:
-#   make lint
-#   make lint HELP=y
-endef
-.PHONY: lint
-ifeq ($(HELP),y)
-lint:
-	@echo "$$LINT_HELP_INFO"
-else
-lint:
-	hack/make-rules/lint.sh
-endif
-
+.DEFAULT_GOAL := all
+.PHONY: $(make_rules) build
