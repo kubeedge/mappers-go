@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: Onvif-mapper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: Onvifmapper
+  template:
+    metadata:
+      labels:
+        app: Onvifmapper
+    spec:
+      hostNetwork: true
+      containers:
+      - name: Onvif-mapper-container
+        image: Onvifmapper:v1.0
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: config-volume
+          mountPath: /opt/kubeedge/
+      nodeSelector:
+        Onvif: "true"
+      volumes:
+      - name: config-volume
+        configMap:
+          name: device-profile-config-test
+      restartPolicy: Always
