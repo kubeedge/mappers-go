@@ -5,10 +5,4 @@ mqtt:
   certification: ""
   privatekey: ""
 configmap: /opt/kubeedge/deviceProfile.json
-opcua:
-  username: ""
-  password: ""
-  certificationFile: ""
-  privateKeyFile: ""
-  remoteCertificationFile: ""
 
