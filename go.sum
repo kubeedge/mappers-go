@@ -589,8 +589,8 @@ github.com/rubiojr/go-vhd v0.0.0-20200706105327-02e210299021/go.mod h1:DM5xW0nvf
 github.com/russross/blackfriday v0.0.0-20170610170232-067529f716f4/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
 github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
 github.com/russross/blackfriday/v2 v2.0.1/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
-github.com/sailorvii/goav v0.1.1 h1:kCLew73BPaJ64fl6gEwo0fl0WPTY8u7uynbSJrtXOK0=
-github.com/sailorvii/goav v0.1.1/go.mod h1:upppsyLr1RLWDZ0+U3RYYGTv9NVwCjz14j/zzxRM018=
+github.com/sailorvii/goav v0.1.4 h1:4FwbikqIxx26dcHlZ8195WSPQSWbNnvRvTSgRTPgh2w=
+github.com/sailorvii/goav v0.1.4/go.mod h1:upppsyLr1RLWDZ0+U3RYYGTv9NVwCjz14j/zzxRM018=
 github.com/sailorvii/modbus v0.1.2 h1:Btjqzck5qJAkVhvzRNYjeRirN1OZwNhbVWCe2alyuOw=
 github.com/sailorvii/modbus v0.1.2/go.mod h1:7KS/EFWv2J88WuVRiI/WnttT2xO+R7DlvshfdBa2cSw=
 github.com/satori/go.uuid v1.2.0 h1:0uYX9dsZ2yD7q2RtLRtPSdGDWzjeM3TbMJP9utgA0ww=

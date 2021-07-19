@@ -17,6 +17,7 @@ limitations under the License.
 package driver
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -28,11 +29,16 @@ import (
 
 var IfSaveVideo bool
 
-func SaveVideo(inputFile string, frameCount int, outDir string, format string) error {
+// SaveVideo save video.
+func SaveVideo(inputFile string, outDir string, format string, frameCount int) error {
 	var fragmentedMp4Options int
 	//initialize input file with Context
 	var inputFmtCtx *avformat.Context
-	if avformat.AvformatOpenInput(&inputFmtCtx, inputFile, nil, nil) < 0 {
+
+	avformat.AvDictSet(&avformat.Dict, "rtsp_transport", "tcp", 0)
+	avformat.AvDictSet(&avformat.Dict, "max_delay", "5000000", 0)
+
+	if avformat.AvformatOpenInput(&inputFmtCtx, inputFile, nil, &avformat.Dict) < 0 {
 		return fmt.Errorf("Could not open input file '%s", inputFile)
 	}
 	defer inputFmtCtx.AvformatFreeContext()
@@ -54,6 +60,15 @@ func SaveVideo(inputFile string, frameCount int, outDir string, format string) e
 	}
 	var inCodecParam *avcodec.AvCodecParameters
 	defer inCodecParam.AvCodecParametersFree()
+
+	var outputFmtCtx *avformat.Context
+	outputFile := GenFileName(outDir, format)
+	avformat.AvAllocOutputContext2(&outputFmtCtx, nil, nil, &outputFile)
+	if outputFmtCtx == nil {
+		return fmt.Errorf("Could not create output context")
+	}
+	defer outputFmtCtx.AvformatFreeContext()
+
 	for index, inStream := range inputFmtCtx.Streams() {
 		inCodecParam = inStream.CodecParameters()
 		inCodecType := inCodecParam.AvCodecGetType()
@@ -64,6 +79,13 @@ func SaveVideo(inputFile string, frameCount int, outDir string, format string) e
 		}
 		streamMapping[index] = streamIndex
 		streamIndex++
+		outStream := outputFmtCtx.AvformatNewStream(nil)
+		if outStream == nil {
+			return errors.New("Failed allocating output stream")
+		}
+		if inCodecParam.AvCodecParametersCopyTo(outStream.CodecParameters()) < 0 {
+			return errors.New("Failed to copy codec parameters")
+		}
 	}
 
 	// initialize opts
@@ -78,14 +100,9 @@ func SaveVideo(inputFile string, frameCount int, outDir string, format string) e
 			time.Sleep(time.Second)
 			continue
 		}
+		outputFile = GenFileName(outDir, format)
+
 		// initialize output file with Context
-		var outputFmtCtx *avformat.Context
-		outputFile := GenFileName(outDir, format)
-		avformat.AvAllocOutputContext2(&outputFmtCtx, nil, nil, &outputFile)
-		if outputFmtCtx == nil {
-			return fmt.Errorf("Could not create output context")
-		}
-		defer outputFmtCtx.AvformatFreeContext()
 		outputFmtCtx.AvDumpFormat(0, outputFile, 1)
 		if outputFmtCtx.Oformat().GetFlags()&avformat.AVFMT_NOFILE == 0 {
 			avIOContext, err := avformat.AvIOOpen(outputFile, avformat.AVIO_FLAG_WRITE)

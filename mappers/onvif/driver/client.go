@@ -18,12 +18,15 @@ package driver
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
-
-	"github.com/kubeedge/mappers-go/mappers/common"
-	"k8s.io/klog/v2"
+	"strconv"
+	"strings"
 
 	"github.com/use-go/onvif"
+	"k8s.io/klog/v2"
+
+	"github.com/kubeedge/mappers-go/mappers/common"
 )
 
 // OnvifConfig is the structure for client configuration.
@@ -35,6 +38,7 @@ type OnvifConfig struct {
 	Certfile       string
 	RemoteCertfile string
 	Keyfile        string
+	StreamURI      string
 }
 
 // OnvifClient is the structure for Onvif client.
@@ -48,7 +52,7 @@ var clients map[string]*OnvifClient
 
 func newDevice(config OnvifConfig) (dev *onvif.Device, err error) {
 	var password string
-	
+
 	dev, err = onvif.NewDevice(config.URL)
 	if err != nil {
 		return nil, err
@@ -77,31 +81,63 @@ func NewClient(config OnvifConfig) (*OnvifClient, error) {
 	client := OnvifClient{Client: dev, Config: config}
 	clients[config.URL] = &client
 
+	client.Config.StreamURI, err = OnvifFunc(client.Client, "GetStreamUri", "")
+	if err != nil {
+		return nil, err
+	}
 	return &client, nil
 }
 
+func (c *OnvifClient) GetStream() string {
+	tmp := strings.Split(c.Config.StreamURI, "://")
+	protocol := tmp[0]
+	tmp = strings.Split(tmp[1], "/")
+	ip := tmp[0]
+	password, _ := readPassword(c.Config.Passwordfile)
+
+	streamURI := fmt.Sprintf("%s://%s:%s@%s", protocol, c.Config.User, password, ip)
+	fmt.Println("stream: ", streamURI)
+	return streamURI
+}
+
 // GetStatus get device status.
+// For the package onvif doesn't expose any http/connection function,
+// we call the GetSystemDataAndTime function to get the connection status.
 func (c *OnvifClient) GetStatus() string {
-	return common.DEVSTOK
+	_, err := OnvifFunc(c.Client, "GetSystemDateAndTime", "")
+	if err == nil {
+		return common.DEVSTOK
+	}
+	return common.DEVSTDISCONN
 }
 
 // Get get register.
-func (c *OnvifClient) Get() (results []byte, err error) {
+func (c *OnvifClient) Get(method, value string) (results string, err error) {
+	switch method {
+	case "SaveFrame":
+		return strconv.FormatBool(IfSaveFrame), nil
+	case "SaveVideo":
+		return strconv.FormatBool(IfSaveVideo), nil
+	default:
+		results, err = OnvifFunc(c.Client, method, value)
+	}
 	klog.V(2).Info("Get result: ", results)
 	return results, err
 }
 
 // Set set register.
-func (c *OnvifClient) Set(method string, value string) (err error) {
-	err = nil
+func (c *OnvifClient) Set(method, value string) (err error) {
+	var tmp interface{}
 
-	switch method{
+	switch method {
 	case "SaveFrame":
-		IfSaveFrame = common.Convert("boolean", value)
+		tmp, err = common.Convert("boolean", value)
+		IfSaveFrame = tmp.(bool)
 	case "SaveVideo":
-		IfSaveVideo = common.Convert("boolean", value)
+		tmp, err = common.Convert("boolean", value)
+		IfSaveVideo = tmp.(bool)
 	default:
-		_, err = OnvifFunc(method, value)
+		_, err = OnvifFunc(c.Client, method, value)
 	}
 	klog.V(1).Info("Set result:", err)
 	return err
@@ -114,23 +150,4 @@ func readPassword(filename string) (string, error) {
 	}
 	// Remove the last character '\n'
 	return string(b[:len(b)-1]), nil
-}
-
-func GetOnvifResources() OnvifResources {
-	var r OnvifResources
-
-	r.Resources = make(map[string]Resource)
-	for _, client := range clients {
-		index := client.Config.Name
-		r.Resources[index].URL, err = OnvifFunc("GetStreamUri")
-		if err != nil {
-			klog.Errorf("Call Onvif function error: %v", err)
-		}
-		r.Resource[index].UserName = client.Config.UserName
-		r.Resource[index].Password = ioutil.ReadFile(client.Config.Passwordfile)
-		r.Resource[index].Certfile = ioutil.ReadFile(client.Config.Certfile)
-		r.Resource[index].RemoteCertfile = ioutil.ReadFile(client.Config.RemoteCertfile)
-		r.Resource[index].Keyfile = ioutil.ReadFile(client.Config.Keyfile)
-	}
-	return r
 }

@@ -48,13 +48,11 @@
                     "modelName":"onvif-model",
                     "protocol":"customized-protocol",
                     "customizedValues":{
+                        "method":"SystemReboot",
                         "reportNumber":1
                     },
                     "visitorConfig":{
-                        "protocolName":"onvif",
-                        "configData":{
-                            "method":"SystemReboot"
-                        }
+                        "protocolName":"onvif"
                     }
                 },
                 {
@@ -63,13 +61,13 @@
                     "modelName":"onvif-model",
                     "protocol":"customized-protocol",
                     "customizedValues":{
+                        "outputDir":"/home/wei/output",
+                        "format":"jpg",
+                        "method":"SaveFrame",
                         "reportNumber":1
                     },
                     "visitorConfig":{
-                        "protocolName":"onvif",
-                        "configData":{
-                            "format":"jpg"
-                        }
+                        "protocolName":"onvif"
                     }
                 },
                 {
@@ -77,12 +75,15 @@
                     "propertyName":"saveVideo",
                     "modelName":"onvif-model",
                     "protocol":"customized-protocol",
+                    "customizedValues":{
+                        "outputDir":"/home/wei/output",
+                        "format":"mp4",
+                        "frameCount":50,
+                        "method":"SaveVideo",
+                        "reportNumber":1
+                    },
                     "visitorConfig":{
-                        "protocolName":"onvif",
-                        "configData":{
-                            "format":"mp4",
-                            "frameCount":50
-                        }
+                        "protocolName":"onvif"
                     }
                 }
             ]
@@ -109,7 +110,7 @@
                 {
                     "name":"saveVideo",
                     "dataType":"boolean",
-                    "description":"if save the video",
+                    "description":"if  save the video",
                     "accessMode":"ReadWrite",
                     "defaultValue":false
                 }

@@ -43,9 +43,15 @@ func setVisitor(visitorConfig *configmap.OnvifVisitorConfig, twin *common.Twin, 
 		return
 	}
 
-	err := client.Set(visitorConfig.ConfigData, twin.Desired.Value)
+	fmt.Printf("%v", visitorConfig)
+	method, ok := visitorConfig.ConfigData["method"]
+	if !ok {
+		klog.Error("set visitor error: no method")
+		return
+	}
+	err := client.Set(method.(string), twin.Desired.Value)
 	if err != nil {
-		klog.Errorf("Set error: %v, %v", err, visitorConfig)
+		klog.Errorf("set visitor error: %v, %v", err, visitorConfig)
 		return
 	}
 }
@@ -57,31 +63,42 @@ func getDeviceID(topic string) (id string) {
 }
 
 // initOnvif initialize Onvif client.
-func initOnvif(name string, protocolConfig configmap.OnvifProtocolCommonConfig) (client *driver.OnvifClient, err error) {
+func initOnvif(name string, protocolConfig configmap.OnvifProtocolConfig) (client *driver.OnvifClient, err error) {
 	OnvifConfig := driver.OnvifConfig{Name: name}
 
 	var ok bool
-	if OnvifConfig.URL, ok = protocolConfig.ConfigData["url"]; !ok {
+	var tmp interface{}
+	if tmp, ok = protocolConfig.ConfigData["url"]; !ok {
 		return nil, errors.New("Protocol config has not url")
 	}
-	if OnvifConfig.User, ok = protocolConfig.ConfigData["userName"]; !ok {
+	OnvifConfig.URL = tmp.(string)
+	if tmp, ok = protocolConfig.ConfigData["userName"]; !ok {
 		klog.V(2).Info("protocol config has not userName")
+	} else {
+		OnvifConfig.User = tmp.(string)
 	}
-	if OnvifConfig.Passwordfile, ok = protocolConfig.ConfigData["password"]; !ok {
-		klog.V(2).Info("protocl config has not passwordfile")
+	if tmp, ok = protocolConfig.ConfigData["password"]; !ok {
+		klog.V(2).Info("protocol config has not passwordfile")
+	} else {
+		OnvifConfig.Passwordfile = tmp.(string)
 	}
-	if OnvifConfig.Certfile, ok = protocolConfig.ConfigData["cert"]; !ok {
-		return nil, errors.New("Protocol config has not certfile")
+	if tmp, ok = protocolConfig.ConfigData["cert"]; !ok {
+		klog.V(2).Info("Protocol config has not certfile")
+	} else {
+		OnvifConfig.Certfile = tmp.(string)
 	}
-	if OnvifConfig.RemoteCertfile, ok = protocolConfig.ConfigData["remoteCert"]; !ok {
+	if tmp, ok = protocolConfig.ConfigData["remoteCert"]; !ok {
 		klog.V(2).Info("protocol config has not remoteCertfile")
+	} else {
+		OnvifConfig.RemoteCertfile = tmp.(string)
 	}
-	if OnvifConfig.Keyfile, ok = protocolConfig.ConfigData["key"]; !ok {
-		klog.V(2).Info("protocl config has not keyfile")
+	if tmp, ok = protocolConfig.ConfigData["key"]; !ok {
+		klog.V(2).Info("protocol config has not keyfile")
+	} else {
+		OnvifConfig.Keyfile = tmp.(string)
 	}
-
-	client, _ = driver.NewClient(OnvifConfig)
-	return client, nil
+	klog.V(2).Info("onvif configuration: ", OnvifConfig)
+	return driver.NewClient(OnvifConfig)
 }
 
 // initTwin initialize the timer to get twin value.
@@ -92,6 +109,83 @@ func initTwin(dev *globals.OnvifDev) {
 			klog.Errorf("Unmarshal VisitorConfig error: %v", err)
 			continue
 		}
+		method, ok := visitorConfig.ConfigData["method"]
+		if !ok {
+			klog.Error("init twin error: no method")
+			continue
+		}
+
+		if method.(string) == "SaveFrame" {
+			outDir, ok1 := visitorConfig.ConfigData["outputDir"]
+			format, ok2 := visitorConfig.ConfigData["format"]
+			frameCount := visitorConfig.ConfigData["frameCount"]
+			frameInterval := visitorConfig.ConfigData["frameInterval"]
+			if !ok1 || !ok2 {
+				klog.Error("init twin error: no outputDir or format")
+				continue
+			}
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				streamURI := dev.OnvifClient.GetStream()
+				err := driver.SaveFrame(streamURI, outDir.(string), format.(string), int(frameCount.(float64)), int(frameInterval.(float64)))
+				if err != nil {
+					klog.Errorf("init twin error: %v", err)
+					return
+				}
+			}()
+
+			twinData := TwinData{Client: dev.OnvifClient,
+				Name:   dev.Instance.Twins[i].PropertyName,
+				Method: method.(string),
+				Topic:  fmt.Sprintf(common.TopicTwinUpdate, dev.Instance.ID)}
+			collectCycle := time.Duration(dev.Instance.Twins[i].PVisitor.CollectCycle)
+			// If the collect cycle is not set, set it to 1 second.
+			if collectCycle == 0 {
+				collectCycle = 1 * time.Second
+			}
+			timer := common.Timer{Function: twinData.Run, Duration: collectCycle, Times: 0}
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				timer.Start()
+			}()
+		} else if method.(string) == "SaveVideo" {
+			outDir, ok1 := visitorConfig.ConfigData["outputDir"]
+			format, ok2 := visitorConfig.ConfigData["format"]
+			frameCount := visitorConfig.ConfigData["frameCount"]
+			if !ok1 || !ok2 {
+				klog.Error("init twin error: no outputDir or format")
+				continue
+			}
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				streamURI := dev.OnvifClient.GetStream()
+				err := driver.SaveVideo(streamURI, outDir.(string), format.(string), int(frameCount.(float64)))
+				if err != nil {
+					klog.Errorf("init twin error: %v", err)
+					return
+				}
+			}()
+
+			twinData := TwinData{Client: dev.OnvifClient,
+				Name:   dev.Instance.Twins[i].PropertyName,
+				Method: method.(string),
+				Topic:  fmt.Sprintf(common.TopicTwinUpdate, dev.Instance.ID)}
+			collectCycle := time.Duration(dev.Instance.Twins[i].PVisitor.CollectCycle)
+			// If the collect cycle is not set, set it to 1 second.
+			if collectCycle == 0 {
+				collectCycle = 1 * time.Second
+			}
+			timer := common.Timer{Function: twinData.Run, Duration: collectCycle, Times: 0}
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				timer.Start()
+			}()
+		}
+
 		setVisitor(&visitorConfig, &dev.Instance.Twins[i], dev.OnvifClient)
 	}
 }
@@ -100,7 +194,7 @@ func initTwin(dev *globals.OnvifDev) {
 func initSubscribeMqtt(instanceID string) error {
 	topic := fmt.Sprintf(common.TopicTwinUpdateDelta, instanceID)
 	klog.V(1).Info("Subscribe topic: ", topic)
-	err = globals.MqttClient.Subscribe(topic, OnEventBus)
+	err := globals.MqttClient.Subscribe(topic, OnEventBus)
 	if err != nil {
 		return err
 	}
@@ -127,13 +221,12 @@ func start(dev *globals.OnvifDev) {
 		return
 	}
 
-	client, err := initOnvif(dev.Instance.Name, protocolCommConfig)
+	client, err := initOnvif(dev.Instance.Name, protocolConfig)
 	if err != nil {
 		klog.Errorf("Init error: %v", err)
 		return
 	}
 	dev.OnvifClient = client
-
 	initTwin(dev)
 
 	if err := initSubscribeMqtt(dev.Instance.ID); err != nil {

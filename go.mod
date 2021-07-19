@@ -3,6 +3,7 @@ module github.com/kubeedge/mappers-go
 go 1.14
 
 require (
+	github.com/beevik/etree v1.1.0
 	github.com/currantlabs/ble v0.0.0-20171229162446-c1d21c164cf8
 	github.com/eclipse/paho.mqtt.golang v1.3.0
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
@@ -12,7 +13,7 @@ require (
 	github.com/mgutz/logxi v0.0.0-20161027140823-aebf8a7d67ab // indirect
 	github.com/onsi/ginkgo v1.15.0
 	github.com/onsi/gomega v1.10.5
-	github.com/sailorvii/goav v0.1.1
+	github.com/sailorvii/goav v0.1.4
 	github.com/sailorvii/modbus v0.1.2
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1

@@ -19,32 +19,57 @@ limitations under the License.
 
 package driver
 
-import (
-	"io/ioutil"
-	"log"
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/use-go/onvif/media"
-)
-
+/*
 func TestReadWithoutAuth(t *testing.T) {
-	c := ONVIFConfig{URL: "192.168.1.64:80",
+	c := OnvifConfig{Name: "camera0",
+		URL:          "192.168.168.64:80",
 		User:         "admin",
 		Passwordfile: "/home/wei/ca/pass"}
 
-	dev, err := NewDevice(c)
+	client, err := NewClient(c)
 	assert.Nil(t, err)
-	log.Printf("output %+v", dev.GetServices())
-	/*
-		res, err := dev.CallMethod(device.GetUsers{})
-		bs, _ := ioutil.ReadAll(res.Body)
-		log.Printf("output %+v %s", res.StatusCode, bs)
-
-		capabilities := device.GetCapabilities{Category: "All"}
-		fmt.Print(capabilities)
-	*/
-	res, err := dev.CallMethod(media.GetStreamUri{})
-	bs, _ := ioutil.ReadAll(res.Body)
-	log.Printf("output %+v %s", res.StatusCode, bs)
+	fmt.Printf("streamuri: %s", client.Config.StreamURI)
 }
+
+func TestGetResource(t *testing.T) {
+	c := OnvifConfig{Name: "camera1",
+		URL:          "192.168.168.64:80",
+		User:         "admin",
+		Passwordfile: "/home/wei/ca/pass"}
+
+	_, err := NewClient(c)
+	assert.Nil(t, err)
+	resources := GetOnvifResources()
+	for _, r := range resources.Resources {
+		fmt.Println(r)
+	}
+}
+
+func TestSaveFrame(t *testing.T) {
+	c := OnvifConfig{Name: "camera1",
+		URL:          "192.168.168.64:80",
+		User:         "admin",
+		Passwordfile: "/home/wei/ca/pass"}
+
+	client, err := NewClient(c)
+	assert.Nil(t, err)
+	IfSaveFrame = true
+	streamURI := client.GetStream()
+	err = SaveFrame(streamURI, "/home/wei/output", "jpg", 50, 1000000000)
+	assert.Nil(t, err)
+}
+
+func TestSaveVideo(t *testing.T) {
+	c := OnvifConfig{Name: "camera1",
+		URL:          "192.168.168.64:80",
+		User:         "admin",
+		Passwordfile: "/home/wei/ca/pass"}
+
+	client, err := NewClient(c)
+	assert.Nil(t, err)
+	IfSaveVideo = true
+	streamURI := client.GetStream()
+	err = SaveVideo(streamURI, "/home/wei/output", "mp4", 500)
+	assert.Nil(t, err)
+}
+*/

@@ -22,7 +22,6 @@ func TestParse(t *testing.T) {
 	fmt.Printf("%v", devices)
 	fmt.Printf("%v", models)
 	fmt.Printf("%v", protocols)
-
 }
 
 func TestParseNeg(t *testing.T) {
