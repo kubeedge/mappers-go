@@ -17,45 +17,132 @@ limitations under the License.
 package device
 
 import (
+	"encoding/binary"
+	"errors"
+	"math"
 	"strconv"
 	"strings"
 
 	"k8s.io/klog/v2"
 
 	"github.com/kubeedge/mappers-go/mappers/common"
+	"github.com/kubeedge/mappers-go/mappers/modbus/configmap"
 	"github.com/kubeedge/mappers-go/mappers/modbus/driver"
 	"github.com/kubeedge/mappers-go/mappers/modbus/globals"
 )
 
 // TwinData is the timer structure for getting twin/data.
 type TwinData struct {
-	Client       *driver.ModbusClient
-	Name         string
-	Type         string
-	RegisterType string
-	Address      uint16
-	Quantity     uint16
-	Results      []byte
-	Topic        string
+	Client        *driver.ModbusClient
+	Name          string
+	Type          string
+	VisitorConfig *configmap.ModbusVisitorConfig
+	Results       []byte
+	Topic         string
+}
+
+func SwitchRegister(value []byte) []byte {
+	for i := 0; i < len(value)/2; i = i + 2 {
+		j := len(value) - i - 2
+		value[i], value[j] = value[j], value[i]
+		value[i+1], value[j+1] = value[j+1], value[i+1]
+	}
+	return value
+}
+
+func SwitchByte(value []byte) []byte {
+	if len(value) < 2 {
+		return value
+	}
+	for i := 0; i < len(value); i = i + 2 {
+		value[i], value[i+1] = value[i+1], value[i]
+	}
+	return value
+}
+
+func TransferData(isRegisterSwap bool, isSwap bool,
+	dataType string, scale float64,
+	value []byte) (string, error) {
+	// accord IsSwap/IsRegisterSwap to transfer byte array
+	if isRegisterSwap {
+		SwitchRegister(value)
+	}
+	if isSwap {
+		SwitchByte(value)
+	}
+
+	switch dataType {
+	case "int":
+		switch len(value) {
+		case 1:
+			data := float64(value[0]) * scale
+			sData := strconv.FormatInt(int64(data), 10)
+			return sData, nil
+		case 2:
+			data := float64(binary.BigEndian.Uint16(value)) * scale
+			sData := strconv.FormatInt(int64(data), 10)
+			return sData, nil
+		case 4:
+			data := float64(binary.BigEndian.Uint32(value)) * scale
+			sData := strconv.FormatInt(int64(data), 10)
+			return sData, nil
+		case 8:
+			data := float64(binary.BigEndian.Uint64(value)) * scale
+			sData := strconv.FormatInt(int64(data), 10)
+			return sData, nil
+		default:
+			return "", errors.New("BytesToInt bytes length is invalid")
+		}
+	case "double":
+		if len(value) != 8 {
+			return "", errors.New("BytesToDouble bytes length is invalid")
+		}
+		bits := binary.BigEndian.Uint64(value)
+		data := math.Float64frombits(bits) * scale
+		sData := strconv.FormatFloat(data, 'f', 6, 64)
+		return sData, nil
+	case "float":
+		if len(value) != 4 {
+			return "", errors.New("BytesToFloat bytes length is invalid")
+		}
+		bits := binary.BigEndian.Uint32(value)
+		data := float64(math.Float32frombits(bits)) * scale
+		sData := strconv.FormatFloat(data, 'f', 6, 64)
+		return sData, nil
+	case "boolean":
+		return strconv.FormatBool(value[0] == 1), nil
+	case "string":
+		data := string(value)
+		return data, nil
+	default:
+		return "", errors.New("Data type is not support")
+	}
 }
 
 // Run timer function.
 func (td *TwinData) Run() {
 	var err error
-	td.Results, err = td.Client.Get(td.RegisterType, td.Address, td.Quantity)
+	td.Results, err = td.Client.Get(td.VisitorConfig.Register, td.VisitorConfig.Offset, uint16(td.VisitorConfig.Limit))
 	if err != nil {
 		klog.Errorf("Get register failed: %v", err)
+		return
+	}
+	// transfer data according to the dpl configuration
+	sData, err := TransferData(td.VisitorConfig.IsRegisterSwap,
+		td.VisitorConfig.IsSwap, td.Type, td.VisitorConfig.Scale, td.Results)
+	if err != nil {
+		klog.Error("Transfer Data failed: ", err)
 		return
 	}
 	// construct payload
 	var payload []byte
 	if strings.Contains(td.Topic, "$hw") {
-		if payload, err = common.CreateMessageTwinUpdate(td.Name, td.Type, strconv.Itoa(int(td.Results[0]))); err != nil {
+		if payload, err = common.CreateMessageTwinUpdate(td.Name, td.Type, sData); err != nil {
 			klog.Error("Create message twin update failed")
 			return
 		}
 	} else {
-		if payload, err = common.CreateMessageData(td.Name, td.Type, strconv.Itoa(int(td.Results[0]))); err != nil {
+		if payload, err = common.CreateMessageData(td.Name, td.Type, sData); err != nil {
 			klog.Error("Create message data failed")
 			return
 		}
@@ -63,6 +150,5 @@ func (td *TwinData) Run() {
 	if err = globals.MqttClient.Publish(td.Topic, payload); err != nil {
 		klog.Errorf("Publish topic %v failed, err: %v", td.Topic, err)
 	}
-
-	klog.V(2).Infof("Update value: %s, topic: %s", strconv.Itoa(int(td.Results[0])), td.Topic)
+	klog.V(2).Infof("Get the %s value as %s", td.Name, sData)
 }
