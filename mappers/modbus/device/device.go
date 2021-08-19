@@ -166,12 +166,10 @@ func initTwin(dev *globals.ModbusDev) {
 		setVisitor(&visitorConfig, &dev.Instance.Twins[i], dev.ModbusClient)
 
 		twinData := TwinData{Client: dev.ModbusClient,
-			Name:         dev.Instance.Twins[i].PropertyName,
-			Type:         dev.Instance.Twins[i].Desired.Metadatas.Type,
-			RegisterType: visitorConfig.Register,
-			Address:      visitorConfig.Offset,
-			Quantity:     uint16(visitorConfig.Limit),
-			Topic:        fmt.Sprintf(common.TopicTwinUpdate, dev.Instance.ID)}
+			Name:          dev.Instance.Twins[i].PropertyName,
+			Type:          dev.Instance.Twins[i].Desired.Metadatas.Type,
+			VisitorConfig: &visitorConfig,
+			Topic:         fmt.Sprintf(common.TopicTwinUpdate, dev.Instance.ID)}
 		collectCycle := time.Duration(dev.Instance.Twins[i].PVisitor.CollectCycle)
 		// If the collect cycle is not set, set it to 1 second.
 		if collectCycle == 0 {
@@ -192,14 +190,13 @@ func initData(dev *globals.ModbusDev) {
 		var visitorConfig configmap.ModbusVisitorConfig
 		if err := json.Unmarshal([]byte(dev.Instance.Datas.Properties[i].PVisitor.VisitorConfig), &visitorConfig); err != nil {
 			klog.Errorf("Unmarshal VisitorConfig error: %v", err)
+			continue
 		}
 		twinData := TwinData{Client: dev.ModbusClient,
-			Name:         dev.Instance.Datas.Properties[i].PropertyName,
-			Type:         dev.Instance.Datas.Properties[i].Metadatas.Type,
-			RegisterType: visitorConfig.Register,
-			Address:      visitorConfig.Offset,
-			Quantity:     uint16(visitorConfig.Limit),
-			Topic:        fmt.Sprintf(common.TopicDataUpdate, dev.Instance.ID)}
+			Name:          dev.Instance.Datas.Properties[i].PropertyName,
+			Type:          dev.Instance.Datas.Properties[i].Metadatas.Type,
+			VisitorConfig: &visitorConfig,
+			Topic:         fmt.Sprintf(common.TopicDataUpdate, dev.Instance.ID)}
 		collectCycle := time.Duration(dev.Instance.Datas.Properties[i].PVisitor.CollectCycle)
 		// If the collect cycle is not set, set it to 1 second.
 		if collectCycle == 0 {
