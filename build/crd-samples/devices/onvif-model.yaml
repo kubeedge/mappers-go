@@ -1,0 +1,25 @@
+apiVersion: devices.kubeedge.io/v1alpha2
+kind: DeviceModel
+metadata:
+ name: onvif-model
+ namespace: default
+spec:
+ properties:
+  - name: reboot
+    description: if reboot the camera
+    type:
+      boolean:
+        accessMode: ReadWrite
+        defaultValue: false
+  - name: saveFrame
+    description: if save the frames
+    type:
+      boolean:
+        accessMode: ReadWrite
+        defaultValue: false
+  - name: saveVideo
+    description: if save the video
+    type:
+      boolean:
+        accessMode: ReadWrite
+        defaultValue: false

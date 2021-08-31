@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: onvif-mapper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: onvifmapper
+  template:
+    metadata:
+      labels:
+        app: onvifmapper
+    spec:
+      hostNetwork: true
+      containers:
+      - name: onvif
+        image: onvif-mapper:v1.0-linux-amd64
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: config-volume
+          mountPath: /opt/kubeedge/
+        - name: output
+          mountPath: /output
+      nodeSelector:
+        onvif: "true"
+      volumes:
+      - name: config-volume
+        configMap:
+          name: device-profile-config-onvif
+      - name: output
+        hostPath: 
+          path: /home/wei/output
+          type: Directory
+      restartPolicy: Always

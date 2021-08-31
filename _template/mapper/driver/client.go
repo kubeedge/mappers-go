@@ -33,8 +33,8 @@ type TemplateConfig struct {
 
 // TemplateClient is the structure for Template client.
 type TemplateClient struct {
-	Client  interface{}
-	Config  TemplateConfig
+	Client interface{}
+	Config TemplateConfig
 }
 
 var clients map[string]*TemplateClient

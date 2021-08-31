@@ -18,7 +18,7 @@ package device
 
 import (
 	"k8s.io/klog/v2"
-	
+
 	mappercommon "github.com/kubeedge/mappers-go/mappers/common"
 	"github.com/kubeedge/mappers-go/mappers/opcua/driver"
 	"github.com/kubeedge/mappers-go/mappers/opcua/globals"
