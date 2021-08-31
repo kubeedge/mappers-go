@@ -1,3 +1,4 @@
+//+build linux darwin windows
 /*
 Copyright 2021 The KubeEdge Authors.
 
@@ -19,12 +20,11 @@ package main
 import (
 	"os"
 
-	"k8s.io/klog/v2"
-
-	"github.com/kubeedge/mappers-go/mappers/Template/config"
-	"github.com/kubeedge/mappers-go/mappers/Template/device"
-	"github.com/kubeedge/mappers-go/mappers/Template/globals"
 	"github.com/kubeedge/mappers-go/mappers/common"
+	"github.com/kubeedge/mappers-go/mappers/onvif/config"
+	"github.com/kubeedge/mappers-go/mappers/onvif/device"
+	"github.com/kubeedge/mappers-go/mappers/onvif/globals"
+	"k8s.io/klog/v2"
 )
 
 func main() {

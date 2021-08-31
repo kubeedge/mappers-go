@@ -14,17 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package globals
+package driver
 
-import (
-	"github.com/kubeedge/mappers-go/mappers/Template/driver"
-	"github.com/kubeedge/mappers-go/mappers/common"
-)
-
-// TemplateDev is the Template device configuration and client information.
-type TemplateDev struct {
-	Instance       common.DeviceInstance
-	TemplateClient *driver.TemplateClient
+type OnvifResources struct {
+	Resources map[string]*Resource `json:"resources"`
 }
 
-var MqttClient common.MqttClient
+type Resource struct {
+	URL            string `json:"url"`
+	UserName       string `json:"userName,omitempty"`
+	Password       []byte `json:"password,omitempty"`
+	Certfile       []byte `json:"certfile,omitempty"`
+	RemoteCertfile []byte `json:"remoteCertfile,omitempty"`
+	Keyfile        []byte `json:"keyfile,omitempty"`
+}

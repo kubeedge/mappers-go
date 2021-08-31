@@ -17,14 +17,14 @@ limitations under the License.
 package globals
 
 import (
-	"github.com/kubeedge/mappers-go/mappers/Template/driver"
 	"github.com/kubeedge/mappers-go/mappers/common"
+	"github.com/kubeedge/mappers-go/mappers/onvif/driver"
 )
 
-// TemplateDev is the Template device configuration and client information.
-type TemplateDev struct {
-	Instance       common.DeviceInstance
-	TemplateClient *driver.TemplateClient
+// OnvifDev is the Onvif device configuration and client information.
+type OnvifDev struct {
+	Instance    common.DeviceInstance
+	OnvifClient *driver.OnvifClient
 }
 
 var MqttClient common.MqttClient
