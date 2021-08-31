@@ -1,5 +1,5 @@
 /*
-Copyright 2021 The KubeEdge Authors.
+Copyright 2020 The KubeEdge Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,25 +21,24 @@ import (
 
 	"k8s.io/klog/v2"
 
-	"github.com/kubeedge/mappers-go/mappers/Template/driver"
-	"github.com/kubeedge/mappers-go/mappers/Template/globals"
 	"github.com/kubeedge/mappers-go/mappers/common"
+	"github.com/kubeedge/mappers-go/mappers/onvif/driver"
+	"github.com/kubeedge/mappers-go/mappers/onvif/globals"
 )
 
 // TwinData is the timer structure for getting twin/data.
 type TwinData struct {
-	Client *driver.TemplateClient
+	Client *driver.OnvifClient
 	Name   string
-	Type   string
-	// TODO: add visiting parameters like register address, visiting count.
-	Results []byte
-	Topic   string
+	Method string
+	Value  string
+	Topic  string
 }
 
 // Run timer function.
 func (td *TwinData) Run() {
 	var err error
-	td.Results, err = td.Client.Get()
+	results, err := td.Client.Get(td.Method, td.Value)
 	if err != nil {
 		klog.Errorf("Get register failed: %v", err)
 		return
@@ -47,14 +46,13 @@ func (td *TwinData) Run() {
 	// construct payload
 	var payload []byte
 	if strings.Contains(td.Topic, "$hw") {
-		// TODO: send the data as required.
-		if payload, err = common.CreateMessageTwinUpdate(td.Name, td.Type, string(td.Results)); err != nil {
-			klog.Errorf("Create message twin update failed: %v", err)
+		if payload, err = common.CreateMessageTwinUpdate(td.Name, "string", results); err != nil {
+			klog.Error("Create message twin update failed")
 			return
 		}
 	} else {
-		if payload, err = common.CreateMessageData(td.Name, td.Type, string(td.Results)); err != nil {
-			klog.Errorf("Create message data failed: %v", err)
+		if payload, err = common.CreateMessageData(td.Name, "string", results); err != nil {
+			klog.Error("Create message data failed")
 			return
 		}
 	}
@@ -62,5 +60,5 @@ func (td *TwinData) Run() {
 		klog.Errorf("Publish topic %v failed, err: %v", td.Topic, err)
 	}
 
-	klog.V(2).Infof("Update value: %s, topic: %s", string(td.Results), td.Topic)
+	klog.V(2).Infof("Update value: %s, topic: %s", results, td.Topic)
 }

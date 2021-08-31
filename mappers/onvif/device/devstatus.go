@@ -19,14 +19,14 @@ package device
 import (
 	"k8s.io/klog/v2"
 
-	"github.com/kubeedge/mappers-go/mappers/Template/driver"
-	"github.com/kubeedge/mappers-go/mappers/Template/globals"
 	"github.com/kubeedge/mappers-go/mappers/common"
+	"github.com/kubeedge/mappers-go/mappers/onvif/driver"
+	"github.com/kubeedge/mappers-go/mappers/onvif/globals"
 )
 
 // GetStatus is the timer structure for getting device status.
 type GetStatus struct {
-	Client *driver.TemplateClient
+	Client *driver.OnvifClient
 	Status string
 	topic  string
 }
