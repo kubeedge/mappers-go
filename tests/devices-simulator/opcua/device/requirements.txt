@@ -1,0 +1,2 @@
+opcua==0.98.13
+cryptography==3.4.8

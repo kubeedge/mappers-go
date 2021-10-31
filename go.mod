@@ -6,6 +6,8 @@ require (
 	github.com/beevik/etree v1.1.0
 	github.com/currantlabs/ble v0.0.0-20171229162446-c1d21c164cf8
 	github.com/eclipse/paho.mqtt.golang v1.3.0
+	github.com/goburrow/modbus v0.1.0
+	github.com/goburrow/serial v0.1.0
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/gopcua/opcua v0.1.13
 	github.com/kubeedge/kubeedge v1.5.0
@@ -13,15 +15,19 @@ require (
 	github.com/mgutz/logxi v0.0.0-20161027140823-aebf8a7d67ab // indirect
 	github.com/onsi/ginkgo v1.15.0
 	github.com/onsi/gomega v1.10.5
+	github.com/pkg/errors v0.9.1
 	github.com/sailorvii/goav v0.1.4
 	github.com/sailorvii/modbus v0.1.2
+	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1
+	github.com/tbrandon/mbserver v0.0.0-20210320091329-a1f8ae952881
 	github.com/use-go/onvif v0.0.1
 	golang.org/x/net v0.0.0-20201202161906-c7110b5ffcbb
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.19.3
+	k8s.io/klog v1.0.0
 	k8s.io/klog/v2 v2.4.0
 )
 
