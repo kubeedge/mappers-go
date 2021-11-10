@@ -9,7 +9,9 @@ help:
 	#
 	# Usage:
 	#   make template :  create a mapper based on a template.
-	#   make mapper {mapper-name} <action> <parameter>:  execute mapper building process.
+	#   make mapper {mapper-name} <action> <parameter>: execute mapper building process.
+	#   make device {device-name} <action> <parameter>: execute device simulator build process. (only used by modbus)
+	#   make e2e  {mapper-name} : execute mapper e2e building process. (only support modbus and opcua)
 	#   make all :  execute building process to all mappers.
 	#
 	# Actions:

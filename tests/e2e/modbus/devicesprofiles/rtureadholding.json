@@ -1,0 +1,79 @@
+{
+  "deviceInstances":[
+    {
+      "id":"modbusrtu-device",
+      "name":"modbusrtu-device",
+      "protocol":"modbus-modbusrtu-device",
+      "model":"modbus-sample-model",
+      "twins":[
+        {
+          "propertyName":"temperature",
+          "desired":{
+            "value":"",
+            "metadata":{
+              "type":"double"
+            }
+          },
+          "reported":{
+            "value":""
+          }
+        }
+      ],
+      "propertyVisitors":[
+        {
+          "name": "temperature",
+          "propertyName": "temperature",
+          "modelName": "modbus-sample-model",
+          "protocol": "modbus",
+          "collectCycle":10000000000,
+          "visitorConfig": {
+            "register": "HoldingRegister",
+            "offset": 0,
+            "limit": 4,
+            "scale": 1,
+            "isSwap": false,
+            "isRegisterSwap": false
+          }
+        }
+      ]
+    }
+  ],
+  "deviceModels":[
+    {
+      "name":"modbus-sample-model",
+      "properties":[
+        {
+          "name":"temperature",
+          "dataType":"double",
+          "description":"temperature in degree celsius",
+          "accessMode":"ReadOnly",
+          "defaultValue":0,
+          "minimum":0,
+          "maximum":100,
+          "unit":"degree celsius"
+        }
+      ]
+    }
+  ],
+  "protocols":[
+    {
+      "name":"modbus-modbusrtu-device",
+      "protocol":"modbus",
+      "protocolConfig":{
+        "slaveID":1
+      },
+      "protocolCommonConfig":{
+        "com":{
+          "serialPort":"/dev/ttyS001",
+          "baudRate":19200,
+          "dataBits":8,
+          "parity":"even",
+          "stopBits":1
+        },
+        "customizedValues":{
+          "serialType":"RS232"
+        }
+      }
+    }
+  ]
+}
