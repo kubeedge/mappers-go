@@ -21,7 +21,7 @@ import (
 	"github.com/kubeedge/mappers-go/mappers/common"
 )
 
-// BLEDev is the ble device configuration and client information.
+// BleDev is the ble device configuration and client information.
 type BleDev struct {
 	Instance  common.DeviceInstance
 	BleClient *driver.BleClient

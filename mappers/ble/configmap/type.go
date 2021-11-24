@@ -16,7 +16,7 @@ limitations under the License.
 
 package configmap
 
-// BLEVisitorConfig is the BLE register configuration.
+// BleVisitorConfig is the BLE register configuration.
 type BleVisitorConfig struct {
 	CharacteristicUUID string            `json:"characteristicUUID"`
 	DataWrite          map[string][]byte `json:"dataWrite"`
