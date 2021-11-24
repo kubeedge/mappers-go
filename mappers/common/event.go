@@ -103,7 +103,7 @@ func (mc *MqttClient) Publish(topic string, payload interface{}) error {
 	return nil
 }
 
-// Subscribe subsribe a Mqtt topic.
+// Subscribe subscribe a Mqtt topic.
 func (mc *MqttClient) Subscribe(topic string, onMessage mqtt.MessageHandler) error {
 	if tc := mc.Client.Subscribe(topic, mc.Qos, onMessage); tc.Wait() && tc.Error() != nil {
 		return tc.Error()
