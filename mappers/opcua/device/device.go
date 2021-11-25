@@ -92,7 +92,7 @@ func onMessage(client mqtt.Client, message mqtt.Message) {
 		}
 		dev.Instance.Twins[i].Desired.Value = twinValue
 		var visitorConfig configmap.VisitorConfigOPCUA
-		if err := json.Unmarshal([]byte(dev.Instance.Twins[i].PVisitor.VisitorConfig), &visitorConfig); err != nil {
+		if err := json.Unmarshal(dev.Instance.Twins[i].PVisitor.VisitorConfig, &visitorConfig); err != nil {
 			klog.Errorf("Unmarshal VisitorConfig failed: %v", err)
 			continue
 		}
@@ -138,7 +138,7 @@ func initOPCUA(protocolConfig configmap.ProtocolConfigOPCUA, protocolCommConfig 
 func initTwin(dev *globals.OPCUADev) {
 	for i := 0; i < len(dev.Instance.Twins); i++ {
 		var visitorConfig configmap.VisitorConfigOPCUA
-		if err := json.Unmarshal([]byte(dev.Instance.Twins[i].PVisitor.VisitorConfig), &visitorConfig); err != nil {
+		if err := json.Unmarshal(dev.Instance.Twins[i].PVisitor.VisitorConfig, &visitorConfig); err != nil {
 			klog.Errorf("Unmarshal VisitorConfig error: %v", err)
 			continue
 		}
@@ -167,7 +167,7 @@ func initTwin(dev *globals.OPCUADev) {
 func initData(dev *globals.OPCUADev) {
 	for i := 0; i < len(dev.Instance.Datas.Properties); i++ {
 		var visitorConfig configmap.VisitorConfigOPCUA
-		if err := json.Unmarshal([]byte(dev.Instance.Twins[i].PVisitor.VisitorConfig), &visitorConfig); err != nil {
+		if err := json.Unmarshal(dev.Instance.Twins[i].PVisitor.VisitorConfig, &visitorConfig); err != nil {
 			klog.Errorf("Unmarshal VisitorConfig error: %v", err)
 			continue
 		}
@@ -213,13 +213,13 @@ func initGetStatus(dev *globals.OPCUADev) {
 // start start the device.
 func start(dev *globals.OPCUADev) {
 	var protocolConfig configmap.ProtocolConfigOPCUA
-	if err := json.Unmarshal([]byte(dev.Instance.PProtocol.ProtocolConfigs), &protocolConfig); err != nil {
+	if err := json.Unmarshal(dev.Instance.PProtocol.ProtocolConfigs, &protocolConfig); err != nil {
 		klog.Errorf("Unmarshal ProtocolConfig error: %v", err)
 		return
 	}
 
 	var protocolCommConfig configmap.ProtocolCommonConfigOPCUA
-	if err := json.Unmarshal([]byte(dev.Instance.PProtocol.ProtocolCommonConfig), &protocolCommConfig); err != nil {
+	if err := json.Unmarshal(dev.Instance.PProtocol.ProtocolCommonConfig, &protocolCommConfig); err != nil {
 		klog.Errorf("Unmarshal ProtocolCommonConfig error: %v", err)
 		return
 	}
