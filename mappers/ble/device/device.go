@@ -108,7 +108,7 @@ func onMessage(client mqtt.Client, message mqtt.Message) {
 		}
 		dev.Instance.Twins[i].Desired.Value = twinValue
 		var visitorConfig configmap.BleVisitorConfig
-		if err := json.Unmarshal([]byte(dev.Instance.Twins[i].PVisitor.VisitorConfig), &visitorConfig); err != nil {
+		if err := json.Unmarshal(dev.Instance.Twins[i].PVisitor.VisitorConfig, &visitorConfig); err != nil {
 			klog.Errorf("Unmarshal VisitorConfig error: %v", err)
 			continue
 		}
@@ -182,7 +182,7 @@ func initTwin(dev *globals.BleDev) {
 func initData(dev *globals.BleDev) {
 	for i := 0; i < len(dev.Instance.Datas.Properties); i++ {
 		var visitorConfig configmap.BleVisitorConfig
-		if err := json.Unmarshal([]byte(dev.Instance.Twins[i].PVisitor.VisitorConfig), &visitorConfig); err != nil {
+		if err := json.Unmarshal(dev.Instance.Twins[i].PVisitor.VisitorConfig, &visitorConfig); err != nil {
 			klog.Errorf("Unmarshal VisitorConfig error: %v", err)
 			continue
 		}
@@ -248,7 +248,7 @@ func initGetStatus(dev *globals.BleDev) {
 // start start the device.
 func start(dev *globals.BleDev) {
 	var protocolConfig configmap.BleProtocolConfig
-	if err := json.Unmarshal([]byte(dev.Instance.PProtocol.ProtocolConfigs), &protocolConfig); err != nil {
+	if err := json.Unmarshal(dev.Instance.PProtocol.ProtocolConfigs, &protocolConfig); err != nil {
 		klog.Errorf("Unmarshal ProtocolConfig error: %v", err)
 		return
 	}

@@ -38,7 +38,7 @@ func TestParse(t *testing.T) {
 	assert.Nil(t, Parse("./configmap_test.json", devices, models, protocols))
 	for _, device := range devices {
 		var bpc BleProtocolConfig
-		assert.Nil(t, json.Unmarshal([]byte(device.Instance.PProtocol.ProtocolConfigs), &bpc))
+		assert.Nil(t, json.Unmarshal(device.Instance.PProtocol.ProtocolConfigs, &bpc))
 		assert.Equal(t, "A4:C1:38:1A:49:90", bpc.MacAddress)
 	}
 }
