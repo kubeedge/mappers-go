@@ -75,7 +75,7 @@ func OnEventBus(client mqtt.Client, message mqtt.Message) {
 		}
 		dev.Instance.Twins[i].Desired.Value = twinValue
 		var visitorConfig configmap.OnvifVisitorConfig
-		if err := json.Unmarshal([]byte(dev.Instance.Twins[i].PVisitor.VisitorConfig), &visitorConfig); err != nil {
+		if err := json.Unmarshal(dev.Instance.Twins[i].PVisitor.VisitorConfig, &visitorConfig); err != nil {
 			klog.Errorf("Unmarshal VisitorConfig error: %v", err)
 		}
 		setVisitor(&visitorConfig, &dev.Instance.Twins[i], dev.OnvifClient)

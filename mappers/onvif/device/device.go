@@ -37,7 +37,7 @@ var models map[string]common.DeviceModel
 var protocols map[string]common.Protocol
 var wg sync.WaitGroup
 
-// setVisitor check if visitory property is readonly, if not then set it.
+// setVisitor check if visitor property is readonly, if not then set it.
 func setVisitor(visitorConfig *configmap.OnvifVisitorConfig, twin *common.Twin, client *driver.OnvifClient) {
 	if twin.PVisitor.PProperty.AccessMode == "ReadOnly" {
 		return
@@ -105,7 +105,7 @@ func initOnvif(name string, protocolConfig configmap.OnvifProtocolConfig) (clien
 func initTwin(dev *globals.OnvifDev) {
 	for i := 0; i < len(dev.Instance.Twins); i++ {
 		var visitorConfig configmap.OnvifVisitorConfig
-		if err := json.Unmarshal([]byte(dev.Instance.Twins[i].PVisitor.VisitorConfig), &visitorConfig); err != nil {
+		if err := json.Unmarshal(dev.Instance.Twins[i].PVisitor.VisitorConfig, &visitorConfig); err != nil {
 			klog.Errorf("Unmarshal VisitorConfig error: %v", err)
 			continue
 		}
@@ -221,7 +221,7 @@ func initGetStatus(dev *globals.OnvifDev) {
 // start start the device.
 func start(dev *globals.OnvifDev) {
 	var protocolConfig configmap.OnvifProtocolConfig
-	if err := json.Unmarshal([]byte(dev.Instance.PProtocol.ProtocolConfigs), &protocolConfig); err != nil {
+	if err := json.Unmarshal(dev.Instance.PProtocol.ProtocolConfigs, &protocolConfig); err != nil {
 		klog.Errorf("Unmarshal ProtocolConfig error: %v", err)
 		return
 	}
