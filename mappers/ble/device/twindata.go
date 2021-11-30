@@ -90,7 +90,7 @@ func (td *TwinData) handlerPublish() (err error) {
 }
 
 // ConvertReadData is the function responsible to convert the data read from the device into meaningful data.
-// If currently logic of converting data is not suitbale for your device, you can change ConvertReadData function manually.
+// If currently logic of converting data is not suitable for your device, you can change ConvertReadData function manually.
 func (td *TwinData) ConvertReadData(data []byte) float64 {
 	var intermediateResult uint64
 	var initialValue []byte
