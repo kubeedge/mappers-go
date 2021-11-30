@@ -74,7 +74,7 @@ func (c *Config) parseFlags() error {
 	pflag.StringVar(&c.Mqtt.Username, "mqtt-username", c.Mqtt.Username, "username")
 	pflag.StringVar(&c.Mqtt.Password, "mqtt-password", c.Mqtt.Password, "password")
 	pflag.StringVar(&c.Mqtt.Cert, "mqtt-certification", c.Mqtt.Cert, "certification file path")
-	pflag.StringVar(&c.Mqtt.PrivateKey, "mqtt-priviatekey", c.Mqtt.PrivateKey, "private key file path")
+	pflag.StringVar(&c.Mqtt.PrivateKey, "mqtt-privatekey", c.Mqtt.PrivateKey, "private key file path")
 	pflag.Parse()
 
 	if (c.Mqtt.Cert != "" && c.Mqtt.PrivateKey == "") ||

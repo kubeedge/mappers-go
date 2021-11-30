@@ -59,7 +59,7 @@ func Parse(path string,
 		}
 
 		var protocolConfig OnvifProtocolConfig
-		if err := json.Unmarshal([]byte(instance.PProtocol.ProtocolConfigs), &protocolConfig); err != nil {
+		if err := json.Unmarshal(instance.PProtocol.ProtocolConfigs, &protocolConfig); err != nil {
 			return fmt.Errorf("Unmarshal ProtocolConfigs error: %v", err)
 		}
 		fmt.Printf("ProtocolConfig: %v\n", protocolConfig)

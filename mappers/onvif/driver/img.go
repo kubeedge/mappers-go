@@ -31,7 +31,7 @@ import (
 
 var IfSaveFrame bool
 
-// generate file name with current time. Formate f<year><month><day><hour><minute><second><millisecond>.<format>
+// GenFileName generate file name with current time. Formate f<year><month><day><hour><minute><second><millisecond>.<format>
 func GenFileName(dir string, format string) string {
 	return fmt.Sprintf("%s/f%s.%s", dir, time.Now().Format(time.RFC3339Nano), format)
 }
