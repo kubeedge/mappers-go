@@ -65,8 +65,8 @@ var clients map[string]*ModbusClient
 
 func newTCPClient(config ModbusTCP) *ModbusClient {
 	addr := config.DeviceIP + ":" + config.TCPPort
-
-	if client, ok := clients[addr]; ok {
+	slave := addr + "/" + string(config.SlaveID)
+	if client, ok := clients[slave]; ok {
 		return client
 	}
 
@@ -78,8 +78,9 @@ func newTCPClient(config ModbusTCP) *ModbusClient {
 	handler.Timeout = config.Timeout
 	handler.IdleTimeout = config.Timeout
 	handler.SlaveId = config.SlaveID
+
 	client := ModbusClient{Client: modbus.NewClient(handler), Handler: handler, Config: config}
-	clients[addr] = &client
+	clients[slave] = &client
 	return &client
 }
 
