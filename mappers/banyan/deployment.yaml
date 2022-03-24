@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: Banyan-mapper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: Banyanmapper
+  template:
+    metadata:
+      labels:
+        app: Banyanmapper
+    spec:
+      hostNetwork: true
+      containers:
+      - name: Banyan-mapper-container
+        image: Banyanmapper:v1.0
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: config-volume
+          mountPath: /opt/kubeedge/
+      nodeSelector:
+        Banyan: "true"
+      volumes:
+      - name: config-volume
+        configMap:
+          name: device-profile-config-test
+      restartPolicy: Always
