@@ -10,6 +10,7 @@ github.com/kubeedge/mappers-go$ make template
 Please input the mapper name (like 'Bluetooth', 'BLE'): test
 ```
 A folder named as you input will be generated in the directory "mappers". The file tree is as below:
+```
 mapper
 ├── cmd ----------------------------- Main process.
 │   └── main.go --------------------- Almost need not change.
@@ -38,3 +39,4 @@ mapper
 │   └── make-rules
 │       └── mapper.sh
 └── Makefile
+```
