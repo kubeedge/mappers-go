@@ -1,0 +1,19 @@
+apiVersion: devices.kubeedge.io/v1alpha2
+kind: DeviceModel
+metadata:
+  name: random-01
+  namespace: default
+spec:
+  properties:
+    - name: random-int
+      description: random int
+      type:
+        int:
+          accessMode: ReadWrite
+          defaultValue: 100
+    - name: random-float
+      description: random float
+      type:
+        float:
+          accessMode: ReadOnly
+          defaultValue: 30

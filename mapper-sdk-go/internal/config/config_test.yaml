@@ -1,0 +1,12 @@
+mqtt:
+  server: mqtts://127.0.0.1:8883
+  servicename: 127.0.0.1
+  username: "testName"
+  password: "testPwd"
+  certification: ../../example/virtualDevice/res/client.pem
+  privatekey: ../../example/virtualDevice/res/client.pem
+http:
+  certification: ../../example/virtualDevice/res/client.pem
+  privatekey: ../../example/virtualDevice/res/client.pem
+  caCert: ../../example/virtualDevice/res/client.pem
+configmap: ../configmap_test.json
