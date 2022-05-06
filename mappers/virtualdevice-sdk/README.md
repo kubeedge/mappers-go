@@ -40,118 +40,116 @@ This example provides the security key of the client side.You can find them in [
 configmap for new devices,like this
 ```json
 {
-    "deviceInstances": [
-        {
-            "id": "random-instance-05",
-            "name": "random-instance-05",
-            "protocol": "customized-protocol-random-instance-02",
-            "model": "random-01",
-            "twins": [
-                {
-                    "propertyName": "random-int",
-                    "desired": {
-                        "value": "100",
-                        "metadata": {
-                            "timestamp": "1550049403598",
-                            "type": "integer"
-                        }
-                    },
-                    "reported": {
-                        "value": "100",
-                        "metadata": {
-                            "timestamp": "1550049403598",
-                            "type": "integer"
-                        }
-                    }
-                },
-                {
-                    "propertyName": "random-float",
-                    "desired": {
-                        "value": "30",
-                        "metadata": {
-                            "timestamp": "1550049403598",
-                            "type": "float"
-                        }
-                    },
-                    "reported": {
-                        "value": "30",
-                        "metadata": {
-                            "timestamp": "1550049403598",
-                            "type": "float"
-                        }
-                    }
-                }
-            ],
-            "propertyVisitors": [
-                {
-                    "name": "random-int",
-                    "propertyName": "random-int",
-                    "modelName": "random-01",
-                    "protocol": "customized-protocol",
-                    "visitorConfig": {
-                        "protocolName": "virtualProtocol",
-                        "configData": {
-                            "dataType": "int"
-                        }
-                    }
-                },
-                {
-                    "name": "random-float",
-                    "propertyName": "random-float",
-                    "modelName": "random-01",
-                    "protocol": "customized-protocol",
-                    "visitorConfig": {
-                        "protocolName": "virtualProtocol",
-                        "configData": {
-                            "dataType": "float"
-                        }
-                    }
-                }
-            ]
+  "deviceInstances":{
+    "id": "random-instance-05",
+    "name": "random-instance-05",
+    "protocol": "customized-protocol-random-instance-02",
+    "model": "random-01",
+    "twins": [
+      {
+        "propertyName": "random-int",
+        "desired": {
+          "value": "100",
+          "metadata": {
+            "timestamp": "1550049403598",
+            "type": "integer"
+          }
+        },
+        "reported": {
+          "value": "100",
+          "metadata": {
+            "timestamp": "1550049403598",
+            "type": "integer"
+          }
         }
+      },
+      {
+        "propertyName": "random-float",
+        "desired": {
+          "value": "30",
+          "metadata": {
+            "timestamp": "1550049403598",
+            "type": "float"
+          }
+        },
+        "reported": {
+          "value": "30",
+          "metadata": {
+            "timestamp": "1550049403598",
+            "type": "float"
+          }
+        }
+      }
     ],
-    "deviceModels": [
-        {
-            "name": "random-01",
-            "properties": [
-                {
-                    "name": "random-int",
-                    "dataType": "int",
-                    "description": "random-int",
-                    "accessMode": "ReadWrite",
-                    "defaultValue": 100,
-                    "minimum": 0,
-                    "maximum": 0
-                },
-                {
-                    "name": "random-float",
-                    "dataType": "float",
-                    "description": "random-float",
-                    "accessMode": "ReadOnly",
-                    "defaultValue": 30,
-                    "minimum": 0,
-                    "maximum": 0
-                }
-            ]
+    "propertyVisitors": [
+      {
+        "name": "random-int",
+        "propertyName": "random-int",
+        "modelName": "random-01",
+        "protocol": "customized-protocol",
+        "visitorConfig": {
+          "protocolName": "virtualProtocol",
+          "configData": {
+            "dataType": "int"
+          }
         }
-    ],
-    "protocols": [
-        {
-            "name": "customized-protocol-random-instance-05",
-            "protocol": "customized-protocol",
-            "protocolConfig": {
-                "protocolName": "virtualProtocol",
-                "configData": {
-                    "deviceID": 1
-                }
-            },
-            "protocolCommonConfig": {
-                "customizedValues": {
-                    "protocolID": 1
-                }
-            }
+      },
+      {
+        "name": "random-float",
+        "propertyName": "random-float",
+        "modelName": "random-01",
+        "protocol": "customized-protocol",
+        "visitorConfig": {
+          "protocolName": "virtualProtocol",
+          "configData": {
+            "dataType": "float"
+          }
         }
+      }
     ]
+  },
+  "deviceModels": [
+    {
+      "name": "random-01",
+      "properties": [
+        {
+          "name": "random-int",
+          "dataType": "int",
+          "description": "random-int",
+          "accessMode": "ReadWrite",
+          "defaultValue": 100,
+          "minimum": 0,
+          "maximum": 0
+        },
+        {
+          "name": "random-float",
+          "dataType": "float",
+          "description": "random-float",
+          "accessMode": "ReadOnly",
+          "defaultValue": 30,
+          "minimum": 0,
+          "maximum": 0
+        }
+      ]
+    }
+  ],
+  "protocols": [
+    {
+      "name": "customized-protocol-random-instance-05",
+      "protocol": "customized-protocol",
+      "protocolConfig": {
+        "protocolName": "virtualProtocol",
+        "configData": {
+          "deviceID": 1
+        }
+      },
+      "protocolCommonConfig": {
+        "customizedValues": {
+          "protocolID": 1
+        }
+      }
+    }
+  ]
 }
 ```
 

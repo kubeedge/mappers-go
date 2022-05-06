@@ -1,6 +1,8 @@
 package di
 
-import "reflect"
+import (
+	"reflect"
+)
 
 // TypeInstanceToName converts an instance of a type to a unique name.
 func TypeInstanceToName(v interface{}) string {

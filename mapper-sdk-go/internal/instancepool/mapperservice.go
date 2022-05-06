@@ -2,11 +2,12 @@ package instancepool
 
 import (
 	"context"
+	"sync"
+
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/common"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/configmap"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/pkg/di"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/pkg/models"
-	"sync"
 )
 
 // DeviceInstancesName contains the name of device instance struct in the DIC.

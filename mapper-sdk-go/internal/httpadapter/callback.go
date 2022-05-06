@@ -3,14 +3,16 @@ package httpadapter
 
 import (
 	"encoding/json"
+	"net/http"
+	"net/url"
+	"strings"
+
+	"k8s.io/klog/v2"
+
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/application"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/common"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/httpadapter/requests"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/httpadapter/response"
-	"k8s.io/klog/v2"
-	"net/http"
-	"net/url"
-	"strings"
 )
 
 // AddDevice Restful API to addDevice
@@ -19,7 +21,7 @@ func (c *RestController) AddDevice(writer http.ResponseWriter, request *http.Req
 	var addDeviceRequest requests.AddDeviceRequest
 	err := json.NewDecoder(request.Body).Decode(&addDeviceRequest)
 	if err != nil {
-		klog.Error("Failed to decode JSON", err)
+		klog.Error("Failed to decode JSON: ", err)
 		c.sendMapperError(writer, request, err.Error(), common.APIDeviceCallbackRoute)
 		return
 	}

@@ -2,15 +2,17 @@ package mqttadapter
 
 import (
 	"encoding/json"
+	"strings"
+	"time"
+
+	"k8s.io/klog/v2"
+
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/clients/mqttclient"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/common"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/configmap"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/controller"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/pkg/di"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/pkg/models"
-	"k8s.io/klog/v2"
-	"strings"
-	"time"
 )
 
 // TwinData the structure of device twin
@@ -37,19 +39,19 @@ func (td *TwinData) Run() {
 	var err error
 	sData, err := controller.GetDeviceData(td.driverUnit.instanceID, td.driverUnit.twin, td.driverUnit.drivers, td.driverUnit.mutex, td.driverUnit.dic)
 	if err != nil {
-		klog.Error("GetDeviceData error:", err.Error())
+		klog.Errorf("Get %s data error:", td.driverUnit.instanceID, err.Error())
 		return
 	}
 	td.Value = sData
 	var payload []byte
 	if strings.Contains(td.Topic, "$hw") {
 		if payload, err = CreateMessageTwinUpdate(td.Name, td.Type, td.Value); err != nil {
-			klog.Errorf("Create message twin update failed: %v", err)
+			klog.Errorf("Create %s message twin update failed: %v", td.driverUnit.instanceID, err)
 			return
 		}
 	} else {
 		if payload, err = CreateMessageData(td.Name, td.Type, td.Value); err != nil {
-			klog.Errorf("Create message data failed: %v", err)
+			klog.Errorf("Create %s message data failed: %v", td.driverUnit.instanceID, err)
 			return
 		}
 	}

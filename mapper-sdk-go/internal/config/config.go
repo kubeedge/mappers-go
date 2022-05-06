@@ -3,11 +3,12 @@ package config
 
 import (
 	"errors"
+	"io/ioutil"
+	"runtime"
+
 	"github.com/spf13/pflag"
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
 	"k8s.io/klog/v2"
-	"runtime"
 )
 
 // Config is the modbus mapper configuration.

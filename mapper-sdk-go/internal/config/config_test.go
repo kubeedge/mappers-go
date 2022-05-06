@@ -2,12 +2,13 @@ package config
 
 import (
 	"errors"
+	"io/ioutil"
+	"testing"
+
 	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
 	"k8s.io/klog/v2"
-	"testing"
 )
 
 func TestConfig(t *testing.T) {

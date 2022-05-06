@@ -3,13 +3,17 @@ package mqttadapter
 import (
 	"context"
 	"encoding/json"
+	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/common"
+	"regexp"
+	"sync"
+
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"k8s.io/klog/v2"
+
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/configmap"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/controller"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/instancepool"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/pkg/di"
-	"k8s.io/klog/v2"
-	"regexp"
 )
 
 // SyncInfo callback function of Mqtt subscribe message.
@@ -26,7 +30,7 @@ func SyncInfo(dic *di.Container, message mqtt.Message) {
 	}
 	var delta DeviceTwinDelta
 	if err := json.Unmarshal(message.Payload(), &delta); err != nil {
-		klog.Errorf("Unmarshal message failed: %v", err)
+		klog.Errorf("Unmarshal %s message failed: %v", instanceID, err)
 		return
 	}
 	for twinName, twinValue := range delta.Delta {
@@ -62,7 +66,7 @@ func SyncInfo(dic *di.Container, message mqtt.Message) {
 func UpdateDevice(dic *di.Container, message mqtt.Message) {
 	choices := make(map[string]string)
 	if err := json.Unmarshal(message.Payload(), &choices); err != nil {
-		klog.Errorf("Unmarshal message failed: %v", err)
+		klog.Errorf("Unmarshal UpdateDevice message failed: %v", err)
 		return
 	}
 	if choices["option"] == "add" {
@@ -134,7 +138,7 @@ func addDevice(dic *di.Container, message mqtt.Message) {
 	driver := instancepool.ProtocolDriverNameFrom(dic.Get)
 	mqttClient := instancepool.MqttClientNameFrom(dic.Get)
 	wg := instancepool.WgNameFrom(dic.Get)
-	mapMutex := instancepool.DeviceLockNameFrom(dic.Get)
+	deviceMutex := instancepool.DeviceLockNameFrom(dic.Get)
 	stopFunctions := instancepool.StopFunctionsNameFrom(dic.Get)
 	defaultConfigFile := configMap
 	mutex := instancepool.MutexNameFrom(dic.Get)
@@ -146,11 +150,13 @@ func addDevice(dic *di.Container, message mqtt.Message) {
 	}
 	mutex.Unlock()
 	configmap.GetConnectInfo(deviceInstances, connectInfo)
+	deviceMutex[instanceID] = new(common.Lock)
+	deviceMutex[instanceID].DeviceLock = new(sync.Mutex)
 	go func() {
 		ctx, cancelFunc := context.WithCancel(context.Background())
-		SendTwin(ctx, instanceID, deviceInstances[instanceID], driver, mqttClient, wg, dic, mapMutex[instanceID])
-		SendData(ctx, instanceID, deviceInstances[instanceID], driver, mqttClient, wg, dic, mapMutex[instanceID])
-		SendDeviceState(ctx, instanceID, deviceInstances[instanceID], driver, mqttClient, wg, dic, mapMutex[instanceID])
+		SendTwin(ctx, instanceID, deviceInstances[instanceID], driver, mqttClient, wg, dic, deviceMutex[instanceID])
+		SendData(ctx, instanceID, deviceInstances[instanceID], driver, mqttClient, wg, dic, deviceMutex[instanceID])
+		SendDeviceState(ctx, instanceID, deviceInstances[instanceID], driver, mqttClient, wg, dic, deviceMutex[instanceID])
 		stopFunctions[instanceID] = cancelFunc
 		klog.V(1).Infof("Add %s successful\n", instanceID)
 	}()

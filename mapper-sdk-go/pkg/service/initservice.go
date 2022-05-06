@@ -6,6 +6,8 @@ import (
 	"os/signal"
 	"sync"
 
+	"k8s.io/klog/v2"
+
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/clients/httpclient"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/clients/mqttclient"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/common"
@@ -16,7 +18,6 @@ import (
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/instancepool"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/pkg/di"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/pkg/models"
-	"k8s.io/klog/v2"
 )
 
 var (

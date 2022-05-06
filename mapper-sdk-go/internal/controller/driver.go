@@ -2,12 +2,13 @@
 package controller
 
 import (
+	"k8s.io/klog/v2"
+
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/common"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/configmap"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/instancepool"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/pkg/di"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/pkg/models"
-	"k8s.io/klog/v2"
 )
 
 // SetVisitor write device in thread safe mode
@@ -49,7 +50,7 @@ func GetDeviceData(instanceID string, twin configmap.Twin, drivers models.Protoc
 	}
 	sData, err := common.ConvertToString(data)
 	if err != nil {
-		klog.Errorf("Failed to convert value as string : %v", err)
+		klog.Errorf("Failed to convert %s %s value as string : %v",instanceID,twin.PropertyName,err)
 		return "", err
 	}
 	if len(sData) > 30{

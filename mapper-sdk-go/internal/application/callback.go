@@ -2,6 +2,11 @@ package application
 
 import (
 	"context"
+	"net/url"
+	"sync"
+
+	"k8s.io/klog/v2"
+
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/common"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/configmap"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/controller"
@@ -9,57 +14,56 @@ import (
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/instancepool"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/mqttadapter"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/pkg/di"
-	"k8s.io/klog/v2"
-	"net/url"
-	"sync"
 )
 
 // AddDevice internal callback function
-func AddDevice(addDeviceRequest requests.AddDeviceRequest, dic *di.Container) (kind common.ErrKind) {
-	instanceID := addDeviceRequest.DeviceInstance.ID
+func AddDevice(addDeviceRequest requests.AddDeviceRequest, dic *di.Container) common.ErrKind {
 	deviceInstance := addDeviceRequest.DeviceInstance
+	instanceID := deviceInstance.ID
 	deviceInstances := instancepool.DeviceInstancesNameFrom(dic.Get)
 	protocols := instancepool.ProtocolNameFrom(dic.Get)
 	// Check if the device ID added by the user is duplicated
 	for k := range deviceInstances {
 		if k == instanceID {
-			klog.Error("The deviceInstance name used in the uploaded file already exists in mapperService")
+			klog.Errorf("The deviceInstance name: %s used in the uploaded file already exists in mapperService",instanceID)
 			return common.KindDuplicateName
 		}
 	}
+	var isFind bool
 	// Check whether mapperService already has a protocol
 	if _, ok := protocols[deviceInstance.ProtocolName]; !ok {
 		if addDeviceRequest.Protocol != nil {
-			i := 0
-			for i = 0; i < len(addDeviceRequest.Protocol); i++ {
+			for i := range addDeviceRequest.Protocol{
 				if deviceInstance.ProtocolName == addDeviceRequest.Protocol[i].Name {
+					isFind = true
 					break
 				}
 			}
-			if i == len(addDeviceRequest.Protocol) {
-				klog.Error("http callback error : protocol mismatch , there is no protocol matching the uploaded file")
+			if !isFind{
+				klog.Errorf("http callback error : protocol mismatch , there is no protocol named %s matching the uploaded file",deviceInstance.ProtocolName)
 				return common.KindEntityDoesNotExist
 			}
 		}
 	}
 	// Check whether mapperService already has a deviceModel
 	deviceModels := instancepool.DeviceModelsNameFrom(dic.Get)
+	isFind = false
 	if _, ok := deviceModels[deviceInstance.Model]; !ok {
 		if addDeviceRequest.DeviceModels != nil {
-			i := 0
-			for i = 0; i < len(addDeviceRequest.DeviceModels); i++ {
+			for i := range addDeviceRequest.DeviceModels{
 				if deviceInstance.Model == addDeviceRequest.DeviceModels[i].Name {
+					isFind = true
 					break
 				}
 			}
-			if i == len(addDeviceRequest.DeviceModels) {
-				klog.Error("http callback error : deviceModel mismatch , there is no deviceModel matching the uploaded file")
+			if !isFind {
+				klog.Errorf("http callback error : deviceModel mismatch , there is no deviceModel named %s matching the uploaded file",deviceInstance.Model)
 				return common.KindEntityDoesNotExist
 			}
 		}
 	}
 	// Iterate through the json file uploaded by the user to find
-	isFind := false
+	isFind = false
 	for k := 0; k < len(deviceInstance.PropertyVisitors); k++ {
 		modelName := deviceInstance.PropertyVisitors[k].ModelName
 		propertyName := deviceInstance.PropertyVisitors[k].PropertyName
@@ -75,14 +79,14 @@ func AddDevice(addDeviceRequest requests.AddDeviceRequest, dic *di.Container) (k
 					}
 				}
 				if m == len(addDeviceRequest.DeviceModels[l].Properties) {
-					klog.Error("Property not found in the uploaded file")
+					klog.Errorf("Property : %s not found in the uploaded file",propertyName)
 					return common.KindServerError
 				}
 				break
 			}
 		}
 		if l == len(addDeviceRequest.DeviceModels) {
-			klog.Error("Device model not found in the uploaded file")
+			klog.Errorf("Device model : %s not found in the uploaded file",modelName)
 			return common.KindServerError
 		}
 	}
@@ -103,14 +107,14 @@ func AddDevice(addDeviceRequest requests.AddDeviceRequest, dic *di.Container) (k
 						}
 					}
 					if m == len(value.Properties) {
-						klog.Error("Property not exists")
+						klog.Errorf("Property : %s not exists",propertyName)
 						return common.KindEntityDoesNotExist
 					}
 					break
 				}
 			}
 			if l == len(deviceModels) {
-				klog.Error("Device model not exists")
+				klog.Errorf("Device model : %s not exists",modelName)
 				return common.KindEntityDoesNotExist
 			}
 		}
@@ -125,7 +129,7 @@ func AddDevice(addDeviceRequest requests.AddDeviceRequest, dic *di.Container) (k
 			}
 		}
 		if l == len(deviceInstance.PropertyVisitors) {
-			klog.Error("PropertyVisitor not found")
+			klog.Errorf("PropertyVisitor : %s not found",name)
 			return common.KindEntityDoesNotExist
 		}
 	}
@@ -136,24 +140,27 @@ func AddDevice(addDeviceRequest requests.AddDeviceRequest, dic *di.Container) (k
 	stopFunctions := instancepool.StopFunctionsNameFrom(dic.Get)
 	connectInfo := instancepool.ConnectInfoNameFrom(dic.Get)
 	mutex := instancepool.MutexNameFrom(dic.Get)
-	mapMutex := instancepool.DeviceLockNameFrom(dic.Get)
+	deviceMutex := instancepool.DeviceLockNameFrom(dic.Get)
+	// Create connect info for new device instance
 	for _, visitorV := range deviceInstance.PropertyVisitors {
-		tempVisitorV := visitorV
 		driverName := common.DriverPrefix + deviceInstance.ID + visitorV.PropertyName
 		connectInfo[driverName] = &configmap.ConnectInfo{
 			ProtocolCommonConfig: deviceInstance.PProtocol.ProtocolCommonConfig,
-			VisitorConfig:        tempVisitorV.VisitorConfig,
+			VisitorConfig:        visitorV.VisitorConfig,
 			ProtocolConfig:       deviceInstance.PProtocol.ProtocolConfigs,
 		}
 	}
+	// Create device lock for device instance
+	deviceMutex[instanceID] = new(common.Lock)
+	deviceMutex[instanceID].DeviceLock = new(sync.Mutex)
 	var waitInit *sync.WaitGroup
 	waitInit = new(sync.WaitGroup)
 	waitInit.Add(1)
 	go func() {
 		ctx, cancelFunc := context.WithCancel(context.Background())
-		mqttadapter.SendTwin(ctx, instanceID, deviceInstance, driver, mqttClient, wg, dic, mapMutex[instanceID])
-		mqttadapter.SendData(ctx, instanceID, deviceInstance, driver, mqttClient, wg, dic, mapMutex[instanceID])
-		mqttadapter.SendDeviceState(ctx, instanceID, deviceInstance, driver, mqttClient, wg, dic, mapMutex[instanceID])
+		mqttadapter.SendTwin(ctx, instanceID, deviceInstance, driver, mqttClient, wg, dic, deviceMutex[instanceID])
+		mqttadapter.SendData(ctx, instanceID, deviceInstance, driver, mqttClient, wg, dic, deviceMutex[instanceID])
+		mqttadapter.SendDeviceState(ctx, instanceID, deviceInstance, driver, mqttClient, wg, dic, deviceMutex[instanceID])
 		stopFunctions[instanceID] = cancelFunc
 		klog.V(1).Infof("Add %s successful\n", instanceID)
 		waitInit.Done()
@@ -181,7 +188,7 @@ func AddDevice(addDeviceRequest requests.AddDeviceRequest, dic *di.Container) (k
 	deviceInstances[deviceInstance.ID] = new(configmap.DeviceInstance)
 	deviceInstances[deviceInstance.ID] = deviceInstance
 	mutex.Unlock()
-	return kind
+	return ""
 }
 
 // DeleteDevice internal callback function
@@ -194,12 +201,12 @@ func DeleteDevice(instanceID string, dic *di.Container) (kind common.ErrKind) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	if cancelFunc, ok := stopFunctions[instanceID]; ok {
-		cancelFunc()
 		modelNameDeleted := deviceInstances[instanceID].Model
 		protocolNameDeleted := deviceInstances[instanceID].ProtocolName
 		if _, ok := deviceInstances[instanceID]; ok {
 			delete(deviceInstances, instanceID)
 		}
+		cancelFunc()
 		modelFlag := true
 		protocolFlag := true
 		for k, v := range deviceInstances {
@@ -227,18 +234,17 @@ func DeleteDevice(instanceID string, dic *di.Container) (kind common.ErrKind) {
 		delete(stopFunctions, instanceID)
 		klog.V(1).Infof("Remove %s successful\n", instanceID)
 	} else {
-		klog.V(1).Infof("Remove %s failed,there is no such instanceId\n", instanceID)
+		klog.Errorf("Remove %s failed,there is no such instanceId\n", instanceID)
 		return common.KindEntityDoesNotExist
 	}
 	return ""
 }
 
 // ReadDeviceData internal callback function
-func ReadDeviceData(deviceID string, propertyName string, dic *di.Container) (response string, kind common.ErrKind) {
+func ReadDeviceData(deviceID string, propertyName string, dic *di.Container) (string, common.ErrKind) {
 	deviceInstance := instancepool.DeviceInstancesNameFrom(dic.Get)
 	if _, ok := deviceInstance[deviceID]; !ok {
-		kind := common.KindEntityDoesNotExist
-		return "", kind
+		return "", common.KindEntityDoesNotExist
 	}
 	index := -1
 	for i, twin := range deviceInstance[deviceID].Twins {
@@ -248,21 +254,20 @@ func ReadDeviceData(deviceID string, propertyName string, dic *di.Container) (re
 		}
 	}
 	if index == -1 {
-		kind := common.KindEntityDoesNotExist
-		return "", kind
+		return "", common.KindEntityDoesNotExist
 	}
 	mapMutex := instancepool.DeviceLockNameFrom(dic.Get)
 	protocolDriver := instancepool.ProtocolDriverNameFrom(dic.Get)
 	response, err := controller.GetDeviceData(deviceID, deviceInstance[deviceID].Twins[index], protocolDriver, mapMutex[deviceID], dic)
 	if err != nil {
-		kind = common.KindServerError
-		return response, kind
+		klog.Errorf("Get %s data error:", deviceID, err.Error())
+		return response, common.KindServerError
 	}
 	return response, ""
 }
 
 // WriteDeviceData internal callback function
-func WriteDeviceData(deviceID string, values url.Values, dic *di.Container) (kind common.ErrKind) {
+func WriteDeviceData(deviceID string, values url.Values, dic *di.Container) common.ErrKind {
 	deviceInstance := instancepool.DeviceInstancesNameFrom(dic.Get)
 	if _, ok := deviceInstance[deviceID]; !ok {
 		return common.KindInvalidID
@@ -276,6 +281,7 @@ func WriteDeviceData(deviceID string, values url.Values, dic *di.Container) (kin
 				protocolDriver := instancepool.ProtocolDriverNameFrom(dic.Get)
 				err := controller.SetVisitor(deviceID, deviceInstance[deviceID].Twins[i], protocolDriver, mapMutex[deviceID], dic)
 				if err != nil {
+					klog.Errorf("Set %s data error:", deviceID, err.Error())
 					deviceInstance[deviceID].Twins[i].Desired.Value = rollback
 					return common.KindNotAllowed
 				}

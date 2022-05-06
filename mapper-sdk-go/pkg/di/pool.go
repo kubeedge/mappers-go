@@ -1,7 +1,9 @@
 // Package di provide a method to get the corresponding services through dependency injection
 package di
 
-import "sync"
+import (
+	"sync"
+)
 
 // Get define a func to get service instance
 type Get func(serviceName string) interface{}

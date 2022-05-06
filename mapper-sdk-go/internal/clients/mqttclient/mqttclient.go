@@ -4,10 +4,11 @@ package mqttclient
 import (
 	"crypto/tls"
 	"crypto/x509"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"io/ioutil"
-	"k8s.io/klog/v2"
 	"os"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"k8s.io/klog/v2"
 )
 
 // MqttClient is parameters for Mqtt client.

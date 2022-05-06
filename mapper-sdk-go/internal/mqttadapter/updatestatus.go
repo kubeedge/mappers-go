@@ -2,10 +2,12 @@ package mqttadapter
 
 import (
 	"encoding/json"
+	"time"
+
+	"k8s.io/klog/v2"
+
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/clients/mqttclient"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/controller"
-	"k8s.io/klog/v2"
-	"time"
 )
 
 // StatusData the structure of device status.
@@ -21,12 +23,12 @@ func (sd *StatusData) Run() {
 	sData := controller.GetDeviceStatus(sd.driverUnit.instanceID, sd.driverUnit.twin, sd.driverUnit.drivers, sd.driverUnit.mutex, sd.driverUnit.dic)
 	var payload []byte
 	if payload, err = CreateMessageState(sData); err != nil {
-		klog.Errorf("Create message state failed: %v", err)
+		klog.Errorf("Create %s message state failed: %v", sd.driverUnit.instanceID, err)
 		return
 	}
 	//  push payload to MQTT broker
 	if err = sd.MqttClient.Publish(sd.topic, payload); err != nil {
-		klog.Errorf("Publish failed: %v", err)
+		klog.Errorf("Publish %s message failed: %v", sd.driverUnit.instanceID, err)
 		return
 	}
 }

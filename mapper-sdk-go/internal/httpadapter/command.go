@@ -1,8 +1,9 @@
 package httpadapter
 
 import (
-	"k8s.io/klog/v2"
 	"net/url"
+
+	"k8s.io/klog/v2"
 )
 
 func filterQueryParams(queryParams string) (str string, urlValue url.Values, errors error) {

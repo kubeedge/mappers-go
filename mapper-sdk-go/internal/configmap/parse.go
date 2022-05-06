@@ -3,10 +3,12 @@ package configmap
 import (
 	"encoding/json"
 	"errors"
-	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/common"
 	"io/ioutil"
-	"k8s.io/klog/v2"
 	"strings"
+
+	"k8s.io/klog/v2"
+
+	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/common"
 )
 
 // Parse is a method to parse the configmap.

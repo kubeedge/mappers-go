@@ -4,13 +4,15 @@ package service
 import (
 	"context"
 	"fmt"
+	"os"
+
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"k8s.io/klog/v2"
+
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/common"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/config"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/configmap"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/mqttadapter"
-	"k8s.io/klog/v2"
-	"os"
 )
 
 // Bootstrap the entrance to mapper

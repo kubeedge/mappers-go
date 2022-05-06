@@ -1,7 +1,10 @@
 package response
 
-import "github.com/kubeedge/mappers-go/mapper-sdk-go/internal/common"
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/common"
+)
 
 // CodeMapping can return the corresponding status code according to the kind
 func CodeMapping(kind common.ErrKind) int {

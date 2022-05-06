@@ -1,7 +1,9 @@
 // Package response used to implement the responses structure
 package response
 
-import "github.com/kubeedge/mappers-go/mapper-sdk-go/internal/common"
+import (
+	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/common"
+)
 
 // BaseResponse the base response struct of all request
 // all response's payload should contain BaseResponse

@@ -1,9 +1,10 @@
 package httpadapter
 
 import (
-	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/common"
 	"net/http"
 	"time"
+
+	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/common"
 )
 
 // Ping handles the requests to /ping endpoint. Is used to test if the service is working

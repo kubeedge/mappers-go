@@ -3,12 +3,14 @@ package httpadapter
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/gorilla/mux"
+	"k8s.io/klog/v2"
+
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/common"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/httpadapter/response"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/pkg/di"
-	"k8s.io/klog/v2"
-	"net/http"
 )
 
 // RestController the struct of HTTP route
@@ -51,7 +53,10 @@ func (c *RestController) sendMapperError(
 	err string,
 	API string) {
 	correlationID := request.Header.Get(common.CorrelationHeader)
-	klog.Error(err, common.CorrelationHeader, correlationID)
+	if correlationID == ""{
+		correlationID = "nil"
+	}
+	klog.Errorf("correlationID :%s error : %v", correlationID, err)
 	c.sendResponse(writer, request, API, err, response.CodeMapping(common.KindServerError))
 }
 

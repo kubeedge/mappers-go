@@ -5,14 +5,16 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
+	"io/ioutil"
+	"net/http"
+	"time"
+
 	"github.com/gorilla/mux"
+	"k8s.io/klog/v2"
+
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/config"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/internal/httpadapter"
 	"github.com/kubeedge/mappers-go/mapper-sdk-go/pkg/di"
-	"io/ioutil"
-	"k8s.io/klog/v2"
-	"net/http"
-	"time"
 )
 
 // HTTPClient is structure used to init HttpClient
