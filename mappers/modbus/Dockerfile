@@ -1,11 +1,21 @@
+FROM golang:1.16-alpine as builder
+ENV GOPROXY=https://goproxy.io,direct
+ENV GO111MODULE=on
+ENV ENVGOCACHE=/go/pkg/.cache/go-build
 
-FROM ubuntu:16.04
+ENV MQTT_SERVER=tcp://127.0.0.1:1883 SOCKET_ID="" SOCKET_USER="" DEVICE_ID="" MAX_HUMIDITY="" MIN_HUMIDITY=""
+ENV METASERVER_ENABLE=false METASERVER_ADDR="http://127.0.0.1:10550"
 
-RUN mkdir -p kubeedge
+WORKDIR /work
+ADD . .
+RUN GOOS=linux CGO_ENABLED=0 go build -ldflags="-s -w" -installsuffix cgo -o app mappers/modbus/cmd/main.go
 
-COPY ./bin/modbus kubeedge/
-COPY ./config.yaml kubeedge/
+FROM alpine
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    echo "Asia/Shanghai" > /etc/timezone
+COPY --from=builder /work/app /work/app
+COPY --from=builder /work/mappers/modbus/config/config.yaml /work/config.yaml
 
-WORKDIR kubeedge
+WORKDIR /work
 
-ENTRYPOINT ["/kubeedge/modbus", "--v", "5"]
+CMD ./app --v 5 --mqtt-address $MQTT_SERVER --metaserver-enable $METASERVER_ENABLE --metaserver-addr $METASERVER_ADDR

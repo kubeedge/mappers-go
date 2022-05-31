@@ -33,7 +33,7 @@ import (
 	"github.com/kubeedge/mappers-go/mappers/Template/configmap"
 	"github.com/kubeedge/mappers-go/mappers/Template/driver"
 	"github.com/kubeedge/mappers-go/mappers/Template/globals"
-	"github.com/kubeedge/mappers-go/mappers/common"
+	"github.com/kubeedge/mappers-go/pkg/common"
 )
 
 var devices map[string]*globals.TemplateDev

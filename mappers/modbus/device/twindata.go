@@ -25,18 +25,17 @@ import (
 
 	"k8s.io/klog/v2"
 
-	"github.com/kubeedge/mappers-go/mappers/common"
-	"github.com/kubeedge/mappers-go/mappers/modbus/configmap"
-	"github.com/kubeedge/mappers-go/mappers/modbus/driver"
-	"github.com/kubeedge/mappers-go/mappers/modbus/globals"
+	"github.com/kubeedge/mappers-go/pkg/common"
+	"github.com/kubeedge/mappers-go/pkg/driver/modbus"
+	"github.com/kubeedge/mappers-go/pkg/global"
 )
 
 // TwinData is the timer structure for getting twin/data.
 type TwinData struct {
-	Client        *driver.ModbusClient
+	Client        *modbus.ModbusClient
 	Name          string
 	Type          string
-	VisitorConfig *configmap.ModbusVisitorConfig
+	VisitorConfig *modbus.ModbusVisitorConfig
 	Results       []byte
 	Topic         string
 }
@@ -147,7 +146,7 @@ func (td *TwinData) Run() {
 			return
 		}
 	}
-	if err = globals.MqttClient.Publish(td.Topic, payload); err != nil {
+	if err = global.MqttClient.Publish(td.Topic, payload); err != nil {
 		klog.Errorf("Publish topic %v failed, err: %v", td.Topic, err)
 	}
 	klog.V(2).Infof("Get the %s value as %s", td.Name, sData)

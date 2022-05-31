@@ -1,0 +1,12 @@
+mqtt:
+  server: tcp://127.0.0.1:1883
+  username: ""
+  password: ""
+  certification: ""
+configmap: /opt/kubeedge/deviceProfile.json
+metaserver:
+  enable: false
+  addr: http://127.0.0.1:10550
+  namespace: default
+server:
+  host: http://127.0.0.1:10555

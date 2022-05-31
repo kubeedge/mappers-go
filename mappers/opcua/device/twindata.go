@@ -19,16 +19,16 @@ package device
 import (
 	"strings"
 
+	"github.com/kubeedge/mappers-go/pkg/common"
+	"github.com/kubeedge/mappers-go/pkg/driver/opcua"
+	"github.com/kubeedge/mappers-go/pkg/global"
+
 	"k8s.io/klog/v2"
-	
-	mappercommon "github.com/kubeedge/mappers-go/mappers/common"
-	"github.com/kubeedge/mappers-go/mappers/opcua/driver"
-	"github.com/kubeedge/mappers-go/mappers/opcua/globals"
 )
 
 // TwinData is the timer structure for getting twin/data.
 type TwinData struct {
-	Client *driver.OPCUAClient
+	Client *opcua.OPCUAClient
 	Name   string
 	Type   string
 	NodeID string
@@ -47,17 +47,17 @@ func (td *TwinData) Run() {
 	// construct payload
 	var payload []byte
 	if strings.Contains(td.Topic, "$hw") {
-		if payload, err = mappercommon.CreateMessageTwinUpdate(td.Name, td.Type, td.Result); err != nil {
+		if payload, err = common.CreateMessageTwinUpdate(td.Name, td.Type, td.Result); err != nil {
 			klog.Errorf("Create message twin update failed: %v", err)
 			return
 		}
 	} else {
-		if payload, err = mappercommon.CreateMessageData(td.Name, td.Type, td.Result); err != nil {
+		if payload, err = common.CreateMessageData(td.Name, td.Type, td.Result); err != nil {
 			klog.Errorf("Create message data failed: %v", err)
 			return
 		}
 	}
-	if err = globals.MqttClient.Publish(td.Topic, payload); err != nil {
+	if err = global.MqttClient.Publish(td.Topic, payload); err != nil {
 		klog.Errorf("Publish topic %v failed, err: %v", td.Topic, err)
 	}
 

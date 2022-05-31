@@ -19,16 +19,16 @@ package device
 import (
 	"strings"
 
-	"k8s.io/klog/v2"
+	"github.com/kubeedge/mappers-go/pkg/common"
+	"github.com/kubeedge/mappers-go/pkg/driver/onvif"
+	"github.com/kubeedge/mappers-go/pkg/global"
 
-	"github.com/kubeedge/mappers-go/mappers/common"
-	"github.com/kubeedge/mappers-go/mappers/onvif/driver"
-	"github.com/kubeedge/mappers-go/mappers/onvif/globals"
+	"k8s.io/klog/v2"
 )
 
 // TwinData is the timer structure for getting twin/data.
 type TwinData struct {
-	Client *driver.OnvifClient
+	Client *onvif.OnvifClient
 	Name   string
 	Method string
 	Value  string
@@ -56,7 +56,7 @@ func (td *TwinData) Run() {
 			return
 		}
 	}
-	if err = globals.MqttClient.Publish(td.Topic, payload); err != nil {
+	if err = global.MqttClient.Publish(td.Topic, payload); err != nil {
 		klog.Errorf("Publish topic %v failed, err: %v", td.Topic, err)
 	}
 

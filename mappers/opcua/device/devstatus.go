@@ -17,16 +17,16 @@ limitations under the License.
 package device
 
 import (
+	"github.com/kubeedge/mappers-go/pkg/common"
+	"github.com/kubeedge/mappers-go/pkg/driver/opcua"
+	"github.com/kubeedge/mappers-go/pkg/global"
+
 	"k8s.io/klog/v2"
-	
-	mappercommon "github.com/kubeedge/mappers-go/mappers/common"
-	"github.com/kubeedge/mappers-go/mappers/opcua/driver"
-	"github.com/kubeedge/mappers-go/mappers/opcua/globals"
 )
 
 // GetStatus is the timer structure for getting device status.
 type GetStatus struct {
-	Client *driver.OPCUAClient
+	Client *opcua.OPCUAClient
 	Status string
 	topic  string
 }
@@ -37,11 +37,11 @@ func (gs *GetStatus) Run() {
 
 	var payload []byte
 	var err error
-	if payload, err = mappercommon.CreateMessageState(gs.Status); err != nil {
+	if payload, err = common.CreateMessageState(gs.Status); err != nil {
 		klog.Errorf("Create message state failed: %v", err)
 		return
 	}
-	if err = globals.MqttClient.Publish(gs.topic, payload); err != nil {
+	if err = global.MqttClient.Publish(gs.topic, payload); err != nil {
 		klog.Errorf("Publish failed: %v", err)
 		return
 	}

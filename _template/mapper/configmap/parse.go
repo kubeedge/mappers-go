@@ -23,8 +23,8 @@ import (
 
 	"k8s.io/klog/v2"
 
-	"github.com/kubeedge/mappers-go/mappers/common"
 	"github.com/kubeedge/mappers-go/mappers/Template/globals"
+	"github.com/kubeedge/mappers-go/pkg/common"
 )
 
 // Parse parse the configmap.
