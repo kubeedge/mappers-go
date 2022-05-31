@@ -25,18 +25,17 @@ import (
 	"k8s.io/klog/v2"
 
 	"github.com/kubeedge/kubeedge/cloud/pkg/apis/devices/v1alpha2"
-	"github.com/kubeedge/mappers-go/mappers/ble/configmap"
-	"github.com/kubeedge/mappers-go/mappers/ble/driver"
-	"github.com/kubeedge/mappers-go/mappers/ble/globals"
-	"github.com/kubeedge/mappers-go/mappers/common"
+	"github.com/kubeedge/mappers-go/pkg/common"
+	bledriver "github.com/kubeedge/mappers-go/pkg/driver/ble"
+	"github.com/kubeedge/mappers-go/pkg/global"
 )
 
 // TwinData is the timer structure for getting twin/data.
 type TwinData struct {
-	BleClient            *driver.BleClient
+	BleClient            *bledriver.BleClient
 	Name                 string
 	Type                 string
-	BleVisitorConfig     configmap.BleVisitorConfig
+	BleVisitorConfig     bledriver.BleVisitorConfig
 	Result               string
 	Topic                string
 	FindedCharacteristic interface{}
@@ -81,7 +80,7 @@ func (td *TwinData) handlerPublish() (err error) {
 			return
 		}
 	}
-	if err = globals.MqttClient.Publish(td.Topic, payload); err != nil {
+	if err = global.MqttClient.Publish(td.Topic, payload); err != nil {
 		klog.Errorf("Publish topic %v failed, err: %v", td.Topic, err)
 	}
 

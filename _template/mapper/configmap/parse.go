@@ -24,7 +24,7 @@ import (
 	"k8s.io/klog/v2"
 
 	"github.com/kubeedge/mappers-go/mappers/Template/globals"
-	"github.com/kubeedge/mappers-go/mappers/common"
+	"github.com/kubeedge/mappers-go/pkg/common"
 )
 
 // Parse parse the configmap.
@@ -57,21 +57,8 @@ func Parse(path string,
 			return err
 		}
 
-		if instance.PProtocol.Protocol != "customized-protocol" {
+		if instance.PProtocol.Protocol != "Template" {
 			continue
-		} else {
-			cprotocol := struct {
-				ProtocolName string `json:"protocolName"`
-				ConfigData   json.RawMessage
-			}{}
-			err = json.Unmarshal(instance.PProtocol.ProtocolConfigs, &cprotocol)
-			if err != nil {
-				klog.Error("customized-protocol unmarshal error:", err)
-				continue
-			}
-			if cprotocol.ProtocolName != "Template" {
-				continue
-			}
 		}
 
 		for k := 0; k < len(instance.PropertyVisitors); k++ {

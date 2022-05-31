@@ -17,16 +17,16 @@ limitations under the License.
 package device
 
 import (
-	"k8s.io/klog/v2"
+	"github.com/kubeedge/mappers-go/pkg/common"
+	"github.com/kubeedge/mappers-go/pkg/driver/ble"
+	"github.com/kubeedge/mappers-go/pkg/global"
 
-	"github.com/kubeedge/mappers-go/mappers/ble/driver"
-	"github.com/kubeedge/mappers-go/mappers/ble/globals"
-	"github.com/kubeedge/mappers-go/mappers/common"
+	"k8s.io/klog/v2"
 )
 
 // GetStatus is the timer structure for getting device status.
 type GetStatus struct {
-	Client *driver.BleClient
+	Client *ble.BleClient
 	Status string
 	topic  string
 }
@@ -40,7 +40,7 @@ func (gs *GetStatus) Run() {
 		klog.Errorf("Create message state failed: %v", err)
 		return
 	}
-	if err = globals.MqttClient.Publish(gs.topic, payload); err != nil {
+	if err = global.MqttClient.Publish(gs.topic, payload); err != nil {
 		klog.Errorf("Publish failed: %v", err)
 		return
 	}

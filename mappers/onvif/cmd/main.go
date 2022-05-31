@@ -1,4 +1,6 @@
-//+build linux darwin windows
+//go:build linux || darwin || windows
+// +build linux darwin windows
+
 /*
 Copyright 2021 The KubeEdge Authors.
 
@@ -20,11 +22,13 @@ package main
 import (
 	"os"
 
-	"github.com/kubeedge/mappers-go/mappers/common"
-	"github.com/kubeedge/mappers-go/mappers/onvif/config"
-	"github.com/kubeedge/mappers-go/mappers/onvif/device"
-	"github.com/kubeedge/mappers-go/mappers/onvif/globals"
 	"k8s.io/klog/v2"
+
+	"github.com/kubeedge/mappers-go/config"
+	"github.com/kubeedge/mappers-go/mappers/onvif/device"
+	"github.com/kubeedge/mappers-go/pkg/common"
+	"github.com/kubeedge/mappers-go/pkg/global"
+	"github.com/kubeedge/mappers-go/pkg/httpserver"
 )
 
 func main() {
@@ -40,19 +44,21 @@ func main() {
 	}
 	klog.V(4).Info(c.Configmap)
 
-	globals.MqttClient = common.MqttClient{IP: c.Mqtt.ServerAddress,
+	global.MqttClient = common.MqttClient{IP: c.Mqtt.ServerAddress,
 		User:       c.Mqtt.Username,
 		Passwd:     c.Mqtt.Password,
 		Cert:       c.Mqtt.Cert,
 		PrivateKey: c.Mqtt.PrivateKey}
-	if err = globals.MqttClient.Connect(); err != nil {
+	if err = global.MqttClient.Connect(); err != nil {
 		klog.Fatal(err)
 		os.Exit(1)
 	}
 
-	if err = device.DevInit(c.Configmap); err != nil {
+	if err = device.DevInit(&c); err != nil {
 		klog.Fatal(err)
 		os.Exit(1)
 	}
+
+	go httpserver.StartHttpServer(c.HttpServer.Host)
 	device.DevStart()
 }

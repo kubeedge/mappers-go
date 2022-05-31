@@ -22,9 +22,8 @@ limitations under the License.
 package driver
 
 import (
+	"github.com/kubeedge/mappers-go/pkg/common"
 	"k8s.io/klog/v2"
-
-	"github.com/kubeedge/mappers-go/mappers/common"
 )
 
 // TemplateConfig is the structure for client configuration.

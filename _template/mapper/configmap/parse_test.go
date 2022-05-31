@@ -3,10 +3,11 @@ package configmap
 import (
 	"testing"
 
+	"github.com/kubeedge/mappers-go/pkg/common"
+
 	"github.com/stretchr/testify/assert"
 
 	"github.com/kubeedge/mappers-go/mappers/Template/globals"
-	"github.com/kubeedge/mappers-go/mappers/common"
 )
 
 func TestParse(t *testing.T) {
