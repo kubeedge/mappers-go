@@ -10,8 +10,6 @@ type ModbusDev struct {
 	ModbusClient *ModbusClient
 }
 
-var MqttClient common.MqttClient
-
 // ModbusVisitorConfig is the modbus register configuration.
 type ModbusVisitorConfig struct {
 	Register       string  `json:"register"`

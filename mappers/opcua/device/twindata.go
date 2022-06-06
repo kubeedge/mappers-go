@@ -17,6 +17,7 @@ limitations under the License.
 package device
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/kubeedge/mappers-go/pkg/common"
@@ -36,26 +37,32 @@ type TwinData struct {
 	Topic  string
 }
 
-// Run timer function.
-func (td *TwinData) Run() {
+func (td *TwinData) GetPayload() ([]byte, error) {
 	var err error
 	td.Result, err = td.Client.Get(td.NodeID)
 	if err != nil {
-		klog.Errorf("Get register failed: %v", err)
-		return
+		return nil, fmt.Errorf("get register failed: %v", err)
 	}
 	// construct payload
 	var payload []byte
 	if strings.Contains(td.Topic, "$hw") {
 		if payload, err = common.CreateMessageTwinUpdate(td.Name, td.Type, td.Result); err != nil {
-			klog.Errorf("Create message twin update failed: %v", err)
-			return
+			return nil, fmt.Errorf("create message twin update failed: %v", err)
 		}
 	} else {
 		if payload, err = common.CreateMessageData(td.Name, td.Type, td.Result); err != nil {
-			klog.Errorf("Create message data failed: %v", err)
-			return
+			return nil, fmt.Errorf("create message data failed: %v", err)
 		}
+	}
+	return payload, nil
+}
+
+// Run timer function.
+func (td *TwinData) Run() {
+	payload, err := td.GetPayload()
+	if err != nil {
+		klog.Error(err)
+		return
 	}
 	if err = global.MqttClient.Publish(td.Topic, payload); err != nil {
 		klog.Errorf("Publish topic %v failed, err: %v", td.Topic, err)

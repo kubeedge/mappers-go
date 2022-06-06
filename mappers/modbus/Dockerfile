@@ -1,4 +1,4 @@
-FROM golang:1.16-alpine as builder
+FROM golang:1.17-alpine as builder
 ENV GOPROXY=https://goproxy.io,direct
 ENV GO111MODULE=on
 ENV ENVGOCACHE=/go/pkg/.cache/go-build
@@ -14,7 +14,7 @@ FROM alpine
 RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo "Asia/Shanghai" > /etc/timezone
 COPY --from=builder /work/app /work/app
-COPY --from=builder /work/mappers/modbus/config/config.yaml /work/config.yaml
+COPY --from=builder /work/config/config.yaml /work/config.yaml
 
 WORKDIR /work
 

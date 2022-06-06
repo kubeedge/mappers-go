@@ -102,9 +102,9 @@ func (c *Config) Parse() error {
 		if strings.TrimSpace(c.Configmap) == "" {
 			return errors.New("can not parse configmap")
 		}
-		if c.MetaServer.Namespace == "" {
-			c.MetaServer.Namespace = "default"
-		}
+	}
+	if c.MetaServer.Enable && c.MetaServer.Namespace == "" {
+		c.MetaServer.Namespace = "default"
 	}
 
 	return nil

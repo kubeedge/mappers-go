@@ -19,6 +19,7 @@ package device
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -118,36 +119,42 @@ func TransferData(isRegisterSwap bool, isSwap bool,
 	}
 }
 
-// Run timer function.
-func (td *TwinData) Run() {
+func (td *TwinData) GetPayload() ([]byte, error) {
 	var err error
+
 	td.Results, err = td.Client.Get(td.VisitorConfig.Register, td.VisitorConfig.Offset, uint16(td.VisitorConfig.Limit))
 	if err != nil {
-		klog.Errorf("Get register failed: %v", err)
-		return
+		return nil, fmt.Errorf("get register failed: %v", err)
 	}
 	// transfer data according to the dpl configuration
 	sData, err := TransferData(td.VisitorConfig.IsRegisterSwap,
 		td.VisitorConfig.IsSwap, td.Type, td.VisitorConfig.Scale, td.Results)
 	if err != nil {
-		klog.Error("Transfer Data failed: ", err)
-		return
+		return nil, fmt.Errorf("transfer Data failed: %v", err)
 	}
 	// construct payload
 	var payload []byte
 	if strings.Contains(td.Topic, "$hw") {
 		if payload, err = common.CreateMessageTwinUpdate(td.Name, td.Type, sData); err != nil {
-			klog.Error("Create message twin update failed")
-			return
+			return nil, fmt.Errorf("create message twin update failed: %v", err)
 		}
 	} else {
 		if payload, err = common.CreateMessageData(td.Name, td.Type, sData); err != nil {
-			klog.Error("Create message data failed")
-			return
+			return nil, fmt.Errorf("create message data failed: %v", err)
 		}
+	}
+	klog.V(2).Infof("Get the %s value as %s", td.Name, sData)
+	return payload, nil
+}
+
+// Run timer function.
+func (td *TwinData) Run() {
+	payload, err := td.GetPayload()
+	if err != nil {
+		klog.Error(err)
+		return
 	}
 	if err = global.MqttClient.Publish(td.Topic, payload); err != nil {
 		klog.Errorf("Publish topic %v failed, err: %v", td.Topic, err)
 	}
-	klog.V(2).Infof("Get the %s value as %s", td.Name, sData)
 }

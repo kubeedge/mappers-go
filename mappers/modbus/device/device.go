@@ -241,18 +241,21 @@ func start(ctx context.Context, dev *modbus.ModbusDev) {
 	var protocolCommConfig modbus.ModbusProtocolCommonConfig
 	if err := json.Unmarshal(dev.Instance.PProtocol.ProtocolCommonConfig, &protocolCommConfig); err != nil {
 		klog.Errorf("Unmarshal ProtocolCommonConfig error: %v", err)
+		wg.Done()
 		return
 	}
 
 	var protocolConfig modbus.ModbusProtocolConfig
 	if err := json.Unmarshal(dev.Instance.PProtocol.ProtocolConfigs, &protocolConfig); err != nil {
 		klog.Errorf("Unmarshal ProtocolConfigs error: %v", err)
+		wg.Done()
 		return
 	}
 
 	client, err := initModbus(protocolCommConfig, protocolConfig.SlaveID)
 	if err != nil {
 		klog.Errorf("Init error: %v", err)
+		wg.Done()
 		return
 	}
 	dev.ModbusClient = client
@@ -262,11 +265,12 @@ func start(ctx context.Context, dev *modbus.ModbusDev) {
 
 	if err := initSubscribeMqtt(dev.Instance.ID); err != nil {
 		klog.Errorf("Init subscribe mqtt error: %v", err)
+		deviceMuxs[dev.Instance.ID]()
+		wg.Done()
 		return
 	}
 
 	go initGetStatus(ctx, dev)
-	wg.Add(1)
 	select {
 	case <-ctx.Done():
 		wg.Done()
@@ -305,6 +309,7 @@ func DevStart() {
 		klog.V(4).Info("Dev: ", id, dev)
 		ctx, cancel := context.WithCancel(context.Background())
 		deviceMuxs[id] = cancel
+		wg.Add(1)
 		go start(ctx, dev)
 	}
 	wg.Wait()
@@ -323,6 +328,7 @@ func UpdateDev(model *common.DeviceModel, device *common.DeviceInstance, protoco
 	// start new
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	deviceMuxs[device.ID] = cancelFunc
+	wg.Add(1)
 	go start(ctx, devices[device.ID])
 }
 
@@ -333,4 +339,45 @@ func stopDev(id string) error {
 	}
 	cancelFunc()
 	return nil
+}
+
+func DealDeviceTwinGet(deviceID string, twinName string) (interface{}, error) {
+	srcDev, ok := devices[deviceID]
+	if !ok {
+		return nil, fmt.Errorf("not found device %s", deviceID)
+	}
+
+	res := make([]parse.TwinResultResponse, 0)
+	for _, twin := range srcDev.Instance.Twins {
+		if twinName != "" && twin.PropertyName != twinName {
+			continue
+		}
+		payload, err := getTwinData(deviceID, twin, srcDev.ModbusClient)
+		if err != nil {
+			return nil, err
+		}
+		cur := parse.TwinResultResponse{
+			PropertyName: twin.PropertyName,
+			Payload:      payload,
+		}
+		res = append(res, cur)
+	}
+	return json.Marshal(res)
+}
+
+func getTwinData(deviceID string, twin common.Twin, client *modbus.ModbusClient) ([]byte, error) {
+	var visitorConfig modbus.ModbusVisitorConfig
+	if err := json.Unmarshal(twin.PVisitor.VisitorConfig, &visitorConfig); err != nil {
+		return nil, fmt.Errorf("unmarshal VisitorConfig error: %v", err)
+	}
+	setVisitor(&visitorConfig, &twin, client)
+
+	td := TwinData{
+		Client:        client,
+		Name:          twin.PropertyName,
+		Type:          twin.Desired.Metadatas.Type,
+		VisitorConfig: &visitorConfig,
+		Topic:         fmt.Sprintf(common.TopicTwinUpdate, deviceID),
+	}
+	return td.GetPayload()
 }

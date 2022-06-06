@@ -133,6 +133,7 @@ func ParseByUsingMetaServer(cfg *config.Config,
 	devices map[string]*common.DeviceInstance,
 	dms map[string]common.DeviceModel,
 	protocols map[string]common.Protocol) error {
+	// TODO it may be get all device from namespace
 	deviceList, err := httpclient.GetDeviceList(cfg.MetaServer.Addr, cfg.MetaServer.Namespace)
 	if err != nil {
 		return err

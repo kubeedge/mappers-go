@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-chi/chi"
+	"k8s.io/klog/v2"
+
 	bledevice "github.com/kubeedge/mappers-go/mappers/ble/device"
 	modbusdevice "github.com/kubeedge/mappers-go/mappers/modbus/device"
 	opcuadevice "github.com/kubeedge/mappers-go/mappers/opcua/device"
@@ -13,10 +16,14 @@ import (
 )
 
 func ResponseOK(w http.ResponseWriter) {
+	Response(w, "ok")
+}
+
+func Response(w http.ResponseWriter, v interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	enc := json.NewEncoder(w)
-	enc.Encode("ok")
+	enc.Encode(v)
 }
 
 func ResponseError(w http.ResponseWriter, err error, status int) {
@@ -31,17 +38,13 @@ func ResponseError(w http.ResponseWriter, err error, status int) {
 }
 
 func StartHttpServer(addr string) error {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+	mux := chi.NewMux()
+	mux.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		ResponseOK(w)
 		return
 	})
 	// device change, reload this device
-	mux.HandleFunc("/device", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			ResponseError(w, fmt.Errorf("http method unsupport"), http.StatusBadRequest)
-			return
-		}
+	mux.Post("/device", func(w http.ResponseWriter, r *http.Request) {
 		var data parse.DeviceData
 		if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 			ResponseError(w, err, http.StatusBadRequest)
@@ -71,7 +74,7 @@ func StartHttpServer(addr string) error {
 			case common.ProtocolModbus:
 				modbusdevice.UpdateDev(&model, deviceInstance, &protocol)
 			case common.ProtocolOnvif:
-				// TODO ffmpeg
+				// TODO need ffmpeg
 				//onvifdevice.UpdateDev(&model, deviceInstance, &protocol)
 			case common.ProtocolOpcua:
 				opcuadevice.UpdateDev(&model, deviceInstance, &protocol)
@@ -86,6 +89,40 @@ func StartHttpServer(addr string) error {
 		ResponseOK(w)
 		return
 	})
-	// TODO does device manager need to use http request to get device twin message?
+	// get device twin
+	mux.Get("/device/{id}/twins", func(w http.ResponseWriter, r *http.Request) {
+		deviceID := chi.URLParam(r, "id")
+		deviceType := r.URL.Query().Get("type")
+		if deviceType == "" {
+			ResponseError(w,
+				fmt.Errorf("device %s type %s unsupport", deviceID, deviceType),
+				http.StatusBadRequest)
+		}
+		// we can use twin query param to access the property data.
+		var res interface{}
+		var err error
+		switch deviceType {
+		case common.ProtocolBlueTooth:
+			res, err = bledevice.DealDeviceTwinGet(deviceID, r.URL.Query().Get("twin"))
+		case common.ProtocolModbus:
+			res, err = modbusdevice.DealDeviceTwinGet(deviceID, r.URL.Query().Get("twin"))
+		case common.ProtocolOnvif:
+			//res, err = onvif.DealDeviceTwinGet(deviceID, r.URL.Query().Get("twin"))
+		case common.ProtocolOpcua:
+			res, err = opcuadevice.DealDeviceTwinGet(deviceID, r.URL.Query().Get("twin"))
+		default:
+			ResponseError(w,
+				fmt.Errorf("device %s protocol %s unsupport",
+					deviceID, deviceType),
+				http.StatusBadRequest)
+			return
+		}
+		if err != nil {
+			ResponseError(w, err, http.StatusInternalServerError)
+			return
+		}
+		Response(w, res)
+	})
+	klog.Infof("http server listen on: %s", addr)
 	return http.ListenAndServe(addr, mux)
 }

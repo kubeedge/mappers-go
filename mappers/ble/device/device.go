@@ -259,14 +259,16 @@ func initGetStatus(ctx context.Context, dev *bledriver.BleDev) {
 // start the device.
 func start(ctx context.Context, dev *bledriver.BleDev) {
 	var protocolConfig bledriver.BleProtocolConfig
-	if err := json.Unmarshal([]byte(dev.Instance.PProtocol.ProtocolConfigs), &protocolConfig); err != nil {
+	if err := json.Unmarshal(dev.Instance.PProtocol.ProtocolConfigs, &protocolConfig); err != nil {
 		klog.Errorf("Unmarshal ProtocolConfig error: %v", err)
+		wg.Done()
 		return
 	}
 
 	client, err := initBle(protocolConfig, protocolConfig.MacAddress)
 	if err != nil {
 		klog.Errorf("Init error: %v", err)
+		wg.Done()
 		return
 	}
 	dev.BleClient = &client
@@ -276,11 +278,11 @@ func start(ctx context.Context, dev *bledriver.BleDev) {
 
 	if err := initSubscribeMqtt(dev.Instance.ID); err != nil {
 		klog.Errorf("Init subscribe mqtt error: %v", err)
+		wg.Done()
 		return
 	}
 
 	go initGetStatus(ctx, dev)
-	wg.Add(1)
 	select {
 	case <-ctx.Done():
 		wg.Done()
@@ -319,6 +321,7 @@ func DevStart() {
 		klog.V(4).Info("Dev: ", id, dev)
 		ctx, cancel := context.WithCancel(context.Background())
 		deviceMuxs[id] = cancel
+		wg.Add(1)
 		go start(ctx, dev)
 	}
 	wg.Wait()
@@ -337,6 +340,7 @@ func UpdateDev(model *common.DeviceModel, device *common.DeviceInstance, protoco
 	// start new
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	deviceMuxs[device.ID] = cancelFunc
+	wg.Add(1)
 	go start(ctx, devices[device.ID])
 }
 
@@ -347,4 +351,61 @@ func stopDev(id string) error {
 	}
 	cancelFunc()
 	return nil
+}
+
+func DealDeviceTwinGet(deviceID string, twinName string) (interface{}, error) {
+	srcDev, ok := devices[deviceID]
+	if !ok {
+		return nil, fmt.Errorf("not found device %s", deviceID)
+	}
+
+	res := make([]parse.TwinResultResponse, 0)
+	for _, twin := range srcDev.Instance.Twins {
+		if twinName != "" && twin.PropertyName != twinName {
+			continue
+		}
+		payload, err := getTwinData(deviceID, twin, srcDev.BleClient)
+		if err != nil {
+			return nil, err
+		}
+		cur := parse.TwinResultResponse{
+			PropertyName: twin.PropertyName,
+			Payload:      payload,
+		}
+		res = append(res, cur)
+	}
+	return json.Marshal(res)
+}
+
+func getTwinData(deviceID string, twin common.Twin, client *bledriver.BleClient) ([]byte, error) {
+	var visitorConfig bledriver.BleVisitorConfig
+	if err := json.Unmarshal(twin.PVisitor.VisitorConfig, &visitorConfig); err != nil {
+		return nil, fmt.Errorf("unmarshal VisitorConfig error: %v", err)
+	}
+	setVisitor(&visitorConfig, &twin, client)
+
+	td := TwinData{
+		BleClient:        client,
+		Name:             twin.PropertyName,
+		Type:             twin.Desired.Metadatas.Type,
+		BleVisitorConfig: visitorConfig,
+		Topic:            fmt.Sprintf(common.TopicTwinUpdate, deviceID),
+	}
+	uuid := ble.MustParse(visitorConfig.CharacteristicUUID)
+	p, err := client.Client.DiscoverProfile(true)
+	if err != nil {
+		return nil, err
+	}
+	if td.FindedCharacteristic = p.Find(ble.NewCharacteristic(uuid)); td.FindedCharacteristic == nil {
+		return nil, fmt.Errorf("can't find uuid %s", uuid.String())
+	}
+	c := td.FindedCharacteristic.(*ble.Characteristic)
+	// read data actively
+	b, err := td.BleClient.Read(c)
+	if err != nil {
+		klog.Errorf("Failed to read characteristic: %s\n", err)
+	}
+
+	return []byte(fmt.Sprintf("%f", td.ConvertReadData(b))), nil
+
 }
