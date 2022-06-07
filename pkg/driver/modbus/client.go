@@ -61,17 +61,27 @@ type ModbusClient struct {
 * the serial port doesn't support paralleled visit, and for one tcp device, it also doesn't support
 * paralleled visit, so we expect one client for one port.
  */
-var clients map[string]*ModbusClient
+var clients *sync.Map
+
+var clientInit sync.Once
+
+func initMap() {
+	clientInit.Do(func() {
+		if clients == nil {
+			clients = new(sync.Map)
+		}
+	})
+}
 
 func newTCPClient(config ModbusTCP) *ModbusClient {
+	initMap()
+
 	addr := config.DeviceIP + ":" + config.TCPPort
 	slave := addr + "/" + string(config.SlaveID)
-	if client, ok := clients[slave]; ok {
-		return client
-	}
-
-	if clients == nil {
-		clients = make(map[string]*ModbusClient)
+	klog.Infoln("slave id: ", config.SlaveID)
+	v, ok := clients.Load(slave)
+	if ok {
+		return v.(*ModbusClient)
 	}
 
 	handler := modbus.NewTCPClientHandler(addr)
@@ -80,17 +90,17 @@ func newTCPClient(config ModbusTCP) *ModbusClient {
 	handler.SlaveId = config.SlaveID
 
 	client := ModbusClient{Client: modbus.NewClient(handler), Handler: handler, Config: config}
-	clients[slave] = &client
+	clients.Store(slave, &client)
 	return &client
 }
 
 func newRTUClient(config ModbusRTU) *ModbusClient {
-	if client, ok := clients[config.SerialName]; ok {
-		return client
-	}
+	initMap()
 
-	if clients == nil {
-		clients = make(map[string]*ModbusClient)
+	klog.Infoln("SerialName : ", config.SerialName)
+	v, ok := clients.Load(config.SerialName)
+	if ok {
+		return v.(*ModbusClient)
 	}
 
 	handler := modbus.NewRTUClientHandler(config.SerialName)
@@ -103,7 +113,7 @@ func newRTUClient(config ModbusRTU) *ModbusClient {
 	handler.IdleTimeout = config.Timeout
 	handler.RS485.Enabled = config.RS485Enabled
 	client := ModbusClient{Client: modbus.NewClient(handler), Handler: handler, Config: config}
-	clients[config.SerialName] = &client
+	clients.Store(config.SerialName, &client)
 	return &client
 }
 
