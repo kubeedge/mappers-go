@@ -1,6 +1,5 @@
-![Gitee Latest Dev Tag](https://img.shields.io/badge/latest--dev-v0.0.1-orange) ![Gitee go.mod Go version](https://img.shields.io/badge/Go-v1.17-brightgreen) [![Gitee License](https://camo.githubusercontent.com/3e671e69d5fad7978893d028dcdeb3af16edb20b61f23cd276f738a76f33f3cf/68747470733a2f2f696d672e736869656c64732e696f2f6769746875622f6c6963656e73652f6b756265656467652f6b756265656467652e7376673f7374796c653d666c61742d737175617265)](https://gitee.com/ascend/mappers-go-sample/blob/mapper-go-sdk/LICENSE)
 # MapperSDK
-Before you start, read the mapper-sdk-go design to familiar with the mapper-sdk-go structure:[Mapper SDK Design](../docs/MapperDesign.md)
+Before you start, read the mapper-sdk-go design to familiar with the mapper-sdk-go structure:[mapper-sdk-design](../docs/mapper-sdk-design.md)
 ## OverView
 This repository is a set of Go packages that can be used to build Go-based mapper for use within the KubeEdge framework.
 
@@ -206,4 +205,4 @@ Make the following convention, use a three-digit binary number, from left to rig
 The `config.yaml` provided by the user must comply with the above agreement.
 ## More details
 
-You can get more details in [UserGuideofMapperSDK](../docs/UserGuideofMapperSDK.md)
+You can get more details in [mapper-sdk-guide](../docs/mapper-sdk-guide.md)
