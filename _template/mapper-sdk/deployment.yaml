@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: Template-mapper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: Templatemapper
+  template:
+    metadata:
+      labels:
+        app: Templatemapper
+    spec:
+      hostNetwork: true
+      containers:
+      - name: Template-mapper-container
+        image: Templatemapper:v1.0
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: config-volume
+          mountPath: /opt/kubeedge/
+      nodeSelector:
+        Template: "true"
+      volumes:
+      - name: config-volume
+        configMap:
+          name: device-profile-config-test
+      restartPolicy: Always

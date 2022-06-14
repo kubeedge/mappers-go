@@ -1,0 +1,59 @@
+apiVersion: devices.kubeedge.io/v1alpha2
+kind: Device
+metadata:
+  name: random-instance-01
+  labels:
+    model: random-01
+spec:
+  deviceModelRef:
+    name: random-01
+  protocol:
+    customizedProtocol:
+      protocolName: virtualProtocol
+      configData:
+        deviceID: 1
+    common: 
+      customizedValues:
+        protocolID: 1
+  nodeSelector:
+    nodeSelectorTerms:
+    - matchExpressions:
+      - key: ''
+        operator: In
+        values:
+        - edge51 #pls give your edge node name
+  propertyVisitors:
+    - propertyName: random-int
+      customizedProtocol:
+        protocolName: virtualProtocol
+        configData:
+          dataType: int
+    - propertyName: random-float
+      customizedProtocol:
+        protocolName: virtualProtocol
+        configData:
+          dataType: float
+status:
+  twins:
+    - propertyName: random-int
+      reported:
+        metadata:
+          timestamp: '1550049403598'
+          type: integer
+        value: "100"
+      desired:
+        metadata:
+          timestamp: '1550049403598'
+          type: integer
+        value: "100"
+    - propertyName: random-float
+      reported:
+        metadata:
+          timestamp: '1550049403598'
+          type: float
+        value: "30"
+      desired:
+        metadata:
+          timestamp: '1550049403598'
+          type: float
+        value: "30"
