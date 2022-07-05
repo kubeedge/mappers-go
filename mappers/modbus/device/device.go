@@ -36,11 +36,15 @@ import (
 	"github.com/kubeedge/mappers-go/pkg/util/parse"
 )
 
-var deviceMuxs map[string]context.CancelFunc
-var devices map[string]*modbus.ModbusDev
-var models map[string]common.DeviceModel
-var protocols map[string]common.Protocol
-var wg sync.WaitGroup
+type DevPanel struct {
+	deviceMuxs map[string]context.CancelFunc
+	devices    map[string]*modbus.ModbusDev
+	models     map[string]common.DeviceModel
+	protocols  map[string]common.Protocol
+	wg         sync.WaitGroup
+}
+
+var devPanel *DevPanel
 
 // setVisitor check if visitor property is readonly, if not then set it.
 func setVisitor(visitorConfig *modbus.ModbusVisitorConfig, twin *common.Twin, client *modbus.ModbusClient) {
@@ -71,51 +75,53 @@ func getDeviceID(topic string) (id string) {
 }
 
 // onMessage callback function of Mqtt subscribe message.
-func onMessage(client mqtt.Client, message mqtt.Message) {
-	klog.V(2).Info("Receive message", message.Topic())
-	// Get device ID and get device instance
-	id := getDeviceID(message.Topic())
-	if id == "" {
-		klog.Error("Wrong topic")
-		return
-	}
-	klog.V(2).Info("Device id: ", id)
+func (d *DevPanel) onMessage() mqtt.MessageHandler {
+	return func(client mqtt.Client, message mqtt.Message) {
+		klog.V(2).Info("Receive message", message.Topic())
+		// Get device ID and get device instance
+		id := getDeviceID(message.Topic())
+		if id == "" {
+			klog.Error("Wrong topic")
+			return
+		}
+		klog.V(2).Info("Device id: ", id)
 
-	var dev *modbus.ModbusDev
-	var ok bool
-	if dev, ok = devices[id]; !ok {
-		klog.Error("Device not exist")
-		return
-	}
+		var dev *modbus.ModbusDev
+		var ok bool
+		if dev, ok = d.devices[id]; !ok {
+			klog.Error("Device not exist")
+			return
+		}
 
-	// Get twin map key as the propertyName
-	var delta common.DeviceTwinDelta
-	if err := json.Unmarshal(message.Payload(), &delta); err != nil {
-		klog.Errorf("Unmarshal message failed: %v", err)
-		return
-	}
-	for twinName, twinValue := range delta.Delta {
-		i := 0
-		for i = 0; i < len(dev.Instance.Twins); i++ {
-			if twinName == dev.Instance.Twins[i].PropertyName {
-				break
+		// Get twin map key as the propertyName
+		var delta common.DeviceTwinDelta
+		if err := json.Unmarshal(message.Payload(), &delta); err != nil {
+			klog.Errorf("Unmarshal message failed: %v", err)
+			return
+		}
+		for twinName, twinValue := range delta.Delta {
+			i := 0
+			for i = 0; i < len(dev.Instance.Twins); i++ {
+				if twinName == dev.Instance.Twins[i].PropertyName {
+					break
+				}
 			}
+			if i == len(dev.Instance.Twins) {
+				klog.Error("Twin not found: ", twinName)
+				continue
+			}
+			// Desired value is not changed.
+			if dev.Instance.Twins[i].Desired.Value == twinValue {
+				continue
+			}
+			dev.Instance.Twins[i].Desired.Value = twinValue
+			var visitorConfig modbus.ModbusVisitorConfig
+			if err := json.Unmarshal(dev.Instance.Twins[i].PVisitor.VisitorConfig, &visitorConfig); err != nil {
+				klog.Errorf("Unmarshal visitor config failed: %v", err)
+				continue
+			}
+			setVisitor(&visitorConfig, &dev.Instance.Twins[i], dev.ModbusClient)
 		}
-		if i == len(dev.Instance.Twins) {
-			klog.Error("Twin not found: ", twinName)
-			continue
-		}
-		// Desired value is not changed.
-		if dev.Instance.Twins[i].Desired.Value == twinValue {
-			continue
-		}
-		dev.Instance.Twins[i].Desired.Value = twinValue
-		var visitorConfig modbus.ModbusVisitorConfig
-		if err := json.Unmarshal([]byte(dev.Instance.Twins[i].PVisitor.VisitorConfig), &visitorConfig); err != nil {
-			klog.Errorf("Unmarshal visitor config failed: %v", err)
-			continue
-		}
-		setVisitor(&visitorConfig, &dev.Instance.Twins[i], dev.ModbusClient)
 	}
 }
 
@@ -162,7 +168,7 @@ func initModbus(protocolConfig modbus.ModbusProtocolCommonConfig, slaveID int16)
 func initTwin(ctx context.Context, dev *modbus.ModbusDev) {
 	for i := 0; i < len(dev.Instance.Twins); i++ {
 		var visitorConfig modbus.ModbusVisitorConfig
-		if err := json.Unmarshal([]byte(dev.Instance.Twins[i].PVisitor.VisitorConfig), &visitorConfig); err != nil {
+		if err := json.Unmarshal(dev.Instance.Twins[i].PVisitor.VisitorConfig, &visitorConfig); err != nil {
 			klog.Errorf("Unmarshal VisitorConfig error: %v", err)
 			continue
 		}
@@ -217,10 +223,10 @@ func initData(ctx context.Context, dev *modbus.ModbusDev) {
 }
 
 // initSubscribeMqtt subscribe Mqtt topics.
-func initSubscribeMqtt(instanceID string) error {
+func (d *DevPanel) initSubscribeMqtt(instanceID string) error {
 	topic := fmt.Sprintf(common.TopicTwinUpdateDelta, instanceID)
 	klog.V(1).Info("Subscribe topic: ", topic)
-	return global.MqttClient.Subscribe(topic, onMessage)
+	return global.MqttClient.Subscribe(topic, d.onMessage())
 }
 
 // initGetStatus start timer to get device status and send to eventbus.
@@ -237,25 +243,25 @@ func initGetStatus(ctx context.Context, dev *modbus.ModbusDev) {
 }
 
 // start the device.
-func start(ctx context.Context, dev *modbus.ModbusDev) {
+func (d *DevPanel) start(ctx context.Context, dev *modbus.ModbusDev) {
 	var protocolCommConfig modbus.ModbusProtocolCommonConfig
 	if err := json.Unmarshal(dev.Instance.PProtocol.ProtocolCommonConfig, &protocolCommConfig); err != nil {
 		klog.Errorf("Unmarshal ProtocolCommonConfig error: %v", err)
-		wg.Done()
+		d.wg.Done()
 		return
 	}
 
 	var protocolConfig modbus.ModbusProtocolConfig
 	if err := json.Unmarshal(dev.Instance.PProtocol.ProtocolConfigs, &protocolConfig); err != nil {
 		klog.Errorf("Unmarshal ProtocolConfigs error: %v", err)
-		wg.Done()
+		d.wg.Done()
 		return
 	}
 
 	client, err := initModbus(protocolCommConfig, protocolConfig.SlaveID)
 	if err != nil {
 		klog.Errorf("Init error: %v", err)
-		wg.Done()
+		d.wg.Done()
 		return
 	}
 	dev.ModbusClient = client
@@ -263,34 +269,30 @@ func start(ctx context.Context, dev *modbus.ModbusDev) {
 	go initTwin(ctx, dev)
 	go initData(ctx, dev)
 
-	if err := initSubscribeMqtt(dev.Instance.ID); err != nil {
+	if err := d.initSubscribeMqtt(dev.Instance.ID); err != nil {
 		klog.Errorf("Init subscribe mqtt error: %v", err)
-		deviceMuxs[dev.Instance.ID]()
-		wg.Done()
+		d.deviceMuxs[dev.Instance.ID]()
+		d.wg.Done()
 		return
 	}
 
 	go initGetStatus(ctx, dev)
 	select {
 	case <-ctx.Done():
-		wg.Done()
+		d.wg.Done()
 	}
 }
 
 // DevInit initialize the device data.
-func DevInit(cfg *config.Config) error {
-	devices = make(map[string]*modbus.ModbusDev)
-	models = make(map[string]common.DeviceModel)
-	protocols = make(map[string]common.Protocol)
-	deviceMuxs = make(map[string]context.CancelFunc)
+func (d *DevPanel) DevInit(cfg *config.Config) error {
 	devs := make(map[string]*common.DeviceInstance)
 
 	if cfg.MetaServer.Enable {
-		if err := parse.ParseByUsingMetaServer(cfg, devs, models, protocols); err != nil {
+		if err := parse.ParseByUsingMetaServer(cfg, devs, d.models, d.protocols); err != nil {
 			return err
 		}
 	} else {
-		if err := parse.Parse(cfg.Configmap, devs, models, protocols); err != nil {
+		if err := parse.Parse(cfg.Configmap, devs, d.models, d.protocols); err != nil {
 			return err
 		}
 	}
@@ -298,42 +300,69 @@ func DevInit(cfg *config.Config) error {
 	for key, deviceInstance := range devs {
 		cur := new(modbus.ModbusDev)
 		cur.Instance = *deviceInstance
-		devices[key] = cur
+		d.devices[key] = cur
 	}
 	return nil
 }
 
-// DevStart start all devices.
-func DevStart() {
-	for id, dev := range devices {
-		klog.V(4).Info("Dev: ", id, dev)
-		ctx, cancel := context.WithCancel(context.Background())
-		deviceMuxs[id] = cancel
-		wg.Add(1)
-		go start(ctx, dev)
+func NewDevPanel() *DevPanel {
+	if devPanel == nil {
+		devPanel = &DevPanel{
+			deviceMuxs: make(map[string]context.CancelFunc),
+			devices:    make(map[string]*modbus.ModbusDev),
+			models:     make(map[string]common.DeviceModel),
+			protocols:  make(map[string]common.Protocol),
+			wg:         sync.WaitGroup{},
+		}
 	}
-	wg.Wait()
+	return devPanel
 }
 
-func UpdateDev(model *common.DeviceModel, device *common.DeviceInstance, protocol *common.Protocol) {
-	devices[device.ID] = new(modbus.ModbusDev)
-	devices[device.ID].Instance = *device
-	models[device.Model] = *model
-	protocols[device.ProtocolName] = *protocol
+// DevStart start all devices.
+func (d *DevPanel) DevStart() {
+	for id, dev := range d.devices {
+		klog.V(4).Info("Dev: ", id, dev)
+		ctx, cancel := context.WithCancel(context.Background())
+		d.deviceMuxs[id] = cancel
+		d.wg.Add(1)
+		go d.start(ctx, dev)
+	}
+	d.wg.Wait()
+}
+
+func (d *DevPanel) UpdateDevTwins(deviceID string, twins []common.Twin) error {
+	device, ok := d.devices[deviceID]
+	if !ok {
+		return fmt.Errorf("device %s not found", deviceID)
+	}
+
+	device.Instance.Twins = twins
+	model := d.models[device.Instance.Model]
+	protocol := d.protocols[device.Instance.ProtocolName]
+	d.UpdateDev(&model, &device.Instance, &protocol)
+	return nil
+}
+
+func (d *DevPanel) UpdateDev(model *common.DeviceModel, device *common.DeviceInstance, protocol *common.Protocol) {
+
+	d.devices[device.ID] = new(modbus.ModbusDev)
+	d.devices[device.ID].Instance = *device
+	d.models[device.Model] = *model
+	d.protocols[device.ProtocolName] = *protocol
 
 	// stop old
-	if err := stopDev(device.ID); err != nil {
+	if err := d.stopDev(device.ID); err != nil {
 		klog.Error(err)
 	}
 	// start new
 	ctx, cancelFunc := context.WithCancel(context.Background())
-	deviceMuxs[device.ID] = cancelFunc
-	wg.Add(1)
-	go start(ctx, devices[device.ID])
+	d.deviceMuxs[device.ID] = cancelFunc
+	d.wg.Add(1)
+	go d.start(ctx, d.devices[device.ID])
 }
 
-func stopDev(id string) error {
-	cancelFunc, ok := deviceMuxs[id]
+func (d *DevPanel) stopDev(id string) error {
+	cancelFunc, ok := d.deviceMuxs[id]
 	if !ok {
 		return fmt.Errorf("can not find device %s from device muxs", id)
 	}
@@ -341,8 +370,8 @@ func stopDev(id string) error {
 	return nil
 }
 
-func DealDeviceTwinGet(deviceID string, twinName string) (interface{}, error) {
-	srcDev, ok := devices[deviceID]
+func (d *DevPanel) DealDeviceTwinGet(deviceID string, twinName string) (interface{}, error) {
+	srcDev, ok := d.devices[deviceID]
 	if !ok {
 		return nil, fmt.Errorf("not found device %s", deviceID)
 	}
@@ -380,4 +409,24 @@ func getTwinData(deviceID string, twin common.Twin, client *modbus.ModbusClient)
 		Topic:         fmt.Sprintf(common.TopicTwinUpdate, deviceID),
 	}
 	return td.GetPayload()
+}
+
+func (d *DevPanel) GetDevice(deviceID string) (interface{}, error) {
+	found, ok := d.devices[deviceID]
+	if !ok || found == nil {
+		return nil, fmt.Errorf("device %s not found", deviceID)
+	}
+	// get the latest reported twin value
+	for i, twin := range found.Instance.Twins {
+		payload, err := getTwinData(deviceID, twin, found.ModbusClient)
+		if err != nil {
+			return nil, err
+		}
+		found.Instance.Twins[i].Reported.Value = string(payload)
+	}
+	return found, nil
+}
+
+func (d *DevPanel) RemoveDevice(deviceID string) error {
+	return d.stopDev(deviceID)
 }

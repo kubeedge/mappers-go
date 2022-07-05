@@ -16,6 +16,8 @@ limitations under the License.
 
 package common
 
+import "time"
+
 // Device status definition.
 const (
 	DEVSTOK        = "OK"
@@ -26,8 +28,12 @@ const (
 )
 
 const (
-	ProtocolBlueTooth = "bluetooth"
-	ProtocolModbus    = "modbus"
-	ProtocolOnvif     = "onvif"
-	ProtocolOpcua     = "opcua"
+	ProtocolBlueTooth  = "bluetooth"
+	ProtocolModbus     = "modbus"
+	ProtocolOnvif      = "onvif"
+	ProtocolOpcua      = "opcua"
+	ProtocolCustomized = "customized-protocol"
 )
+
+const DefaultCollectCycle = time.Second
+const DefaultReportCycle = time.Second

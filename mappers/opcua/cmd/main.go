@@ -56,6 +56,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	go httpserver.StartHttpServer(c.Server.Host)
+	go httpserver.StartHttpServer(c.HttpServer.Host)
 	device.DevStart()
 }

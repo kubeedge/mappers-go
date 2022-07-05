@@ -37,7 +37,9 @@ type Config struct {
 	Mqtt       Mqtt       `yaml:"mqtt,omitempty"`
 	Configmap  string     `yaml:"configmap"`
 	MetaServer MetaServer `yaml:"metaserver"`
-	Server     Server     `json:"server"`
+	HttpServer HTTPServer `yaml:"http_server"`
+	GrpcServer GRPCServer `yaml:"grpc_server"`
+	Common     Common     `yaml:"common"`
 }
 
 // Mqtt is the Mqtt configuration.
@@ -56,8 +58,21 @@ type MetaServer struct {
 	Namespace string `json:"namespace"`
 }
 
-type Server struct {
-	Host string `json:"host"`
+type HTTPServer struct {
+	Host string `yaml:"host"`
+}
+
+type GRPCServer struct {
+	SocketPath string `yaml:"socket_path"`
+}
+
+type Common struct {
+	Name         string `yaml:"name"`
+	Version      string `yaml:"version"`
+	APIVersion   string `yaml:"api_version"`
+	Protocol     string `yaml:"protocol"`
+	Address      string `yaml:"address"`
+	EdgeCoreSock string `yaml:"edgecore_sock"`
 }
 
 // Parse the configuration file. If failed, return error.

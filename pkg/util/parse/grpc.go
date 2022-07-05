@@ -3,21 +3,18 @@ package parse
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"strconv"
-	"strings"
 
-	"github.com/kubeedge/kubeedge/cloud/pkg/apis/devices/v1alpha2"
 	"github.com/kubeedge/kubeedge/cloud/pkg/devicecontroller/controller"
 	v1 "github.com/kubeedge/mappers-go/pkg/apis/dmi-mapper/v1"
 	"github.com/kubeedge/mappers-go/pkg/common"
 )
 
-func getProtocolName(device *v1alpha2.Device) (string, error) {
+func getProtocolNameFromGrpc(device *v1.Device) (string, error) {
 	if device.Spec.Protocol.Modbus != nil {
 		return controller.Modbus, nil
 	}
-	if device.Spec.Protocol.OpcUA != nil {
+	if device.Spec.Protocol.Opcua != nil {
 		return controller.OPCUA, nil
 	}
 	if device.Spec.Protocol.Bluetooth != nil {
@@ -29,8 +26,8 @@ func getProtocolName(device *v1alpha2.Device) (string, error) {
 	return "", errors.New("can not parse device protocol")
 }
 
-func BuildProtocol(device *v1alpha2.Device) (common.Protocol, error) {
-	protocolName, err := getProtocolName(device)
+func BuildProtocolFromGrpc(device *v1.Device) (common.Protocol, error) {
+	protocolName, err := getProtocolNameFromGrpc(device)
 	if err != nil {
 		return common.Protocol{}, err
 	}
@@ -46,7 +43,7 @@ func BuildProtocol(device *v1alpha2.Device) (common.Protocol, error) {
 			return common.Protocol{}, err
 		}
 	case controller.OPCUA:
-		protocolConfig, err = json.Marshal(device.Spec.Protocol.OpcUA)
+		protocolConfig, err = json.Marshal(device.Spec.Protocol.Opcua)
 		if err != nil {
 			return common.Protocol{}, err
 		}
@@ -69,7 +66,7 @@ func BuildProtocol(device *v1alpha2.Device) (common.Protocol, error) {
 	}, nil
 }
 
-func buildTwins(device *v1alpha2.Device) []common.Twin {
+func buildTwinsFromGrpc(device *v1.Device) []common.Twin {
 	if len(device.Status.Twins) == 0 {
 		return nil
 	}
@@ -97,38 +94,36 @@ func buildTwins(device *v1alpha2.Device) []common.Twin {
 	return res
 }
 
-func buildData(device *v1alpha2.Device) common.Data {
+func buildDataFromGrpc(device *v1.Device) common.Data {
 	res := common.Data{}
-	if len(device.Spec.Data.DataProperties) > 0 {
-		res.Properties = make([]common.DataProperty, 0, len(device.Spec.Data.DataProperties))
-		for _, property := range device.Spec.Data.DataProperties {
-			timestamp, ok := property.Metadata["timestamp"]
-			var t int64
-			if ok {
-				t, _ = strconv.ParseInt(timestamp, 10, 64)
-			}
+	if len(device.Spec.PropertyVisitors) > 0 {
+		res.Properties = make([]common.DataProperty, 0, len(device.Spec.PropertyVisitors))
+		for _, property := range device.Spec.PropertyVisitors {
 			cur := common.DataProperty{
-				Metadatas: common.DataMetadata{
-					Timestamp: t,
-					Type:      property.Metadata["type"],
-				},
+				Metadatas:    common.DataMetadata{},
 				PropertyName: property.PropertyName,
 				PVisitor:     nil,
+			}
+			timestamp, ok := property.CustomizedValues.Data["timestamp"]
+			if ok {
+				t, _ := strconv.ParseInt(string(timestamp.GetValue()), 10, 64)
+				cur.Metadatas.Timestamp = t
+			}
+			tpe, ok := property.CustomizedValues.Data["type"]
+			if ok {
+				cur.Metadatas.Type = string(tpe.GetValue())
 			}
 			res.Properties = append(res.Properties, cur)
 		}
 	}
-	if strings.TrimSpace(device.Spec.Data.DataTopic) != "" {
-		res.Topic = device.Spec.Data.DataTopic
-	}
 	return res
 }
 
-func buildPropertyVisitors(device *v1alpha2.Device) []common.PropertyVisitor {
+func buildPropertyVisitorsFromGrpc(device *v1.Device) []common.PropertyVisitor {
 	if len(device.Spec.PropertyVisitors) == 0 {
 		return nil
 	}
-	protocolName, err := getProtocolName(device)
+	protocolName, err := getProtocolNameFromGrpc(device)
 	if err != nil {
 		return nil
 	}
@@ -142,7 +137,7 @@ func buildPropertyVisitors(device *v1alpha2.Device) []common.PropertyVisitor {
 				return nil
 			}
 		case controller.OPCUA:
-			visitorConfig, err = json.Marshal(pptv.OpcUA)
+			visitorConfig, err = json.Marshal(pptv.Opcua)
 			if err != nil {
 				return nil
 			}
@@ -157,12 +152,22 @@ func buildPropertyVisitors(device *v1alpha2.Device) []common.PropertyVisitor {
 				return nil
 			}
 		}
+
+		collectCycle, err := strconv.ParseInt(pptv.GetCollectCycle(), 10, 64)
+		if err != nil {
+			collectCycle = common.DefaultCollectCycle.Nanoseconds()
+		}
+		reportCycle, err := strconv.ParseInt(pptv.GetReportCycle(), 10, 64)
+		if err != nil {
+			reportCycle = common.DefaultReportCycle.Nanoseconds()
+		}
+
 		cur := common.PropertyVisitor{
 			Name:          pptv.PropertyName,
 			PropertyName:  pptv.PropertyName,
-			ModelName:     device.Spec.DeviceModelRef.Name,
-			CollectCycle:  pptv.CollectCycle,
-			ReportCycle:   pptv.ReportCycle,
+			ModelName:     device.Spec.GetDeviceModelRef(),
+			CollectCycle:  collectCycle,
+			ReportCycle:   reportCycle,
 			Protocol:      protocolName,
 			VisitorConfig: visitorConfig,
 		}
@@ -171,48 +176,48 @@ func buildPropertyVisitors(device *v1alpha2.Device) []common.PropertyVisitor {
 	return res
 }
 
-func ParseDeviceModel(model *v1alpha2.DeviceModel) common.DeviceModel {
+func ParseDeviceModelFromGrpc(model *v1.DeviceModel) common.DeviceModel {
 	cur := common.DeviceModel{
-		Name: model.Name,
+		Name: model.GetName(),
 	}
-	if len(model.Spec.Properties) == 0 {
+	if model.GetSpec() == nil || len(model.GetSpec().GetProperties()) == 0 {
 		return cur
 	}
 	properties := make([]common.Property, 0, len(model.Spec.Properties))
 	for _, property := range model.Spec.Properties {
 		p := common.Property{
-			Name:        property.Name,
-			Description: property.Description,
+			Name:        property.GetName(),
+			Description: property.GetDescription(),
 		}
-		if property.Type.String != nil {
+		if property.Type.GetString_() != nil {
 			p.DataType = "string"
-			p.AccessMode = string(property.Type.String.AccessMode)
-			p.DefaultValue = property.Type.String.DefaultValue
-		} else if property.Type.Bytes != nil {
+			p.AccessMode = property.Type.String_.GetAccessMode()
+			p.DefaultValue = property.Type.String_.GetDefaultValue()
+		} else if property.Type.GetBytes() != nil {
 			p.DataType = "bytes"
-			p.AccessMode = string(property.Type.Bytes.AccessMode)
-		} else if property.Type.Boolean != nil {
+			p.AccessMode = property.Type.Bytes.GetAccessMode()
+		} else if property.Type.GetBoolean() != nil {
 			p.DataType = "boolean"
-			p.AccessMode = string(property.Type.Boolean.AccessMode)
-			p.DefaultValue = property.Type.Boolean.DefaultValue
-		} else if property.Type.Int != nil {
+			p.AccessMode = property.Type.Boolean.GetAccessMode()
+			p.DefaultValue = property.Type.Boolean.GetDefaultValue()
+		} else if property.Type.GetInt() != nil {
 			p.DataType = "int"
-			p.AccessMode = string(property.Type.Int.AccessMode)
-			p.DefaultValue = property.Type.Int.DefaultValue
+			p.AccessMode = property.Type.Int.GetAccessMode()
+			p.DefaultValue = property.Type.Int.GetDefaultValue()
 			p.Minimum = property.Type.Int.Minimum
 			p.Maximum = property.Type.Int.Maximum
 			p.Unit = property.Type.Int.Unit
-		} else if property.Type.Double != nil {
+		} else if property.Type.GetDouble() != nil {
 			p.DataType = "double"
-			p.AccessMode = string(property.Type.Double.AccessMode)
-			p.DefaultValue = property.Type.Double.DefaultValue
+			p.AccessMode = property.Type.Double.GetAccessMode()
+			p.DefaultValue = property.Type.Double.GetDefaultValue()
 			p.Minimum = int64(property.Type.Double.Minimum)
 			p.Maximum = int64(property.Type.Double.Maximum)
 			p.Unit = property.Type.Double.Unit
-		} else if property.Type.Float != nil {
+		} else if property.Type.GetFloat() != nil {
 			p.DataType = "float"
-			p.AccessMode = string(property.Type.Float.AccessMode)
-			p.DefaultValue = property.Type.Float.DefaultValue
+			p.AccessMode = property.Type.Float.GetAccessMode()
+			p.DefaultValue = property.Type.Float.GetDefaultValue()
 			p.Minimum = int64(property.Type.Float.Minimum)
 			p.Maximum = int64(property.Type.Float.Maximum)
 			p.Unit = property.Type.Float.Unit
@@ -223,19 +228,19 @@ func ParseDeviceModel(model *v1alpha2.DeviceModel) common.DeviceModel {
 	return cur
 }
 
-func ParseDevice(device *v1alpha2.Device, commonModel *common.DeviceModel) (*common.DeviceInstance, error) {
-	protocolName, err := getProtocolName(device)
+func ParseDeviceFromGrpc(device *v1.Device, commonModel *common.DeviceModel) (*common.DeviceInstance, error) {
+	protocolName, err := getProtocolNameFromGrpc(device)
 	if err != nil {
 		return nil, err
 	}
 	instance := &common.DeviceInstance{
-		ID:               device.Name,
-		Name:             device.Name,
-		ProtocolName:     protocolName + "-" + device.Name,
-		Model:            device.Spec.DeviceModelRef.Name,
-		Twins:            buildTwins(device),
-		Datas:            buildData(device),
-		PropertyVisitors: buildPropertyVisitors(device),
+		ID:               device.GetName(),
+		Name:             device.GetName(),
+		ProtocolName:     protocolName + "-" + device.GetName(),
+		Model:            device.Spec.GetDeviceModelRef(),
+		Twins:            buildTwinsFromGrpc(device),
+		Datas:            buildDataFromGrpc(device),
+		PropertyVisitors: buildPropertyVisitorsFromGrpc(device),
 	}
 	propertyVisitorMap := make(map[string]common.PropertyVisitor)
 	for i := 0; i < len(instance.PropertyVisitors); i++ {
@@ -262,71 +267,4 @@ func ParseDevice(device *v1alpha2.Device, commonModel *common.DeviceModel) (*com
 		}
 	}
 	return instance, nil
-}
-
-func ConvTwinsToGrpc(twins []common.Twin) ([]*v1.Twin, error) {
-	res := make([]*v1.Twin, 0, len(twins))
-	for _, twin := range twins {
-		cur := &v1.Twin{
-			PropertyName: twin.PropertyName,
-			Desired: &v1.TwinProperty{
-				Value: twin.Desired.Value,
-				Metadata: map[string]string{
-					"type":      twin.Desired.Metadatas.Type,
-					"timestamp": twin.Desired.Metadatas.Timestamp,
-				},
-			},
-			Reported: &v1.TwinProperty{
-				Value: twin.Reported.Value,
-				Metadata: map[string]string{
-					"type":      twin.Reported.Metadatas.Type,
-					"timestamp": twin.Reported.Metadatas.Timestamp,
-				},
-			},
-		}
-		res = append(res, cur)
-	}
-	return res, nil
-}
-
-func ConvGrpcToTwins(twins []*v1.Twin, srcTwins []common.Twin) ([]common.Twin, error) {
-	res := make([]common.Twin, 0, len(twins))
-	for _, twin := range twins {
-		var srcTwin common.Twin
-		for _, found := range srcTwins {
-			if twin.GetPropertyName() == found.PropertyName {
-				srcTwin = found
-				break
-			}
-		}
-		if srcTwin.PropertyName == "" {
-			return nil, fmt.Errorf("not found src twin name %s while update status", twin.GetPropertyName())
-		}
-		desiredMeta := twin.Desired.GetMetadata()
-		reportedMeta := twin.Reported.GetMetadata()
-		cur := common.Twin{
-			PropertyName: twin.GetPropertyName(),
-			PVisitor:     srcTwin.PVisitor,
-			Desired: common.DesiredData{
-				Value: twin.Desired.GetValue(),
-			},
-			Reported: common.ReportedData{
-				Value: twin.Reported.GetValue(),
-			},
-		}
-		if desiredMeta != nil {
-			cur.Desired.Metadatas = common.Metadata{
-				Timestamp: twin.Desired.GetMetadata()["timestamp"],
-				Type:      twin.Desired.GetMetadata()["type"],
-			}
-		}
-		if reportedMeta != nil {
-			cur.Reported.Metadatas = common.Metadata{
-				Timestamp: twin.Reported.GetMetadata()["timestamp"],
-				Type:      twin.Reported.GetMetadata()["type"],
-			}
-		}
-		res = append(res, cur)
-	}
-	return res, nil
 }

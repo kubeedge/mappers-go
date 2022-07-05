@@ -21,12 +21,193 @@ import (
 	"errors"
 	"io/ioutil"
 
+	"k8s.io/utils/pointer"
+
+	v12 "k8s.io/api/core/v1"
+
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/kubeedge/kubeedge/cloud/pkg/apis/devices/v1alpha2"
 	"github.com/kubeedge/mappers-go/config"
 	"github.com/kubeedge/mappers-go/pkg/common"
-	"github.com/kubeedge/mappers-go/pkg/util/httpclient"
-
 	"k8s.io/klog/v2"
 )
+
+var tmpDevices = []v1alpha2.Device{
+	{
+		TypeMeta: v1.TypeMeta{
+			Kind:       "Device",
+			APIVersion: "devices.kubeedge.io/v1alpha2",
+		},
+		ObjectMeta: v1.ObjectMeta{
+			Name:      "modbustcp-device",
+			Namespace: "dec-public",
+			Labels: map[string]string{
+				"description": "counter",
+				"model":       "simulation",
+			},
+		},
+		Spec: v1alpha2.DeviceSpec{
+			DeviceModelRef: &v12.LocalObjectReference{
+				Name: "modbus-sample-model",
+			},
+			Protocol: v1alpha2.ProtocolConfig{
+				Modbus: &v1alpha2.ProtocolConfigModbus{SlaveID: pointer.Int64Ptr(1)},
+				Common: &v1alpha2.ProtocolConfigCommon{
+					TCP: &v1alpha2.ProtocolConfigTCP{
+						IP:   "10.222.1.1",
+						Port: 502,
+					},
+				},
+			},
+			PropertyVisitors: []v1alpha2.DevicePropertyVisitor{
+				{
+					PropertyName: "property0",
+					ReportCycle:  5000,
+					CollectCycle: 5000,
+					VisitorConfig: v1alpha2.VisitorConfig{
+						Modbus: &v1alpha2.VisitorConfigModbus{
+							Register:       "HoldingRegister",
+							Offset:         pointer.Int64Ptr(0),
+							Limit:          pointer.Int64Ptr(1),
+							Scale:          1,
+							IsSwap:         true,
+							IsRegisterSwap: true,
+						},
+					},
+				},
+				{
+					PropertyName: "property1",
+					ReportCycle:  5000,
+					CollectCycle: 5000,
+					VisitorConfig: v1alpha2.VisitorConfig{
+						Modbus: &v1alpha2.VisitorConfigModbus{
+							Register:       "HoldingRegister",
+							Offset:         pointer.Int64Ptr(1),
+							Limit:          pointer.Int64Ptr(1),
+							Scale:          1,
+							IsSwap:         true,
+							IsRegisterSwap: true,
+						},
+					},
+				},
+				{
+					PropertyName: "property2",
+					ReportCycle:  5000,
+					CollectCycle: 5000,
+					VisitorConfig: v1alpha2.VisitorConfig{
+						Modbus: &v1alpha2.VisitorConfigModbus{
+							Register:       "HoldingRegister",
+							Offset:         pointer.Int64Ptr(2),
+							Limit:          pointer.Int64Ptr(1),
+							Scale:          1,
+							IsSwap:         true,
+							IsRegisterSwap: true,
+						},
+					},
+				},
+			},
+			Data: v1alpha2.DeviceData{},
+			NodeSelector: &v12.NodeSelector{
+				NodeSelectorTerms: []v12.NodeSelectorTerm{
+					{
+						MatchExpressions: []v12.NodeSelectorRequirement{
+							{
+								Key:      "",
+								Operator: v12.NodeSelectorOpIn,
+								Values:   []string{"test"},
+							},
+						},
+					},
+				},
+			},
+		},
+		Status: v1alpha2.DeviceStatus{
+			Twins: []v1alpha2.Twin{
+				{
+					PropertyName: "property0",
+					Desired: v1alpha2.TwinProperty{
+						Value: "0",
+						Metadata: map[string]string{
+							"timestamp": "1550049403598",
+							"type":      "int",
+						},
+					},
+					Reported: v1alpha2.TwinProperty{},
+				},
+				{
+					PropertyName: "property1",
+					Desired: v1alpha2.TwinProperty{
+						Value: "0",
+						Metadata: map[string]string{
+							"timestamp": "1550049403598",
+							"type":      "int",
+						},
+					},
+					Reported: v1alpha2.TwinProperty{},
+				},
+				{
+					PropertyName: "property2",
+					Desired: v1alpha2.TwinProperty{
+						Value: "0",
+						Metadata: map[string]string{
+							"timestamp": "1550049403598",
+							"type":      "int",
+						},
+					},
+					Reported: v1alpha2.TwinProperty{},
+				},
+			},
+		},
+	},
+}
+
+var tmpDeviceModels = []v1alpha2.DeviceModel{
+	{
+		TypeMeta: v1.TypeMeta{
+			Kind:       "DeviceModel",
+			APIVersion: "devices.kubeedge.io/v1alpha2",
+		},
+		ObjectMeta: v1.ObjectMeta{
+			Name:      "modbus-sample-model",
+			Namespace: "dec-public",
+		},
+		Spec: v1alpha2.DeviceModelSpec{
+			Properties: []v1alpha2.DeviceProperty{
+				{
+					Name:        "property0",
+					Description: "property0 description",
+					Type: v1alpha2.PropertyType{
+						Int: &v1alpha2.PropertyTypeInt64{
+							AccessMode:   "ReadWrite",
+							DefaultValue: 0,
+						},
+					},
+				},
+				{
+					Name:        "property1",
+					Description: "property1 description",
+					Type: v1alpha2.PropertyType{
+						Int: &v1alpha2.PropertyTypeInt64{
+							AccessMode:   "ReadWrite",
+							DefaultValue: 0,
+						},
+					},
+				},
+				{
+					Name:        "property2",
+					Description: "property2 description",
+					Type: v1alpha2.PropertyType{
+						Int: &v1alpha2.PropertyTypeInt64{
+							AccessMode:   "ReadWrite",
+							DefaultValue: 0,
+						},
+					},
+				},
+			},
+		},
+	},
+}
 
 // Parse the configmap.
 func Parse(path string,
@@ -134,14 +315,17 @@ func ParseByUsingMetaServer(cfg *config.Config,
 	dms map[string]common.DeviceModel,
 	protocols map[string]common.Protocol) error {
 	// TODO it may be get all device from namespace
-	deviceList, err := httpclient.GetDeviceList(cfg.MetaServer.Addr, cfg.MetaServer.Namespace)
-	if err != nil {
-		return err
-	}
-	deviceModelList, err := httpclient.GetDeviceModelList(cfg.MetaServer.Addr, cfg.MetaServer.Namespace)
-	if err != nil {
-		return err
-	}
+	// TODO test only
+	//deviceList, err := httpclient.GetDeviceList(cfg.MetaServer.Addr, cfg.MetaServer.Namespace)
+	//if err != nil {
+	//	return err
+	//}
+	//deviceModelList, err := httpclient.GetDeviceModelList(cfg.MetaServer.Addr, cfg.MetaServer.Namespace)
+	//if err != nil {
+	//	return err
+	//}
+	deviceList := tmpDevices
+	deviceModelList := tmpDeviceModels
 	modelMap := make(map[string]common.DeviceModel)
 	for _, model := range deviceModelList {
 		cur := ParseDeviceModel(&model)

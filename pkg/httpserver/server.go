@@ -72,12 +72,18 @@ func StartHttpServer(addr string) error {
 			case common.ProtocolBlueTooth:
 				bledevice.UpdateDev(&model, deviceInstance, &protocol)
 			case common.ProtocolModbus:
-				modbusdevice.UpdateDev(&model, deviceInstance, &protocol)
+				modbusdevice.NewDevPanel().UpdateDev(&model, deviceInstance, &protocol)
 			case common.ProtocolOnvif:
 				// TODO need ffmpeg
 				//onvifdevice.UpdateDev(&model, deviceInstance, &protocol)
 			case common.ProtocolOpcua:
 				opcuadevice.UpdateDev(&model, deviceInstance, &protocol)
+			case common.ProtocolCustomized:
+				// TODO
+				ResponseError(w,
+					fmt.Errorf("device %s protocol %s unsupport",
+						deviceInstance.Name, deviceInstance.PProtocol.Protocol),
+					http.StatusBadRequest)
 			default:
 				ResponseError(w,
 					fmt.Errorf("device %s protocol %s unsupport",
@@ -105,7 +111,7 @@ func StartHttpServer(addr string) error {
 		case common.ProtocolBlueTooth:
 			res, err = bledevice.DealDeviceTwinGet(deviceID, r.URL.Query().Get("twin"))
 		case common.ProtocolModbus:
-			res, err = modbusdevice.DealDeviceTwinGet(deviceID, r.URL.Query().Get("twin"))
+			res, err = modbusdevice.NewDevPanel().DealDeviceTwinGet(deviceID, r.URL.Query().Get("twin"))
 		case common.ProtocolOnvif:
 			//res, err = onvif.DealDeviceTwinGet(deviceID, r.URL.Query().Get("twin"))
 		case common.ProtocolOpcua:

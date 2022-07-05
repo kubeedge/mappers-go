@@ -17,7 +17,14 @@ limitations under the License.
 package main
 
 import (
+	"context"
+	"fmt"
+	"net"
 	"os"
+	"time"
+
+	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/dmi/v1"
+	"google.golang.org/grpc"
 
 	"k8s.io/klog/v2"
 
@@ -25,6 +32,7 @@ import (
 	"github.com/kubeedge/mappers-go/mappers/modbus/device"
 	"github.com/kubeedge/mappers-go/pkg/common"
 	"github.com/kubeedge/mappers-go/pkg/global"
+	"github.com/kubeedge/mappers-go/pkg/grpcserver"
 	"github.com/kubeedge/mappers-go/pkg/httpserver"
 )
 
@@ -53,11 +61,73 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = device.DevInit(&c); err != nil {
+	panel := device.NewDevPanel()
+	if err = panel.DevInit(&c); err != nil {
 		klog.Fatal(err)
-		os.Exit(1)
 	}
+	klog.Infoln("devInit finished")
 
-	go httpserver.StartHttpServer(c.Server.Host)
-	device.DevStart()
+	// register to edgecore
+	// TODO health check
+	//if err = registerMapper(c.Common); err != nil {
+	//	klog.Fatal(err)
+	//}
+	//klog.Infoln("registerMapper finished")
+
+	// start grpc server
+	grpcServer := grpcserver.NewServer(
+		grpcserver.Config{
+			SockPath: c.GrpcServer.SocketPath,
+			Protocol: common.ProtocolModbus,
+		},
+	)
+	go grpcServer.Start()
+	klog.Infoln("grpc server start finished")
+	go httpserver.StartHttpServer(c.HttpServer.Host)
+	klog.Infoln("http server start finished")
+	panel.DevStart()
+}
+
+func registerMapper(cfg config.Common) error {
+	// 连接grpc服务器
+	//conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
+	conn, err := grpc.Dial(cfg.EdgeCoreSock,
+		grpc.WithInsecure(),
+		grpc.WithBlock(),
+		grpc.WithContextDialer(
+			func(ctx context.Context, s string) (net.Conn, error) {
+				unixAddress, err := net.ResolveUnixAddr("unix", cfg.EdgeCoreSock)
+				if err != nil {
+					return nil, err
+				}
+				return net.DialUnix("unix", nil, unixAddress)
+			},
+		),
+	)
+	if err != nil {
+		return fmt.Errorf("did not connect: %v", err)
+	}
+	// 延迟关闭连接
+	defer conn.Close()
+
+	// 初始化Greeter服务客户端
+	c := dmiapi.NewDeviceManagerServiceClient(conn)
+
+	// 初始化上下文，设置请求超时时间为1秒
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	// 延迟关闭请求会话
+	defer cancel()
+
+	// 调用SayHello接口，发送一条消息
+	_, err = c.MapperRegister(ctx, &dmiapi.MapperRegisterRequest{
+		Mapper: &dmiapi.MapperInfo{
+			Name:       cfg.Name,
+			Version:    cfg.Version,
+			ApiVersion: cfg.APIVersion,
+			Protocol:   cfg.Protocol,
+			Address:    []byte(cfg.Address),
+			State:      common.DEVSTOK,
+		},
+	})
+	return err
 }
