@@ -157,12 +157,16 @@ func initTwin(ctx context.Context, dev *opcua.OPCUADev) {
 			collectCycle = 1 * time.Second
 		}
 		ticker := time.NewTicker(collectCycle)
-		select {
-		case <-ticker.C:
-			twinData.Run()
-		case <-ctx.Done():
-			return
-		}
+		go func() {
+			for {
+				select {
+				case <-ticker.C:
+					twinData.Run()
+				case <-ctx.Done():
+					return
+				}
+			}
+		}()
 	}
 }
 

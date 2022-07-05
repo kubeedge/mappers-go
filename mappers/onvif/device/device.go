@@ -152,12 +152,16 @@ func initTwin(ctx context.Context, dev *onvif.OnvifDev) {
 				collectCycle = 1 * time.Second
 			}
 			ticker := time.NewTicker(collectCycle)
-			select {
-			case <-ticker.C:
-				twinData.Run()
-			case <-ctx.Done():
-				return
-			}
+			go func() {
+				for {
+					select {
+					case <-ticker.C:
+						twinData.Run()
+					case <-ctx.Done():
+						return
+					}
+				}
+			}()
 		} else if method.(string) == "SaveVideo" {
 			outDir, ok1 := visitorConfig.ConfigData["outputDir"]
 			format, ok2 := visitorConfig.ConfigData["format"]
@@ -187,12 +191,16 @@ func initTwin(ctx context.Context, dev *onvif.OnvifDev) {
 				collectCycle = 1 * time.Second
 			}
 			ticker := time.NewTicker(collectCycle)
-			select {
-			case <-ticker.C:
-				twinData.Run()
-			case <-ctx.Done():
-				return
-			}
+			go func() {
+				for {
+					select {
+					case <-ticker.C:
+						twinData.Run()
+					case <-ctx.Done():
+						return
+					}
+				}
+			}()
 		}
 
 		setVisitor(&visitorConfig, &dev.Instance.Twins[i], dev.OnvifClient)

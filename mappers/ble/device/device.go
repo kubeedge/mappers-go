@@ -170,12 +170,16 @@ func initTwin(ctx context.Context, dev *bledriver.BleDev) {
 				}()
 			} else if (c.Property & ble.CharRead) != 0 { // // read data actively
 				ticker := time.NewTicker(collectCycle)
-				select {
-				case <-ticker.C:
-					twinData.Run()
-				case <-ctx.Done():
-					return
-				}
+				go func() {
+					for {
+						select {
+						case <-ticker.C:
+							twinData.Run()
+						case <-ctx.Done():
+							return
+						}
+					}
+				}()
 			}
 		}
 	}
