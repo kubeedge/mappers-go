@@ -23,7 +23,7 @@ import (
 	"os"
 	"time"
 
-	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/dmi/v1"
+	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/upstream/v1"
 	"google.golang.org/grpc"
 
 	"k8s.io/klog/v2"
@@ -47,7 +47,7 @@ func main() {
 		klog.Fatal(err)
 		os.Exit(1)
 	}
-	klog.V(4).Info(c.Configmap)
+	klog.Infof("config: %+v", c)
 
 	global.MqttClient = common.MqttClient{
 		IP:         c.Mqtt.ServerAddress,
@@ -69,10 +69,10 @@ func main() {
 
 	// register to edgecore
 	// TODO health check
-	//if err = registerMapper(c.Common); err != nil {
-	//	klog.Fatal(err)
-	//}
-	//klog.Infoln("registerMapper finished")
+	if err = registerMapper(c.Common); err != nil {
+		klog.Fatal(err)
+	}
+	klog.Infoln("registerMapper finished")
 
 	// start grpc server
 	grpcServer := grpcserver.NewServer(
@@ -111,7 +111,7 @@ func registerMapper(cfg config.Common) error {
 	defer conn.Close()
 
 	// 初始化Greeter服务客户端
-	c := dmiapi.NewDeviceManagerServiceClient(conn)
+	c := dmiapi.NewMapperClient(conn)
 
 	// 初始化上下文，设置请求超时时间为1秒
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)

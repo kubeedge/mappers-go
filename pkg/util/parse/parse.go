@@ -21,6 +21,8 @@ import (
 	"errors"
 	"io/ioutil"
 
+	"github.com/kubeedge/mappers-go/pkg/util/httpclient"
+
 	"k8s.io/utils/pointer"
 
 	v12 "k8s.io/api/core/v1"
@@ -316,16 +318,16 @@ func ParseByUsingMetaServer(cfg *config.Config,
 	protocols map[string]common.Protocol) error {
 	// TODO it may be get all device from namespace
 	// TODO test only
-	//deviceList, err := httpclient.GetDeviceList(cfg.MetaServer.Addr, cfg.MetaServer.Namespace)
-	//if err != nil {
-	//	return err
-	//}
-	//deviceModelList, err := httpclient.GetDeviceModelList(cfg.MetaServer.Addr, cfg.MetaServer.Namespace)
-	//if err != nil {
-	//	return err
-	//}
-	deviceList := tmpDevices
-	deviceModelList := tmpDeviceModels
+	deviceList, err := httpclient.GetDeviceList(cfg.MetaServer.Addr, cfg.MetaServer.Namespace)
+	if err != nil {
+		return err
+	}
+	deviceModelList, err := httpclient.GetDeviceModelList(cfg.MetaServer.Addr, cfg.MetaServer.Namespace)
+	if err != nil {
+		return err
+	}
+	//deviceList := tmpDevices
+	//deviceModelList := tmpDeviceModels
 	modelMap := make(map[string]common.DeviceModel)
 	for _, model := range deviceModelList {
 		cur := ParseDeviceModel(&model)

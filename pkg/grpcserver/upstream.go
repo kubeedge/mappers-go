@@ -4,12 +4,11 @@ import (
 	"context"
 	"errors"
 
+	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/upstream/v1"
+	"github.com/kubeedge/mappers-go/pkg/common"
 	"github.com/kubeedge/mappers-go/pkg/driver/modbus"
 
-	"github.com/kubeedge/mappers-go/pkg/common"
 	"k8s.io/klog/v2"
-
-	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/dmi/v1"
 )
 
 func (s *Server) ReportDeviceStatus(ctx context.Context, request *dmiapi.ReportDeviceStatusRequest) (*dmiapi.ReportDeviceStatusResponse, error) {

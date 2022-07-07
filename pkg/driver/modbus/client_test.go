@@ -22,8 +22,93 @@ package modbus
 import (
 	"fmt"
 	"os"
+	"testing"
 	"time"
+
+	"k8s.io/apimachinery/pkg/util/json"
+
+	"k8s.io/utils/pointer"
+
+	v12 "k8s.io/api/core/v1"
+
+	"github.com/kubeedge/kubeedge/cloud/pkg/apis/devices/v1alpha2"
+	"github.com/kubeedge/mappers-go/pkg/util/parse"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+func TestName(t *testing.T) {
+	res := parse.DeviceData{
+		Device: &v1alpha2.Device{
+			TypeMeta: v1.TypeMeta{
+				Kind:       "Device",
+				APIVersion: "devices.kubeedge.io/v1alpha2",
+			},
+			ObjectMeta: v1.ObjectMeta{
+				Name:      "iyrqt090eh4u6vn68tbr",
+				Namespace: "dec-public",
+			},
+			Spec: v1alpha2.DeviceSpec{
+				DeviceModelRef: &v12.LocalObjectReference{Name: "iyrqt090eh4u6vn68tbr"},
+				Protocol: v1alpha2.ProtocolConfig{
+					Modbus: &v1alpha2.ProtocolConfigModbus{
+						SlaveID: pointer.Int64(1),
+					},
+					Common: &v1alpha2.ProtocolConfigCommon{
+						COM: &v1alpha2.ProtocolConfigCOM{
+							SerialPort: "/dev/ttyUSB1",
+							BaudRate:   9600,
+							DataBits:   8,
+							Parity:     "none",
+							StopBits:   1,
+						},
+					},
+				},
+				PropertyVisitors: []v1alpha2.DevicePropertyVisitor{
+					{
+						PropertyName: "twin11",
+						ReportCycle:  1000000000,
+						CollectCycle: 1000000000,
+						VisitorConfig: v1alpha2.VisitorConfig{
+							Modbus: &v1alpha2.VisitorConfigModbus{
+								Register:       "InputRegister",
+								Offset:         pointer.Int64(2),
+								Limit:          pointer.Int64(1),
+								Scale:          1,
+								IsSwap:         true,
+								IsRegisterSwap: true,
+							},
+						},
+					},
+				},
+				Data:         v1alpha2.DeviceData{},
+				NodeSelector: nil,
+			},
+			Status: v1alpha2.DeviceStatus{},
+		},
+		DeviceModel: &v1alpha2.DeviceModel{
+			TypeMeta: v1.TypeMeta{
+				Kind:       "DeviceModel",
+				APIVersion: "devices.kubeedge.io/v1alpha2",
+			},
+			ObjectMeta: v1.ObjectMeta{
+				Name:      "iyrqt090eh4u6vn68tbr",
+				Namespace: "dec-public",
+			},
+			Spec: v1alpha2.DeviceModelSpec{
+				Properties: []v1alpha2.DeviceProperty{{
+					Name:        "twin11",
+					Description: "",
+					Type:        v1alpha2.PropertyType{},
+				}},
+			},
+		},
+	}
+	marshal, err := json.Marshal(res)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(string(marshal))
+}
 
 func tdriver() {
 	var modbusrtu ModbusRTU

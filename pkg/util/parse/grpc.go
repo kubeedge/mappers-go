@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/kubeedge/kubeedge/cloud/pkg/devicecontroller/controller"
-	v1 "github.com/kubeedge/mappers-go/pkg/apis/dmi-mapper/v1"
+	v1 "github.com/kubeedge/mappers-go/pkg/apis/downstream/v1"
 	"github.com/kubeedge/mappers-go/pkg/common"
 )
 

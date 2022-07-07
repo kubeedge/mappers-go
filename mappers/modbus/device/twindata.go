@@ -151,7 +151,7 @@ func (td *TwinData) GetPayload() ([]byte, error) {
 func (td *TwinData) Run() {
 	payload, err := td.GetPayload()
 	if err != nil {
-		klog.Error(err)
+		klog.Errorf("twindata %s get payload failed, err: %s", td.Name, err)
 		return
 	}
 	if err = global.MqttClient.Publish(td.Topic, payload); err != nil {

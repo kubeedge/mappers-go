@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	pb "github.com/kubeedge/mappers-go/pkg/apis/dmi-mapper/v1"
+	pb "github.com/kubeedge/mappers-go/pkg/apis/downstream/v1"
 	"github.com/kubeedge/mappers-go/pkg/common"
 	"github.com/kubeedge/mappers-go/pkg/driver/modbus"
 	"github.com/kubeedge/mappers-go/pkg/util/parse"

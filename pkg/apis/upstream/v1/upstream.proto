@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+//option go_package = "path;name";
+option go_package="./;v1";
+package upstream.v1;
+
+service DeviceManagerService {
+  rpc MapperRegister(MapperRegisterRequest) returns (MapperRegisterResponse) {}
+
+  rpc ReportDeviceStatus(ReportDeviceStatusRequest) returns (ReportDeviceStatusResponse) {}
+}
+
+message MapperRegisterRequest {
+  MapperInfo mapper = 1;
+}
+
+message MapperRegisterResponse {}
+
+message MapperInfo {
+  string name = 1;
+  string version = 2;
+  string api_version = 3;
+  string protocol = 4;
+  bytes address = 5;
+  string state = 6;
+}
+
+message ReportDeviceStatusRequest {
+    string deviceName = 1;
+    DeviceStatus reportedDevice = 2;
+}
+
+message DeviceStatus {
+    repeated Twin twins = 1;
+    string state = 2;
+}
+
+message Twin {
+    string propertyName = 1;
+    TwinProperty desired = 2;
+    TwinProperty reported = 3;
+}
+
+message TwinProperty {
+    string value = 1;
+    map<string,string> metadata = 2;
+}
+
+message ReportDeviceStatusResponse {}
