@@ -211,6 +211,8 @@ var tmpDeviceModels = []v1alpha2.DeviceModel{
 	},
 }
 
+var ErrEmptyData error = errors.New("device or device model list is empty")
+
 // Parse the configmap.
 func Parse(path string,
 	devices map[string]*common.DeviceInstance,
@@ -317,15 +319,21 @@ func ParseByUsingMetaServer(cfg *config.Config,
 	dms map[string]common.DeviceModel,
 	protocols map[string]common.Protocol) error {
 	// TODO it may be get all device from namespace
-	// TODO test only
 	deviceList, err := httpclient.GetDeviceList(cfg.MetaServer.Addr, cfg.MetaServer.Namespace)
 	if err != nil {
 		return err
+	}
+	if len(deviceList) == 0 {
+		return ErrEmptyData
 	}
 	deviceModelList, err := httpclient.GetDeviceModelList(cfg.MetaServer.Addr, cfg.MetaServer.Namespace)
 	if err != nil {
 		return err
 	}
+	if len(deviceModelList) == 0 {
+		return ErrEmptyData
+	}
+	// TODO test only
 	//deviceList := tmpDevices
 	//deviceModelList := tmpDeviceModels
 	modelMap := make(map[string]common.DeviceModel)

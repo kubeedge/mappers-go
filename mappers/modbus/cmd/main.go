@@ -18,22 +18,23 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"os"
 	"time"
 
-	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/upstream/v1"
-	"google.golang.org/grpc"
-
 	"k8s.io/klog/v2"
 
 	"github.com/kubeedge/mappers-go/config"
 	"github.com/kubeedge/mappers-go/mappers/modbus/device"
+	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/upstream/v1"
 	"github.com/kubeedge/mappers-go/pkg/common"
 	"github.com/kubeedge/mappers-go/pkg/global"
 	"github.com/kubeedge/mappers-go/pkg/grpcserver"
 	"github.com/kubeedge/mappers-go/pkg/httpserver"
+	"github.com/kubeedge/mappers-go/pkg/util/parse"
+	"google.golang.org/grpc"
 )
 
 func main() {
@@ -62,9 +63,20 @@ func main() {
 	}
 
 	panel := device.NewDevPanel()
-	if err = panel.DevInit(&c); err != nil {
-		klog.Fatal(err)
+	i := 0
+	for {
+		err = panel.DevInit(&c)
+		if err == nil {
+			break
+		}
+		if !errors.Is(err, parse.ErrEmptyData) {
+			klog.Fatal(err)
+		}
+		time.Sleep(2 * time.Second)
+		i++
+		klog.Infof("retry to init device, time: %d", i)
 	}
+
 	klog.Infoln("devInit finished")
 
 	// register to edgecore
