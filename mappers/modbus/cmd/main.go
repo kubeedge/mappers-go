@@ -78,6 +78,7 @@ func main() {
 	// register to edgecore
 	// if dev init mode is register, mapper's dev will init when registry to edgecore
 	if c.DevInit.Mode != common.DevInitModeRegister {
+		klog.Infoln("======dev init mode is not register, will register to edgecore")
 		// TODO health check
 		if _, _, err = register.RegisterMapper(&c, false); err != nil {
 			klog.Fatal(err)

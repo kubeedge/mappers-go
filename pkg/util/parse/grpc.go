@@ -5,12 +5,14 @@ import (
 	"errors"
 	"strconv"
 
+	"k8s.io/klog/v2"
+
 	"github.com/kubeedge/kubeedge/cloud/pkg/devicecontroller/controller"
-	v1 "github.com/kubeedge/mappers-go/pkg/apis/dmi/v1"
+	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/dmi/v1"
 	"github.com/kubeedge/mappers-go/pkg/common"
 )
 
-func getProtocolNameFromGrpc(device *v1.Device) (string, error) {
+func getProtocolNameFromGrpc(device *dmiapi.Device) (string, error) {
 	if device.Spec.Protocol.Modbus != nil {
 		return controller.Modbus, nil
 	}
@@ -26,7 +28,7 @@ func getProtocolNameFromGrpc(device *v1.Device) (string, error) {
 	return "", errors.New("can not parse device protocol")
 }
 
-func BuildProtocolFromGrpc(device *v1.Device) (common.Protocol, error) {
+func BuildProtocolFromGrpc(device *dmiapi.Device) (common.Protocol, error) {
 	protocolName, err := getProtocolNameFromGrpc(device)
 	if err != nil {
 		return common.Protocol{}, err
@@ -66,7 +68,7 @@ func BuildProtocolFromGrpc(device *v1.Device) (common.Protocol, error) {
 	}, nil
 }
 
-func buildTwinsFromGrpc(device *v1.Device) []common.Twin {
+func buildTwinsFromGrpc(device *dmiapi.Device) []common.Twin {
 	if len(device.Status.Twins) == 0 {
 		return nil
 	}
@@ -94,7 +96,7 @@ func buildTwinsFromGrpc(device *v1.Device) []common.Twin {
 	return res
 }
 
-func buildDataFromGrpc(device *v1.Device) common.Data {
+func buildDataFromGrpc(device *dmiapi.Device) common.Data {
 	res := common.Data{}
 	if len(device.Spec.PropertyVisitors) > 0 {
 		res.Properties = make([]common.DataProperty, 0, len(device.Spec.PropertyVisitors))
@@ -104,22 +106,24 @@ func buildDataFromGrpc(device *v1.Device) common.Data {
 				PropertyName: property.PropertyName,
 				PVisitor:     nil,
 			}
-			timestamp, ok := property.CustomizedValues.Data["timestamp"]
-			if ok {
-				t, _ := strconv.ParseInt(string(timestamp.GetValue()), 10, 64)
-				cur.Metadatas.Timestamp = t
+			if property.CustomizedValues != nil && property.CustomizedValues.Data != nil {
+				timestamp, ok := property.CustomizedValues.Data["timestamp"]
+				if ok {
+					t, _ := strconv.ParseInt(string(timestamp.GetValue()), 10, 64)
+					cur.Metadatas.Timestamp = t
+				}
+				tpe, ok := property.CustomizedValues.Data["type"]
+				if ok {
+					cur.Metadatas.Type = string(tpe.GetValue())
+				}
+				res.Properties = append(res.Properties, cur)
 			}
-			tpe, ok := property.CustomizedValues.Data["type"]
-			if ok {
-				cur.Metadatas.Type = string(tpe.GetValue())
-			}
-			res.Properties = append(res.Properties, cur)
 		}
 	}
 	return res
 }
 
-func buildPropertyVisitorsFromGrpc(device *v1.Device) []common.PropertyVisitor {
+func buildPropertyVisitorsFromGrpc(device *dmiapi.Device) []common.PropertyVisitor {
 	if len(device.Spec.PropertyVisitors) == 0 {
 		return nil
 	}
@@ -153,21 +157,12 @@ func buildPropertyVisitorsFromGrpc(device *v1.Device) []common.PropertyVisitor {
 			}
 		}
 
-		collectCycle, err := strconv.ParseInt(pptv.GetCollectCycle(), 10, 64)
-		if err != nil {
-			collectCycle = common.DefaultCollectCycle.Nanoseconds()
-		}
-		reportCycle, err := strconv.ParseInt(pptv.GetReportCycle(), 10, 64)
-		if err != nil {
-			reportCycle = common.DefaultReportCycle.Nanoseconds()
-		}
-
 		cur := common.PropertyVisitor{
 			Name:          pptv.PropertyName,
 			PropertyName:  pptv.PropertyName,
-			ModelName:     device.Spec.GetDeviceModelRef(),
-			CollectCycle:  collectCycle,
-			ReportCycle:   reportCycle,
+			ModelName:     device.Spec.DeviceModelReference,
+			CollectCycle:  pptv.GetCollectCycle(),
+			ReportCycle:   pptv.GetReportCycle(),
 			Protocol:      protocolName,
 			VisitorConfig: visitorConfig,
 		}
@@ -176,7 +171,7 @@ func buildPropertyVisitorsFromGrpc(device *v1.Device) []common.PropertyVisitor {
 	return res
 }
 
-func ParseDeviceModelFromGrpc(model *v1.DeviceModel) common.DeviceModel {
+func ParseDeviceModelFromGrpc(model *dmiapi.DeviceModel) common.DeviceModel {
 	cur := common.DeviceModel{
 		Name: model.GetName(),
 	}
@@ -228,7 +223,7 @@ func ParseDeviceModelFromGrpc(model *v1.DeviceModel) common.DeviceModel {
 	return cur
 }
 
-func ParseDeviceFromGrpc(device *v1.Device, commonModel *common.DeviceModel) (*common.DeviceInstance, error) {
+func ParseDeviceFromGrpc(device *dmiapi.Device, commonModel *common.DeviceModel) (*common.DeviceInstance, error) {
 	protocolName, err := getProtocolNameFromGrpc(device)
 	if err != nil {
 		return nil, err
@@ -237,7 +232,7 @@ func ParseDeviceFromGrpc(device *v1.Device, commonModel *common.DeviceModel) (*c
 		ID:               device.GetName(),
 		Name:             device.GetName(),
 		ProtocolName:     protocolName + "-" + device.GetName(),
-		Model:            device.Spec.GetDeviceModelRef(),
+		Model:            device.Spec.DeviceModelReference,
 		Twins:            buildTwinsFromGrpc(device),
 		Datas:            buildDataFromGrpc(device),
 		PropertyVisitors: buildPropertyVisitorsFromGrpc(device),
@@ -248,16 +243,21 @@ func ParseDeviceFromGrpc(device *v1.Device, commonModel *common.DeviceModel) (*c
 			continue
 		}
 
+		klog.Infof("======commonmodel property len: %d", len(commonModel.Properties))
 		for _, property := range commonModel.Properties {
 			if property.Name == instance.PropertyVisitors[i].PropertyName {
+				klog.Infof("======common property %s equal, set instance propertyVisitor PProperty", property.Name)
 				instance.PropertyVisitors[i].PProperty = property
 				break
 			}
 		}
+		klog.Infof("======set propertyVisitorMap property, key: %s, value: %+v", instance.PropertyVisitors[i].PProperty.Name, instance.PropertyVisitors[i])
 		propertyVisitorMap[instance.PropertyVisitors[i].PProperty.Name] = instance.PropertyVisitors[i]
 	}
 	for i := 0; i < len(instance.Twins); i++ {
+		klog.Infof("====== current instance twin property name %s", instance.Twins[i].PropertyName)
 		if v, ok := propertyVisitorMap[instance.Twins[i].PropertyName]; ok {
+			klog.Infof("====== current instance twin property set visitor %+v", v)
 			instance.Twins[i].PVisitor = &v
 		}
 	}

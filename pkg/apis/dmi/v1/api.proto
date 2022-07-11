@@ -101,7 +101,7 @@ message Device {
 }
 
 message DeviceSpec {
-    string deviceModelRef = 1;
+    string deviceModelReference = 1;
     ProtocolConfig protocol = 2;
     repeated DevicePropertyVisitor propertyVisitors = 3;
 }
@@ -147,15 +147,15 @@ message ProtocolConfigCommon {
 
 message ProtocolConfigCOM {
     string serialPort = 1;
-    string baudRate = 2;
-    string dataBits= 3;
+    int64 baudRate = 2;
+    int64 dataBits= 3;
     string parity = 4;
-    string stopBits = 5;
+    int64 stopBits = 5;
 }
 
 message ProtocolConfigTCP {
     string ip = 1;
-    string port = 2;
+    int64 port = 2;
 }
 
 message CustomizedValue {
@@ -169,8 +169,8 @@ message ProtocolConfigCustomized {
 
 message DevicePropertyVisitor {
     string propertyName = 1;
-    string reportCycle = 2;
-    string collectCycle = 3;
+    int64 reportCycle = 2;
+    int64 collectCycle = 3;
     CustomizedValue customizedValues = 4;
     VisitorConfigOPCUA opcua = 5;
     VisitorConfigModbus modbus = 6;

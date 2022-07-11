@@ -44,6 +44,7 @@ func RegisterMapper(cfg *config.Config, withData bool) ([]*dmiapi.Device, []*dmi
 	defer cancel()
 
 	// 调用SayHello接口，发送一条消息
+	fmt.Println("======send grpc to edgecore for mapperRegister")
 	resp, err := c.MapperRegister(ctx, &dmiapi.MapperRegisterRequest{
 		WithData: withData,
 		Mapper: &dmiapi.MapperInfo{
@@ -58,6 +59,8 @@ func RegisterMapper(cfg *config.Config, withData bool) ([]*dmiapi.Device, []*dmi
 	if err != nil {
 		return nil, nil, err
 	}
+	fmt.Println("======send grpc to edgecore for mapperRegister finished")
+	fmt.Printf("======register response: %+v", resp)
 
 	return resp.DeviceList, resp.ModelList, err
 }
