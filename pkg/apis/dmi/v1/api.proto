@@ -2,30 +2,24 @@ syntax = "proto3";
 
 //option go_package = "path;name";
 option go_package="./;v1";
-package downstream.v1;
-
+package v1;
 
 import "google/protobuf/any.proto";
 
-service DeviceMapperService {
-    rpc CreateDevice(CreateDeviceRequest) returns (CreateDeviceResponse) {}
-    rpc RemoveDevice(RemoveDeviceRequest) returns (RemoveDeviceResponse) {}
-    rpc UpdateDevice(UpdateDeviceRequest) returns (UpdateDeviceResponse) {}
-    rpc UpdateDeviceStatus(UpdateDeviceStatusRequest) returns (UpdateDeviceStatusResponse) {}
-    rpc GetDevice(GetDeviceRequest) returns (GetDeviceResponse) {}
+service DeviceManagerService {
+  rpc MapperRegister(MapperRegisterRequest) returns (MapperRegisterResponse) {}
+
+  rpc ReportDeviceStatus(ReportDeviceStatusRequest) returns (ReportDeviceStatusResponse) {}
 }
 
-message CreateDeviceRequest {
-  DeviceConfig config = 1;
+message MapperRegisterRequest {
+  bool withData = 1;
+  MapperInfo mapper = 2;
 }
 
-message CreateDeviceResponse {
-    string device_name = 1;
-}
-
-message DeviceConfig {
-    DeviceModel model = 1;
-    Device device = 2;
+message MapperRegisterResponse {
+    repeated DeviceModel modelList = 1;
+    repeated Device deviceList = 2;
 }
 
 message DeviceModel {
@@ -222,6 +216,20 @@ message VisitorConfigCustomized {
     CustomizedValue configData =2;
 }
 
+message MapperInfo {
+  string name = 1;
+  string version = 2;
+  string api_version = 3;
+  string protocol = 4;
+  bytes address = 5;
+  string state = 6;
+}
+
+message ReportDeviceStatusRequest {
+    string deviceName = 1;
+    DeviceStatus reportedDevice = 2;
+}
+
 message DeviceStatus {
     repeated Twin twins = 1;
     string state = 2;
@@ -235,7 +243,30 @@ message Twin {
 
 message TwinProperty {
     string value = 1;
-    map<string, string> metadata = 2;
+    map<string,string> metadata = 2;
+}
+
+message ReportDeviceStatusResponse {}
+
+service DeviceMapperService {
+    rpc CreateDevice(CreateDeviceRequest) returns (CreateDeviceResponse) {}
+    rpc RemoveDevice(RemoveDeviceRequest) returns (RemoveDeviceResponse) {}
+    rpc UpdateDevice(UpdateDeviceRequest) returns (UpdateDeviceResponse) {}
+    rpc UpdateDeviceStatus(UpdateDeviceStatusRequest) returns (UpdateDeviceStatusResponse) {}
+    rpc GetDevice(GetDeviceRequest) returns (GetDeviceResponse) {}
+}
+
+message CreateDeviceRequest {
+  DeviceConfig config = 1;
+}
+
+message CreateDeviceResponse {
+    string device_name = 1;
+}
+
+message DeviceConfig {
+    DeviceModel model = 1;
+    Device device = 2;
 }
 
 message RemoveDeviceRequest {

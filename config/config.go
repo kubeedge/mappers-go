@@ -22,6 +22,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/kubeedge/mappers-go/pkg/common"
+
 	"github.com/spf13/pflag"
 	"gopkg.in/yaml.v2"
 	"k8s.io/klog/v2"
@@ -35,11 +37,10 @@ var defaultConfigFile = "./config.yaml"
 // Config is the common mapper configuration.
 type Config struct {
 	Mqtt       Mqtt       `yaml:"mqtt,omitempty"`
-	Configmap  string     `yaml:"configmap"`
-	MetaServer MetaServer `yaml:"metaserver"`
 	HttpServer HTTPServer `yaml:"http_server"`
 	GrpcServer GRPCServer `yaml:"grpc_server"`
 	Common     Common     `yaml:"common"`
+	DevInit    DevInit    `yaml:"dev_init"`
 }
 
 // Mqtt is the Mqtt configuration.
@@ -53,7 +54,6 @@ type Mqtt struct {
 
 // MetaServer is the MetaServer configuration.
 type MetaServer struct {
-	Enable    bool   `yaml:"enable"`
 	Addr      string `yaml:"addr"`
 	Namespace string `json:"namespace"`
 }
@@ -75,6 +75,12 @@ type Common struct {
 	EdgeCoreSock string `yaml:"edgecore_sock"`
 }
 
+type DevInit struct {
+	Mode       string     `yaml:"mode"`
+	Configmap  string     `yaml:"configmap"`
+	MetaServer MetaServer `yaml:"metaserver"`
+}
+
 // Parse the configuration file. If failed, return error.
 func (c *Config) Parse() error {
 	var level klog.Level
@@ -83,8 +89,7 @@ func (c *Config) Parse() error {
 
 	pflag.StringVar(&loglevel, "v", "1", "log level")
 	pflag.StringVar(&configFile, "config-file", defaultConfigFile, "Config file name")
-	pflag.BoolVar(&c.MetaServer.Enable, "metaserver-enable", false, "edgecore meta server status")
-	pflag.StringVar(&c.MetaServer.Addr, "metaserver-addr", "http://127.0.0.1:10550", "edgecore meta server addr")
+	pflag.StringVar(&c.DevInit.MetaServer.Addr, "metaserver-addr", "http://127.0.0.1:10550", "edgecore meta server addr")
 
 	pflag.Parse()
 	cf, err := ioutil.ReadFile(configFile)
@@ -102,24 +107,29 @@ func (c *Config) Parse() error {
 		return err
 	}
 
-	// if meta server is enabled, we can get device and model from meta server rather than config map.
-	if !c.MetaServer.Enable {
-		if strings.TrimSpace(c.Configmap) != "" {
-			if readFile, err := ioutil.ReadFile(c.Configmap); err != nil {
-				if !os.IsNotExist(err) {
-					return err
-				}
-				c.Configmap = strings.TrimSpace(os.Getenv("DEVICE_PROFILE"))
-			} else {
-				c.Configmap = string(readFile)
+	switch c.DevInit.Mode {
+	case common.DevInitModeConfigmap:
+		if readFile, err := ioutil.ReadFile(c.DevInit.Configmap); err != nil {
+			if !os.IsNotExist(err) {
+				return err
 			}
+			c.DevInit.Configmap = strings.TrimSpace(os.Getenv("DEVICE_PROFILE"))
+		} else {
+			c.DevInit.Configmap = string(readFile)
 		}
-		if strings.TrimSpace(c.Configmap) == "" {
+		if strings.TrimSpace(c.DevInit.Configmap) == "" {
 			return errors.New("can not parse configmap")
 		}
-	}
-	if c.MetaServer.Enable && c.MetaServer.Namespace == "" {
-		c.MetaServer.Namespace = "default"
+	case common.DevInitModeRegister:
+	case "": // if mode is nil, use meta server mode
+		c.DevInit.Mode = common.DevInitModeMetaServer
+		fallthrough
+	case common.DevInitModeMetaServer:
+		if c.DevInit.MetaServer.Namespace == "" {
+			c.DevInit.MetaServer.Namespace = "default"
+		}
+	default:
+		return errors.New("unsupported dev init mode " + c.DevInit.Mode)
 	}
 
 	return nil

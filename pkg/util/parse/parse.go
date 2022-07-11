@@ -21,17 +21,15 @@ import (
 	"errors"
 	"io/ioutil"
 
-	"github.com/kubeedge/mappers-go/pkg/util/httpclient"
-
-	"k8s.io/utils/pointer"
-
 	v12 "k8s.io/api/core/v1"
-
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/pointer"
 
 	"github.com/kubeedge/kubeedge/cloud/pkg/apis/devices/v1alpha2"
 	"github.com/kubeedge/mappers-go/config"
 	"github.com/kubeedge/mappers-go/pkg/common"
+	"github.com/kubeedge/mappers-go/pkg/util/httpclient"
+	"github.com/kubeedge/mappers-go/pkg/util/register"
 	"k8s.io/klog/v2"
 )
 
@@ -319,14 +317,14 @@ func ParseByUsingMetaServer(cfg *config.Config,
 	dms map[string]common.DeviceModel,
 	protocols map[string]common.Protocol) error {
 	// TODO it may be get all device from namespace
-	deviceList, err := httpclient.GetDeviceList(cfg.MetaServer.Addr, cfg.MetaServer.Namespace)
+	deviceList, err := httpclient.GetDeviceList(cfg.DevInit.MetaServer.Addr, cfg.DevInit.MetaServer.Namespace)
 	if err != nil {
 		return err
 	}
 	if len(deviceList) == 0 {
 		return ErrEmptyData
 	}
-	deviceModelList, err := httpclient.GetDeviceModelList(cfg.MetaServer.Addr, cfg.MetaServer.Namespace)
+	deviceModelList, err := httpclient.GetDeviceModelList(cfg.DevInit.MetaServer.Addr, cfg.DevInit.MetaServer.Namespace)
 	if err != nil {
 		return err
 	}
@@ -349,6 +347,45 @@ func ParseByUsingMetaServer(cfg *config.Config,
 			return err
 		}
 		instance, err := ParseDevice(&device, &commonModel)
+		if err != nil {
+			return err
+		}
+		instance.PProtocol = protocol
+		devices[instance.ID] = new(common.DeviceInstance)
+		devices[instance.ID] = instance
+		klog.V(4).Info("Instance: ", instance.ID)
+		dms[instance.Model] = modelMap[instance.Model]
+		protocols[instance.ProtocolName] = protocol
+	}
+
+	return nil
+}
+
+func ParseByUsingRegister(cfg *config.Config,
+	devices map[string]*common.DeviceInstance,
+	dms map[string]common.DeviceModel,
+	protocols map[string]common.Protocol) error {
+	deviceList, deviceModelList, err := register.RegisterMapper(cfg, true)
+	if err != nil {
+		return err
+	}
+
+	if len(deviceList) == 0 || len(deviceModelList) == 0 {
+		return ErrEmptyData
+	}
+	modelMap := make(map[string]common.DeviceModel)
+	for _, model := range deviceModelList {
+		cur := ParseDeviceModelFromGrpc(model)
+		modelMap[model.Name] = cur
+	}
+
+	for _, device := range deviceList {
+		commonModel := modelMap[device.Spec.DeviceModelRef]
+		protocol, err := BuildProtocolFromGrpc(device)
+		if err != nil {
+			return err
+		}
+		instance, err := ParseDeviceFromGrpc(device, &commonModel)
 		if err != nil {
 			return err
 		}

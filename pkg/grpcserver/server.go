@@ -6,7 +6,7 @@ import (
 	"os"
 
 	modbusdevice "github.com/kubeedge/mappers-go/mappers/modbus/device"
-	pb "github.com/kubeedge/mappers-go/pkg/apis/downstream/v1"
+	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/dmi/v1"
 	"github.com/kubeedge/mappers-go/pkg/common"
 	"github.com/kubeedge/mappers-go/pkg/global"
 
@@ -59,7 +59,7 @@ func (s *Server) Start() error {
 		return err
 	}
 	grpcServer := grpc.NewServer()
-	pb.RegisterDeviceMapperServiceServer(grpcServer, s)
+	dmiapi.RegisterDeviceMapperServiceServer(grpcServer, s)
 	reflection.Register(grpcServer)
 
 	return grpcServer.Serve(lis)

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	pb "github.com/kubeedge/mappers-go/pkg/apis/downstream/v1"
+	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/dmi/v1"
 	"github.com/kubeedge/mappers-go/pkg/common"
 	"github.com/kubeedge/mappers-go/pkg/driver/modbus"
 	"github.com/kubeedge/mappers-go/pkg/util/parse"
@@ -13,7 +13,7 @@ import (
 	"k8s.io/klog/v2"
 )
 
-func (s *Server) CreateDevice(ctx context.Context, request *pb.CreateDeviceRequest) (*pb.CreateDeviceResponse, error) {
+func (s *Server) CreateDevice(ctx context.Context, request *dmiapi.CreateDeviceRequest) (*dmiapi.CreateDeviceResponse, error) {
 	klog.V(2).Info("CreateDevice")
 	config := request.GetConfig()
 	if config == nil || config.Device == nil || config.Model == nil {
@@ -44,10 +44,10 @@ func (s *Server) CreateDevice(ctx context.Context, request *pb.CreateDeviceReque
 	// publish device to mqtt
 	//topic := dtcommon.MemETPrefix + d.NodeName + dtcommon.MemETUpdateSuffix
 
-	return &pb.CreateDeviceResponse{DeviceName: device.Name}, nil
+	return &dmiapi.CreateDeviceResponse{DeviceName: device.Name}, nil
 }
 
-func (s *Server) RemoveDevice(ctx context.Context, request *pb.RemoveDeviceRequest) (*pb.RemoveDeviceResponse, error) {
+func (s *Server) RemoveDevice(ctx context.Context, request *dmiapi.RemoveDeviceRequest) (*dmiapi.RemoveDeviceResponse, error) {
 	if request.GetDeviceName() == "" {
 		return nil, errors.New("device name is nil")
 	}
@@ -55,7 +55,7 @@ func (s *Server) RemoveDevice(ctx context.Context, request *pb.RemoveDeviceReque
 	return nil, s.devPanel.RemoveDevice(request.GetDeviceName())
 }
 
-func (s *Server) UpdateDevice(ctx context.Context, request *pb.UpdateDeviceRequest) (*pb.UpdateDeviceResponse, error) {
+func (s *Server) UpdateDevice(ctx context.Context, request *dmiapi.UpdateDeviceRequest) (*dmiapi.UpdateDeviceResponse, error) {
 	klog.V(2).Info("UpdateDevice")
 	config := request.GetConfig()
 	if config == nil || config.Device == nil || config.Model == nil {
@@ -86,10 +86,10 @@ func (s *Server) UpdateDevice(ctx context.Context, request *pb.UpdateDeviceReque
 	// publish device to mqtt
 	//topic := dtcommon.MemETPrefix + d.NodeName + dtcommon.MemETUpdateSuffix
 
-	return &pb.UpdateDeviceResponse{}, nil
+	return &dmiapi.UpdateDeviceResponse{}, nil
 }
 
-func (s *Server) UpdateDeviceStatus(ctx context.Context, request *pb.UpdateDeviceStatusRequest) (*pb.UpdateDeviceStatusResponse, error) {
+func (s *Server) UpdateDeviceStatus(ctx context.Context, request *dmiapi.UpdateDeviceStatusRequest) (*dmiapi.UpdateDeviceStatusResponse, error) {
 	if request.GetDeviceName() == "" {
 		return nil, errors.New("device name is nil")
 	}
@@ -114,7 +114,7 @@ func (s *Server) UpdateDeviceStatus(ctx context.Context, request *pb.UpdateDevic
 	}
 }
 
-func (s *Server) GetDevice(ctx context.Context, request *pb.GetDeviceRequest) (*pb.GetDeviceResponse, error) {
+func (s *Server) GetDevice(ctx context.Context, request *dmiapi.GetDeviceRequest) (*dmiapi.GetDeviceResponse, error) {
 	if request.GetDeviceName() == "" {
 		return nil, errors.New("device name is nil")
 	}
@@ -123,7 +123,7 @@ func (s *Server) GetDevice(ctx context.Context, request *pb.GetDeviceRequest) (*
 	if err != nil {
 		return nil, err
 	}
-	res := &pb.GetDeviceResponse{Status: &pb.DeviceStatus{}}
+	res := &dmiapi.GetDeviceResponse{Status: &dmiapi.DeviceStatus{}}
 	switch s.cfg.Protocol {
 	case common.ProtocolModbus:
 		d := device.(*modbus.ModbusDev)

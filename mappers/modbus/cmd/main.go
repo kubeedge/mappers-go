@@ -17,10 +17,7 @@ limitations under the License.
 package main
 
 import (
-	"context"
 	"errors"
-	"fmt"
-	"net"
 	"os"
 	"time"
 
@@ -28,13 +25,12 @@ import (
 
 	"github.com/kubeedge/mappers-go/config"
 	"github.com/kubeedge/mappers-go/mappers/modbus/device"
-	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/upstream/v1"
 	"github.com/kubeedge/mappers-go/pkg/common"
 	"github.com/kubeedge/mappers-go/pkg/global"
 	"github.com/kubeedge/mappers-go/pkg/grpcserver"
 	"github.com/kubeedge/mappers-go/pkg/httpserver"
 	"github.com/kubeedge/mappers-go/pkg/util/parse"
-	"google.golang.org/grpc"
+	"github.com/kubeedge/mappers-go/pkg/util/register"
 )
 
 func main() {
@@ -70,7 +66,7 @@ func main() {
 			break
 		}
 		if !errors.Is(err, parse.ErrEmptyData) {
-			klog.Fatal(err)
+			klog.Error(err)
 		}
 		time.Sleep(2 * time.Second)
 		i++
@@ -80,11 +76,14 @@ func main() {
 	klog.Infoln("devInit finished")
 
 	// register to edgecore
-	// TODO health check
-	if err = registerMapper(c.Common); err != nil {
-		klog.Fatal(err)
+	// if dev init mode is register, mapper's dev will init when registry to edgecore
+	if c.DevInit.Mode != common.DevInitModeRegister {
+		// TODO health check
+		if _, _, err = register.RegisterMapper(&c, false); err != nil {
+			klog.Fatal(err)
+		}
+		klog.Infoln("registerMapper finished")
 	}
-	klog.Infoln("registerMapper finished")
 
 	// start grpc server
 	grpcServer := grpcserver.NewServer(
@@ -98,48 +97,4 @@ func main() {
 	go httpserver.StartHttpServer(c.HttpServer.Host)
 	klog.Infoln("http server start finished")
 	panel.DevStart()
-}
-
-func registerMapper(cfg config.Common) error {
-	// 连接grpc服务器
-	//conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
-	conn, err := grpc.Dial(cfg.EdgeCoreSock,
-		grpc.WithInsecure(),
-		grpc.WithBlock(),
-		grpc.WithContextDialer(
-			func(ctx context.Context, s string) (net.Conn, error) {
-				unixAddress, err := net.ResolveUnixAddr("unix", cfg.EdgeCoreSock)
-				if err != nil {
-					return nil, err
-				}
-				return net.DialUnix("unix", nil, unixAddress)
-			},
-		),
-	)
-	if err != nil {
-		return fmt.Errorf("did not connect: %v", err)
-	}
-	// 延迟关闭连接
-	defer conn.Close()
-
-	// 初始化Greeter服务客户端
-	c := dmiapi.NewMapperClient(conn)
-
-	// 初始化上下文，设置请求超时时间为1秒
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	// 延迟关闭请求会话
-	defer cancel()
-
-	// 调用SayHello接口，发送一条消息
-	_, err = c.MapperRegister(ctx, &dmiapi.MapperRegisterRequest{
-		Mapper: &dmiapi.MapperInfo{
-			Name:       cfg.Name,
-			Version:    cfg.Version,
-			ApiVersion: cfg.APIVersion,
-			Protocol:   cfg.Protocol,
-			Address:    []byte(cfg.Address),
-			State:      common.DEVSTOK,
-		},
-	})
-	return err
 }

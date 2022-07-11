@@ -268,14 +268,21 @@ func DevInit(cfg *config.Config) error {
 	deviceMuxs = make(map[string]context.CancelFunc)
 	devs := make(map[string]*common.DeviceInstance)
 
-	if cfg.MetaServer.Enable {
+	switch cfg.DevInit.Mode {
+	case common.DevInitModeRegister:
+		if err := parse.ParseByUsingRegister(cfg, devs, models, protocols); err != nil {
+			return err
+		}
+	case common.DevInitModeConfigmap:
+		if err := parse.Parse(cfg.DevInit.Configmap, devs, models, protocols); err != nil {
+			return err
+		}
+	case common.DevInitModeMetaServer:
 		if err := parse.ParseByUsingMetaServer(cfg, devs, models, protocols); err != nil {
 			return err
 		}
-	} else {
-		if err := parse.Parse(cfg.Configmap, devs, models, protocols); err != nil {
-			return err
-		}
+	default:
+		return fmt.Errorf("unsupported dev init mode %s", cfg.DevInit.Mode)
 	}
 
 	for key, deviceInstance := range devs {

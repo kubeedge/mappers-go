@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/upstream/v1"
+	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/dmi/v1"
 	"github.com/kubeedge/mappers-go/pkg/common"
 	"github.com/kubeedge/mappers-go/pkg/driver/modbus"
 

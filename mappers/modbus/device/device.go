@@ -291,12 +291,17 @@ func (d *DevPanel) start(ctx context.Context, dev *modbus.ModbusDev) {
 func (d *DevPanel) DevInit(cfg *config.Config) error {
 	devs := make(map[string]*common.DeviceInstance)
 
-	if cfg.MetaServer.Enable {
+	switch cfg.DevInit.Mode {
+	case common.DevInitModeMetaServer:
 		if err := parse.ParseByUsingMetaServer(cfg, devs, d.models, d.protocols); err != nil {
 			return err
 		}
-	} else {
-		if err := parse.Parse(cfg.Configmap, devs, d.models, d.protocols); err != nil {
+	case common.DevInitModeConfigmap:
+		if err := parse.Parse(cfg.DevInit.Configmap, devs, d.models, d.protocols); err != nil {
+			return err
+		}
+	case common.DevInitModeRegister:
+		if err := parse.ParseByUsingRegister(cfg, devs, d.models, d.protocols); err != nil {
 			return err
 		}
 	}

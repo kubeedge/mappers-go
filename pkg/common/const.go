@@ -37,3 +37,9 @@ const (
 
 const DefaultCollectCycle = time.Second
 const DefaultReportCycle = time.Second
+
+const (
+	DevInitModeRegister   = "register"
+	DevInitModeMetaServer = "metaserver"
+	DevInitModeConfigmap  = "configmap"
+)

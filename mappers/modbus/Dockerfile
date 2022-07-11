@@ -4,7 +4,7 @@ ENV GO111MODULE=on
 ENV ENVGOCACHE=/go/pkg/.cache/go-build
 
 ENV MQTT_SERVER=tcp://127.0.0.1:1883
-ENV METASERVER_ENABLE=false METASERVER_ADDR="http://127.0.0.1:10550"
+ENV METASERVER_ADDR="http://127.0.0.1:10550"
 
 WORKDIR /work
 ADD . .
@@ -18,4 +18,4 @@ COPY --from=builder /work/config/config.yaml /work/config.yaml
 
 WORKDIR /work
 
-CMD ./app --v 5 --mqtt-address $MQTT_SERVER --metaserver-enable $METASERVER_ENABLE --metaserver-addr $METASERVER_ADDR
+CMD ./app --v 5 --mqtt-address $MQTT_SERVER --metaserver-addr $METASERVER_ADDR

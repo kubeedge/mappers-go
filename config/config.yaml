@@ -4,12 +4,6 @@ mqtt:
   username: ""
   password: ""
   certification: ""
-configmap: /opt/kubeedge/deviceProfile.json
-metaserver:
-  enable: true
-  addr: http://192.168.2.69:10550
-  namespace: dec-public
-#  node: zlmap-69f6ffb69f
 http_server:
   host: 127.0.0.1:10555
 grpc_server:
@@ -21,3 +15,9 @@ common:
   protocol: modbus
   address: 127.0.0.1
   edgecore_sock: /tmp/edgecore.sock
+dev_init:
+  mode: register #register/metaserver/configmap
+  configmap: /opt/kubeedge/deviceProfile.json
+  metaserver:
+    addr: http://10.32.209.110:10550
+    namespace: dec-public

@@ -9,7 +9,7 @@ import (
 
 	"github.com/kubeedge/kubeedge/cloud/pkg/apis/devices/v1alpha2"
 	"github.com/kubeedge/kubeedge/cloud/pkg/devicecontroller/controller"
-	v1 "github.com/kubeedge/mappers-go/pkg/apis/downstream/v1"
+	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/dmi/v1"
 	"github.com/kubeedge/mappers-go/pkg/common"
 )
 
@@ -264,19 +264,19 @@ func ParseDevice(device *v1alpha2.Device, commonModel *common.DeviceModel) (*com
 	return instance, nil
 }
 
-func ConvTwinsToGrpc(twins []common.Twin) ([]*v1.Twin, error) {
-	res := make([]*v1.Twin, 0, len(twins))
+func ConvTwinsToGrpc(twins []common.Twin) ([]*dmiapi.Twin, error) {
+	res := make([]*dmiapi.Twin, 0, len(twins))
 	for _, twin := range twins {
-		cur := &v1.Twin{
+		cur := &dmiapi.Twin{
 			PropertyName: twin.PropertyName,
-			Desired: &v1.TwinProperty{
+			Desired: &dmiapi.TwinProperty{
 				Value: twin.Desired.Value,
 				Metadata: map[string]string{
 					"type":      twin.Desired.Metadatas.Type,
 					"timestamp": twin.Desired.Metadatas.Timestamp,
 				},
 			},
-			Reported: &v1.TwinProperty{
+			Reported: &dmiapi.TwinProperty{
 				Value: twin.Reported.Value,
 				Metadata: map[string]string{
 					"type":      twin.Reported.Metadatas.Type,
@@ -289,7 +289,7 @@ func ConvTwinsToGrpc(twins []common.Twin) ([]*v1.Twin, error) {
 	return res, nil
 }
 
-func ConvGrpcToTwins(twins []*v1.Twin, srcTwins []common.Twin) ([]common.Twin, error) {
+func ConvGrpcToTwins(twins []*dmiapi.Twin, srcTwins []common.Twin) ([]common.Twin, error) {
 	res := make([]common.Twin, 0, len(twins))
 	for _, twin := range twins {
 		var srcTwin common.Twin
