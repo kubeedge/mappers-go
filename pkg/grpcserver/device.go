@@ -31,6 +31,7 @@ func (s *Server) CreateDevice(ctx context.Context, request *dmiapi.CreateDeviceR
 	if err != nil {
 		return nil, fmt.Errorf("parse device %s protocol failed, err: %s", device.Name, err)
 	}
+	klog.Infof("model: %+v", model)
 	deviceInstance, err := parse.ParseDeviceFromGrpc(device, &model)
 	if err != nil {
 		return nil, fmt.Errorf("parse device %s instance failed, err: %s", device.Name, err)
@@ -74,6 +75,8 @@ func (s *Server) UpdateDevice(ctx context.Context, request *dmiapi.UpdateDeviceR
 	if err != nil {
 		return nil, fmt.Errorf("parse device %s protocol failed, err: %s", device.Name, err)
 	}
+
+	klog.Infof("model: %+v", model)
 	deviceInstance, err := parse.ParseDeviceFromGrpc(device, &model)
 	if err != nil {
 		return nil, fmt.Errorf("parse device %s instance failed, err: %s", device.Name, err)

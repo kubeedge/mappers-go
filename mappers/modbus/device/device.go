@@ -422,8 +422,11 @@ func (d *DevPanel) GetDevice(deviceID string) (interface{}, error) {
 	if !ok || found == nil {
 		return nil, fmt.Errorf("device %s not found", deviceID)
 	}
+
 	// get the latest reported twin value
 	for i, twin := range found.Instance.Twins {
+		klog.Infof("found device twin %s: %+v", twin.PropertyName, twin.PVisitor)
+
 		payload, err := getTwinData(deviceID, twin, found.ModbusClient)
 		if err != nil {
 			return nil, err
