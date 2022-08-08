@@ -178,7 +178,8 @@ func initTwin(ctx context.Context, dev *modbus.ModbusDev) {
 			Name:          dev.Instance.Twins[i].PropertyName,
 			Type:          dev.Instance.Twins[i].Desired.Metadatas.Type,
 			VisitorConfig: &visitorConfig,
-			Topic:         fmt.Sprintf(common.TopicTwinUpdate, dev.Instance.ID)}
+			Topic:         fmt.Sprintf(common.TopicTwinUpdate, dev.Instance.ID),
+			DeviceName:    dev.Instance.Name}
 		collectCycle := time.Duration(dev.Instance.Twins[i].PVisitor.CollectCycle)
 		// If the collect cycle is not set, set it to 1 second.
 		if collectCycle == 0 {

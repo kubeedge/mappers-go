@@ -29,8 +29,8 @@ import (
 	"github.com/kubeedge/mappers-go/pkg/global"
 	"github.com/kubeedge/mappers-go/pkg/grpcserver"
 	"github.com/kubeedge/mappers-go/pkg/httpserver"
+	"github.com/kubeedge/mappers-go/pkg/util/grpcclient"
 	"github.com/kubeedge/mappers-go/pkg/util/parse"
-	"github.com/kubeedge/mappers-go/pkg/util/register"
 )
 
 func main() {
@@ -45,6 +45,8 @@ func main() {
 		os.Exit(1)
 	}
 	klog.Infof("config: %+v", c)
+
+	grpcclient.Init(&c)
 
 	// start grpc server
 	grpcServer := grpcserver.NewServer(
@@ -97,7 +99,7 @@ func main() {
 	if c.DevInit.Mode != common.DevInitModeRegister {
 		klog.Infoln("======dev init mode is not register, will register to edgecore")
 		// TODO health check
-		if _, _, err = register.RegisterMapper(&c, false); err != nil {
+		if _, _, err = grpcclient.RegisterMapper(&c, false); err != nil {
 			klog.Fatal(err)
 		}
 		klog.Infoln("registerMapper finished")
