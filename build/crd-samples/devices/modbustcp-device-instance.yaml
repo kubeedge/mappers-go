@@ -1,11 +1,36 @@
 apiVersion: devices.kubeedge.io/v1alpha2
+kind: DeviceModel
+metadata:
+  name: modbus-sample-model
+  namespace: default
+spec:
+  properties:
+    - name: property0
+      description: temperature in degree celsius
+      type:
+        int:
+          accessMode: ReadWrite
+          defaultValue: 0
+    - name: property1
+      description: enable data collection of temperature sensor
+      type:
+        int:
+          accessMode: ReadWrite
+          defaultValue: 1
+    - name: property2
+      description: enable data collection of temperature sensor
+      type:
+        int:
+          accessMode: ReadWrite
+          defaultValue: 0
+---
+apiVersion: devices.kubeedge.io/v1alpha2
 kind: Device
 metadata:
   name: modbustcp-device
   labels:
-    description: TISimplelinkSensorTag
-    manufacturer: TexasInstruments
-    model: CC2650
+    description: counter
+    model: simulation
 spec:
   deviceModelRef:
     name: modbus-sample-model
@@ -14,7 +39,7 @@ spec:
       slaveID: 1
     common:
       tcp:
-        ip: "192.168.33.1"
+        ip: "10.222.1.1"
         port: 502
   nodeSelector:
     nodeSelectorTerms:
@@ -24,26 +49,34 @@ spec:
         values:
         - test
   propertyVisitors:
-    - propertyName: temperature
+    - propertyName: property0
       modbus:
-        register: CoilRegister
+        register: HoldingRegister
         offset: 0
         limit: 1
         scale: 1
         isSwap: true
         isRegisterSwap: true
       collectCycle: 5000
-    - propertyName: temperature-enable
+    - propertyName: property1
       modbus:
-        register: CoilRegister
-        offset: 3
+        register: HoldingRegister
+        offset: 1
         limit: 1
-        scale: 1.0
+        scale: 1
+        isSwap: true
+        isRegisterSwap: true
+    - propertyName: property2
+      modbus:
+        register: HoldingRegister
+        offset: 2
+        limit: 1
+        scale: 1
         isSwap: true
         isRegisterSwap: true
 status:
   twins:
-    - propertyName: temperature-enable
+    - propertyName: property0
       reported:
         metadata:
           timestamp: '1550049403598'

@@ -21,10 +21,11 @@ import (
 
 	"k8s.io/klog/v2"
 
-	mappercommon "github.com/kubeedge/mappers-go/mappers/common"
-	"github.com/kubeedge/mappers-go/mappers/opcua/config"
+	"github.com/kubeedge/mappers-go/config"
 	"github.com/kubeedge/mappers-go/mappers/opcua/device"
-	"github.com/kubeedge/mappers-go/mappers/opcua/globals"
+	"github.com/kubeedge/mappers-go/pkg/common"
+	"github.com/kubeedge/mappers-go/pkg/global"
+	"github.com/kubeedge/mappers-go/pkg/httpserver"
 )
 
 func main() {
@@ -38,21 +39,22 @@ func main() {
 		klog.Fatal(err)
 		os.Exit(1)
 	}
-	klog.V(4).Info(c.Configmap)
 
-	globals.MqttClient = mappercommon.MqttClient{IP: c.Mqtt.ServerAddress,
-		User:       c.Mqtt.UserName,
+	global.MqttClient = common.MqttClient{IP: c.Mqtt.ServerAddress,
+		User:       c.Mqtt.Username,
 		Passwd:     c.Mqtt.Password,
-		Cert:       c.Mqtt.CertFile,
-		PrivateKey: c.Mqtt.PrivateKeyFile}
-	if err = globals.MqttClient.Connect(); err != nil {
+		Cert:       c.Mqtt.Cert,
+		PrivateKey: c.Mqtt.PrivateKey}
+	if err = global.MqttClient.Connect(); err != nil {
 		klog.Fatal(err)
 		os.Exit(1)
 	}
 
-	if err = device.DevInit(c.Configmap); err != nil {
+	if err = device.DevInit(&c); err != nil {
 		klog.Fatal(err)
 		os.Exit(1)
 	}
+
+	go httpserver.StartHttpServer(c.HttpServer.Host)
 	device.DevStart()
 }

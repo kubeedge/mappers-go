@@ -19,13 +19,12 @@ package device
 import (
 	"encoding/json"
 
+	"github.com/kubeedge/mappers-go/pkg/common"
+	"github.com/kubeedge/mappers-go/pkg/driver/onvif"
+	"github.com/kubeedge/mappers-go/pkg/global"
+
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"k8s.io/klog/v2"
-
-	"github.com/kubeedge/mappers-go/mappers/common"
-	"github.com/kubeedge/mappers-go/mappers/onvif/configmap"
-	"github.com/kubeedge/mappers-go/mappers/onvif/driver"
-	"github.com/kubeedge/mappers-go/mappers/onvif/globals"
 )
 
 // Topics for communication with 3-rd applications.
@@ -45,7 +44,7 @@ func OnEventBus(client mqtt.Client, message mqtt.Message) {
 	}
 	klog.V(2).Info("Device id: ", id)
 
-	var dev *globals.OnvifDev
+	var dev *onvif.OnvifDev
 	var ok bool
 	if dev, ok = devices[id]; !ok {
 		klog.Error("Device not exist")
@@ -74,7 +73,7 @@ func OnEventBus(client mqtt.Client, message mqtt.Message) {
 			continue
 		}
 		dev.Instance.Twins[i].Desired.Value = twinValue
-		var visitorConfig configmap.OnvifVisitorConfig
+		var visitorConfig onvif.OnvifVisitorConfig
 		if err := json.Unmarshal(dev.Instance.Twins[i].PVisitor.VisitorConfig, &visitorConfig); err != nil {
 			klog.Errorf("Unmarshal VisitorConfig error: %v", err)
 		}
@@ -86,13 +85,13 @@ func OnEventBus(client mqtt.Client, message mqtt.Message) {
 func On3rdParty(client mqtt.Client, message mqtt.Message) {
 	klog.V(2).Info("Receive message", message.Topic())
 	if TopicOnvifGetResource == message.Topic() {
-		r := driver.GetOnvifResources()
+		r := onvif.GetOnvifResources()
 		msg, err := json.Marshal(r)
 		if err != nil {
 			klog.Errorf("Marshal message error: %v", err)
 			return
 		}
-		err = globals.MqttClient.Publish(TopicOnvifGetResrouceRet, msg)
+		err = global.MqttClient.Publish(TopicOnvifGetResrouceRet, msg)
 		if err != nil {
 			klog.Errorf("Publish %s error: %v", TopicOnvifGetResrouceRet, err)
 			return

@@ -17,8 +17,8 @@ limitations under the License.
 package globals
 
 import (
-	"github.com/kubeedge/mappers-go/mappers/Template/driver"
-	"github.com/kubeedge/mappers-go/mappers/common"
+	"github.com/kubeedge/mappers-go/_template/mapper/driver"
+	"github.com/kubeedge/mappers-go/pkg/common"
 )
 
 // TemplateDev is the Template device configuration and client information.

@@ -30,10 +30,10 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"k8s.io/klog/v2"
 
-	"github.com/kubeedge/mappers-go/mappers/Template/configmap"
-	"github.com/kubeedge/mappers-go/mappers/Template/driver"
-	"github.com/kubeedge/mappers-go/mappers/Template/globals"
-	"github.com/kubeedge/mappers-go/mappers/common"
+	"github.com/kubeedge/mappers-go/_template/mapper/configmap"
+	"github.com/kubeedge/mappers-go/_template/mapper/driver"
+	"github.com/kubeedge/mappers-go/_template/mapper/globals"
+	"github.com/kubeedge/mappers-go/pkg/common"
 )
 
 var devices map[string]*globals.TemplateDev

@@ -17,48 +17,52 @@ limitations under the License.
 package device
 
 import (
+	"fmt"
 	"strings"
 
-	"k8s.io/klog/v2"
+	"github.com/kubeedge/mappers-go/pkg/common"
+	"github.com/kubeedge/mappers-go/pkg/driver/onvif"
+	"github.com/kubeedge/mappers-go/pkg/global"
 
-	"github.com/kubeedge/mappers-go/mappers/common"
-	"github.com/kubeedge/mappers-go/mappers/onvif/driver"
-	"github.com/kubeedge/mappers-go/mappers/onvif/globals"
+	"k8s.io/klog/v2"
 )
 
 // TwinData is the timer structure for getting twin/data.
 type TwinData struct {
-	Client *driver.OnvifClient
+	Client *onvif.OnvifClient
 	Name   string
 	Method string
 	Value  string
 	Topic  string
 }
 
-// Run timer function.
-func (td *TwinData) Run() {
-	var err error
+func (td *TwinData) GetPayload() ([]byte, error) {
 	results, err := td.Client.Get(td.Method, td.Value)
 	if err != nil {
-		klog.Errorf("Get register failed: %v", err)
-		return
+		return nil, fmt.Errorf("get register failed: %v", err)
 	}
 	// construct payload
 	var payload []byte
 	if strings.Contains(td.Topic, "$hw") {
 		if payload, err = common.CreateMessageTwinUpdate(td.Name, "string", results); err != nil {
-			klog.Error("Create message twin update failed")
-			return
+			return nil, fmt.Errorf("create message twin update failed: %v", err)
 		}
 	} else {
 		if payload, err = common.CreateMessageData(td.Name, "string", results); err != nil {
-			klog.Error("Create message data failed")
-			return
+			return nil, fmt.Errorf("create message data failed: %v", err)
 		}
 	}
-	if err = globals.MqttClient.Publish(td.Topic, payload); err != nil {
+	return payload, nil
+}
+
+// Run timer function.
+func (td *TwinData) Run() {
+	payload, err := td.GetPayload()
+	if err != nil {
+		klog.Error(err)
+		return
+	}
+	if err = global.MqttClient.Publish(td.Topic, payload); err != nil {
 		klog.Errorf("Publish topic %v failed, err: %v", td.Topic, err)
 	}
-
-	klog.V(2).Infof("Update value: %s, topic: %s", results, td.Topic)
 }

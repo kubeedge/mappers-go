@@ -5,4 +5,15 @@ mqtt:
   certification: ""
   privatekey: ""
 configmap: /opt/kubeedge/deviceProfile.json
-
+metaserver:
+  enable: false
+  addr: http://127.0.0.1:10550
+  namespace: default
+server:
+  host: http://127.0.0.1:10555
+opcua:
+  username: ""
+  password: ""
+  certificationFile: ""
+  privateKeyFile: ""
+  remoteCertificationFile: ""
