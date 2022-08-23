@@ -23,7 +23,7 @@ func Response(w http.ResponseWriter, v interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	enc := json.NewEncoder(w)
-	enc.Encode(v)
+	_ = enc.Encode(v)
 }
 
 func ResponseError(w http.ResponseWriter, err error, status int) {
@@ -34,14 +34,13 @@ func ResponseError(w http.ResponseWriter, err error, status int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	enc := json.NewEncoder(w)
-	enc.Encode(err.Error())
+	_ = enc.Encode(err.Error())
 }
 
-func StartHttpServer(addr string) error {
+func StartHTTPServer(addr string) error {
 	mux := chi.NewMux()
 	mux.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		ResponseOK(w)
-		return
 	})
 	// device change, reload this device
 	mux.Post("/device", func(w http.ResponseWriter, r *http.Request) {
@@ -93,7 +92,6 @@ func StartHttpServer(addr string) error {
 			}
 		}
 		ResponseOK(w)
-		return
 	})
 	// get device twin
 	mux.Get("/device/{id}/twins", func(w http.ResponseWriter, r *http.Request) {

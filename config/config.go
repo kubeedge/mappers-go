@@ -91,7 +91,6 @@ func (c *Config) Parse() error {
 	pflag.StringVar(&configFile, "config-file", defaultConfigFile, "Config file name")
 	pflag.StringVar(&c.DevInit.MetaServer.Addr, "metaserver-addr", "http://127.0.0.1:10550", "edgecore meta server addr")
 
-	pflag.Parse()
 	cf, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		return err

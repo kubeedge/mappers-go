@@ -254,10 +254,8 @@ func start(ctx context.Context, dev *opcua.OPCUADev) {
 	}
 
 	go initGetStatus(ctx, dev)
-	select {
-	case <-ctx.Done():
-		wg.Done()
-	}
+	<-ctx.Done()
+	wg.Done()
 }
 
 // DevInit initialize the device data.
