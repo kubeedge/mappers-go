@@ -257,10 +257,8 @@ func start(ctx context.Context, dev *onvif.OnvifDev) {
 	}
 
 	go initGetStatus(ctx, dev)
-	select {
-	case <-ctx.Done():
-		wg.Done()
-	}
+	<-ctx.Done()
+	wg.Done()
 }
 
 // DevInit initialize the device data.

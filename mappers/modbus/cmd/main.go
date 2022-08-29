@@ -93,9 +93,13 @@ func main() {
 			Protocol: common.ProtocolModbus,
 		},
 	)
-	go grpcServer.Start()
+	go func() {
+		_ = grpcServer.Start()
+	}()
 	klog.Infoln("grpc server start finished")
-	go httpserver.StartHttpServer(c.HttpServer.Host)
+	go func() {
+		_ = httpserver.StartHTTPServer(c.HttpServer.Host)
+	}()
 	klog.Infoln("http server start finished")
 	panel.DevStart()
 }

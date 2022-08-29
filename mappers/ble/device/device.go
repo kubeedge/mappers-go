@@ -287,10 +287,9 @@ func start(ctx context.Context, dev *bledriver.BleDev) {
 	}
 
 	go initGetStatus(ctx, dev)
-	select {
-	case <-ctx.Done():
-		wg.Done()
-	}
+
+	<-ctx.Done()
+	wg.Done()
 }
 
 // DevInit initialize the device data.
@@ -418,5 +417,4 @@ func getTwinData(deviceID string, twin common.Twin, client *bledriver.BleClient)
 	}
 
 	return []byte(fmt.Sprintf("%f", td.ConvertReadData(b))), nil
-
 }
