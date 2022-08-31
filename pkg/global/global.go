@@ -15,4 +15,7 @@ type DevPanel interface {
 	DealDeviceTwinGet(deviceID string, twinName string) (interface{}, error)
 	GetDevice(deviceID string) (interface{}, error)
 	RemoveDevice(deviceID string) error
+	GetModel(modelName string) (common.DeviceModel, error)
+	UpdateModel(model *common.DeviceModel)
+	RemoveModel(modelName string)
 }

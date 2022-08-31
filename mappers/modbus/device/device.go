@@ -436,3 +436,20 @@ func (d *DevPanel) GetDevice(deviceID string) (interface{}, error) {
 func (d *DevPanel) RemoveDevice(deviceID string) error {
 	return d.stopDev(deviceID)
 }
+
+func (d *DevPanel) GetModel(modelName string) (common.DeviceModel, error) {
+	found, ok := d.models[modelName]
+	if !ok {
+		return common.DeviceModel{}, fmt.Errorf("deviceModel %s not found", modelName)
+	}
+
+	return found, nil
+}
+
+func (d *DevPanel) UpdateModel(model *common.DeviceModel) {
+	d.models[model.Name] = *model
+}
+
+func (d *DevPanel) RemoveModel(modelName string) {
+	delete(d.models, modelName)
+}

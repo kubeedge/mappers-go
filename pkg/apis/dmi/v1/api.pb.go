@@ -8,15 +8,14 @@ package v1
 
 import (
 	context "context"
-	reflect "reflect"
-	sync "sync"
-
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	anypb "google.golang.org/protobuf/types/known/anypb"
+	reflect "reflect"
+	sync "sync"
 )
 
 const (
@@ -31,6 +30,7 @@ type MapperRegisterRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// true means device manager should return the device list in the response
 	WithData bool        `protobuf:"varint,1,opt,name=withData,proto3" json:"withData,omitempty"`
 	Mapper   *MapperInfo `protobuf:"bytes,2,opt,name=mapper,proto3" json:"mapper,omitempty"`
 }
@@ -2481,7 +2481,7 @@ type CreateDeviceRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Config *DeviceConfig `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
+	Device *Device `protobuf:"bytes,1,opt,name=device,proto3" json:"device,omitempty"`
 }
 
 func (x *CreateDeviceRequest) Reset() {
@@ -2516,9 +2516,9 @@ func (*CreateDeviceRequest) Descriptor() ([]byte, []int) {
 	return file_api_proto_rawDescGZIP(), []int{37}
 }
 
-func (x *CreateDeviceRequest) GetConfig() *DeviceConfig {
+func (x *CreateDeviceRequest) GetDevice() *Device {
 	if x != nil {
-		return x.Config
+		return x.Device
 	}
 	return nil
 }
@@ -2528,7 +2528,7 @@ type CreateDeviceResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	DeviceName string `protobuf:"bytes,1,opt,name=device_name,json=deviceName,proto3" json:"device_name,omitempty"`
+	DeviceName string `protobuf:"bytes,1,opt,name=deviceName,proto3" json:"deviceName,omitempty"`
 }
 
 func (x *CreateDeviceResponse) Reset() {
@@ -2570,17 +2570,16 @@ func (x *CreateDeviceResponse) GetDeviceName() string {
 	return ""
 }
 
-type DeviceConfig struct {
+type CreateDeviceModelRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Model  *DeviceModel `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
-	Device *Device      `protobuf:"bytes,2,opt,name=device,proto3" json:"device,omitempty"`
+	Model *DeviceModel `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
 }
 
-func (x *DeviceConfig) Reset() {
-	*x = DeviceConfig{}
+func (x *CreateDeviceModelRequest) Reset() {
+	*x = CreateDeviceModelRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_api_proto_msgTypes[39]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2588,13 +2587,13 @@ func (x *DeviceConfig) Reset() {
 	}
 }
 
-func (x *DeviceConfig) String() string {
+func (x *CreateDeviceModelRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DeviceConfig) ProtoMessage() {}
+func (*CreateDeviceModelRequest) ProtoMessage() {}
 
-func (x *DeviceConfig) ProtoReflect() protoreflect.Message {
+func (x *CreateDeviceModelRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_api_proto_msgTypes[39]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2606,23 +2605,63 @@ func (x *DeviceConfig) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DeviceConfig.ProtoReflect.Descriptor instead.
-func (*DeviceConfig) Descriptor() ([]byte, []int) {
+// Deprecated: Use CreateDeviceModelRequest.ProtoReflect.Descriptor instead.
+func (*CreateDeviceModelRequest) Descriptor() ([]byte, []int) {
 	return file_api_proto_rawDescGZIP(), []int{39}
 }
 
-func (x *DeviceConfig) GetModel() *DeviceModel {
+func (x *CreateDeviceModelRequest) GetModel() *DeviceModel {
 	if x != nil {
 		return x.Model
 	}
 	return nil
 }
 
-func (x *DeviceConfig) GetDevice() *Device {
-	if x != nil {
-		return x.Device
+type CreateDeviceModelResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	DeviceModelName string `protobuf:"bytes,1,opt,name=deviceModelName,proto3" json:"deviceModelName,omitempty"`
+}
+
+func (x *CreateDeviceModelResponse) Reset() {
+	*x = CreateDeviceModelResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_proto_msgTypes[40]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
 	}
-	return nil
+}
+
+func (x *CreateDeviceModelResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateDeviceModelResponse) ProtoMessage() {}
+
+func (x *CreateDeviceModelResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_msgTypes[40]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateDeviceModelResponse.ProtoReflect.Descriptor instead.
+func (*CreateDeviceModelResponse) Descriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *CreateDeviceModelResponse) GetDeviceModelName() string {
+	if x != nil {
+		return x.DeviceModelName
+	}
+	return ""
 }
 
 type RemoveDeviceRequest struct {
@@ -2636,7 +2675,7 @@ type RemoveDeviceRequest struct {
 func (x *RemoveDeviceRequest) Reset() {
 	*x = RemoveDeviceRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_proto_msgTypes[40]
+		mi := &file_api_proto_msgTypes[41]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2649,7 +2688,7 @@ func (x *RemoveDeviceRequest) String() string {
 func (*RemoveDeviceRequest) ProtoMessage() {}
 
 func (x *RemoveDeviceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[40]
+	mi := &file_api_proto_msgTypes[41]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2662,7 +2701,7 @@ func (x *RemoveDeviceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveDeviceRequest.ProtoReflect.Descriptor instead.
 func (*RemoveDeviceRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{40}
+	return file_api_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *RemoveDeviceRequest) GetDeviceName() string {
@@ -2681,7 +2720,7 @@ type RemoveDeviceResponse struct {
 func (x *RemoveDeviceResponse) Reset() {
 	*x = RemoveDeviceResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_proto_msgTypes[41]
+		mi := &file_api_proto_msgTypes[42]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2694,7 +2733,7 @@ func (x *RemoveDeviceResponse) String() string {
 func (*RemoveDeviceResponse) ProtoMessage() {}
 
 func (x *RemoveDeviceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[41]
+	mi := &file_api_proto_msgTypes[42]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2707,7 +2746,92 @@ func (x *RemoveDeviceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveDeviceResponse.ProtoReflect.Descriptor instead.
 func (*RemoveDeviceResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{41}
+	return file_api_proto_rawDescGZIP(), []int{42}
+}
+
+type RemoveDeviceModelRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ModelName string `protobuf:"bytes,1,opt,name=modelName,proto3" json:"modelName,omitempty"`
+}
+
+func (x *RemoveDeviceModelRequest) Reset() {
+	*x = RemoveDeviceModelRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_proto_msgTypes[43]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *RemoveDeviceModelRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveDeviceModelRequest) ProtoMessage() {}
+
+func (x *RemoveDeviceModelRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_msgTypes[43]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveDeviceModelRequest.ProtoReflect.Descriptor instead.
+func (*RemoveDeviceModelRequest) Descriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{43}
+}
+
+func (x *RemoveDeviceModelRequest) GetModelName() string {
+	if x != nil {
+		return x.ModelName
+	}
+	return ""
+}
+
+type RemoveDeviceModelResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *RemoveDeviceModelResponse) Reset() {
+	*x = RemoveDeviceModelResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_proto_msgTypes[44]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *RemoveDeviceModelResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveDeviceModelResponse) ProtoMessage() {}
+
+func (x *RemoveDeviceModelResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_msgTypes[44]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveDeviceModelResponse.ProtoReflect.Descriptor instead.
+func (*RemoveDeviceModelResponse) Descriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{44}
 }
 
 type UpdateDeviceRequest struct {
@@ -2715,14 +2839,13 @@ type UpdateDeviceRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	DeviceName string        `protobuf:"bytes,1,opt,name=deviceName,proto3" json:"deviceName,omitempty"`
-	Config     *DeviceConfig `protobuf:"bytes,2,opt,name=config,proto3" json:"config,omitempty"`
+	Device *Device `protobuf:"bytes,1,opt,name=device,proto3" json:"device,omitempty"`
 }
 
 func (x *UpdateDeviceRequest) Reset() {
 	*x = UpdateDeviceRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_proto_msgTypes[42]
+		mi := &file_api_proto_msgTypes[45]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2735,7 +2858,7 @@ func (x *UpdateDeviceRequest) String() string {
 func (*UpdateDeviceRequest) ProtoMessage() {}
 
 func (x *UpdateDeviceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[42]
+	mi := &file_api_proto_msgTypes[45]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2748,19 +2871,12 @@ func (x *UpdateDeviceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateDeviceRequest.ProtoReflect.Descriptor instead.
 func (*UpdateDeviceRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{42}
+	return file_api_proto_rawDescGZIP(), []int{45}
 }
 
-func (x *UpdateDeviceRequest) GetDeviceName() string {
+func (x *UpdateDeviceRequest) GetDevice() *Device {
 	if x != nil {
-		return x.DeviceName
-	}
-	return ""
-}
-
-func (x *UpdateDeviceRequest) GetConfig() *DeviceConfig {
-	if x != nil {
-		return x.Config
+		return x.Device
 	}
 	return nil
 }
@@ -2774,7 +2890,7 @@ type UpdateDeviceResponse struct {
 func (x *UpdateDeviceResponse) Reset() {
 	*x = UpdateDeviceResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_proto_msgTypes[43]
+		mi := &file_api_proto_msgTypes[46]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2787,7 +2903,7 @@ func (x *UpdateDeviceResponse) String() string {
 func (*UpdateDeviceResponse) ProtoMessage() {}
 
 func (x *UpdateDeviceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[43]
+	mi := &file_api_proto_msgTypes[46]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2800,7 +2916,92 @@ func (x *UpdateDeviceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateDeviceResponse.ProtoReflect.Descriptor instead.
 func (*UpdateDeviceResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{43}
+	return file_api_proto_rawDescGZIP(), []int{46}
+}
+
+type UpdateDeviceModelRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Model *DeviceModel `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
+}
+
+func (x *UpdateDeviceModelRequest) Reset() {
+	*x = UpdateDeviceModelRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_proto_msgTypes[47]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UpdateDeviceModelRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateDeviceModelRequest) ProtoMessage() {}
+
+func (x *UpdateDeviceModelRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_msgTypes[47]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateDeviceModelRequest.ProtoReflect.Descriptor instead.
+func (*UpdateDeviceModelRequest) Descriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *UpdateDeviceModelRequest) GetModel() *DeviceModel {
+	if x != nil {
+		return x.Model
+	}
+	return nil
+}
+
+type UpdateDeviceModelResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *UpdateDeviceModelResponse) Reset() {
+	*x = UpdateDeviceModelResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_proto_msgTypes[48]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UpdateDeviceModelResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateDeviceModelResponse) ProtoMessage() {}
+
+func (x *UpdateDeviceModelResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_msgTypes[48]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateDeviceModelResponse.ProtoReflect.Descriptor instead.
+func (*UpdateDeviceModelResponse) Descriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{48}
 }
 
 type UpdateDeviceStatusRequest struct {
@@ -2815,7 +3016,7 @@ type UpdateDeviceStatusRequest struct {
 func (x *UpdateDeviceStatusRequest) Reset() {
 	*x = UpdateDeviceStatusRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_proto_msgTypes[44]
+		mi := &file_api_proto_msgTypes[49]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2828,7 +3029,7 @@ func (x *UpdateDeviceStatusRequest) String() string {
 func (*UpdateDeviceStatusRequest) ProtoMessage() {}
 
 func (x *UpdateDeviceStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[44]
+	mi := &file_api_proto_msgTypes[49]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2841,7 +3042,7 @@ func (x *UpdateDeviceStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateDeviceStatusRequest.ProtoReflect.Descriptor instead.
 func (*UpdateDeviceStatusRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{44}
+	return file_api_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *UpdateDeviceStatusRequest) GetDeviceName() string {
@@ -2867,7 +3068,7 @@ type UpdateDeviceStatusResponse struct {
 func (x *UpdateDeviceStatusResponse) Reset() {
 	*x = UpdateDeviceStatusResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_proto_msgTypes[45]
+		mi := &file_api_proto_msgTypes[50]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2880,7 +3081,7 @@ func (x *UpdateDeviceStatusResponse) String() string {
 func (*UpdateDeviceStatusResponse) ProtoMessage() {}
 
 func (x *UpdateDeviceStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[45]
+	mi := &file_api_proto_msgTypes[50]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2893,7 +3094,7 @@ func (x *UpdateDeviceStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateDeviceStatusResponse.ProtoReflect.Descriptor instead.
 func (*UpdateDeviceStatusResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{45}
+	return file_api_proto_rawDescGZIP(), []int{50}
 }
 
 type GetDeviceRequest struct {
@@ -2907,7 +3108,7 @@ type GetDeviceRequest struct {
 func (x *GetDeviceRequest) Reset() {
 	*x = GetDeviceRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_proto_msgTypes[46]
+		mi := &file_api_proto_msgTypes[51]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2920,7 +3121,7 @@ func (x *GetDeviceRequest) String() string {
 func (*GetDeviceRequest) ProtoMessage() {}
 
 func (x *GetDeviceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[46]
+	mi := &file_api_proto_msgTypes[51]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2933,7 +3134,7 @@ func (x *GetDeviceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDeviceRequest.ProtoReflect.Descriptor instead.
 func (*GetDeviceRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{46}
+	return file_api_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *GetDeviceRequest) GetDeviceName() string {
@@ -2948,13 +3149,13 @@ type GetDeviceResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Status *DeviceStatus `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
+	Device *Device `protobuf:"bytes,1,opt,name=device,proto3" json:"device,omitempty"`
 }
 
 func (x *GetDeviceResponse) Reset() {
 	*x = GetDeviceResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_proto_msgTypes[47]
+		mi := &file_api_proto_msgTypes[52]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2967,7 +3168,7 @@ func (x *GetDeviceResponse) String() string {
 func (*GetDeviceResponse) ProtoMessage() {}
 
 func (x *GetDeviceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[47]
+	mi := &file_api_proto_msgTypes[52]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2980,12 +3181,12 @@ func (x *GetDeviceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDeviceResponse.ProtoReflect.Descriptor instead.
 func (*GetDeviceResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{47}
+	return file_api_proto_rawDescGZIP(), []int{52}
 }
 
-func (x *GetDeviceResponse) GetStatus() *DeviceStatus {
+func (x *GetDeviceResponse) GetDevice() *Device {
 	if x != nil {
-		return x.Status
+		return x.Device
 	}
 	return nil
 }
@@ -3348,86 +3549,113 @@ var file_api_proto_rawDesc = []byte{
 	0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01,
 	0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x1c, 0x0a,
 	0x1a, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x53, 0x74, 0x61,
-	0x74, 0x75, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x3f, 0x0a, 0x13, 0x43,
+	0x74, 0x75, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x39, 0x0a, 0x13, 0x43,
 	0x72, 0x65, 0x61, 0x74, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x12, 0x28, 0x0a, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x0b, 0x32, 0x10, 0x2e, 0x76, 0x31, 0x2e, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x43, 0x6f,
-	0x6e, 0x66, 0x69, 0x67, 0x52, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x22, 0x37, 0x0a, 0x14,
-	0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1f, 0x0a, 0x0b, 0x64, 0x65, 0x76, 0x69, 0x63, 0x65, 0x5f, 0x6e,
-	0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x64, 0x65, 0x76, 0x69, 0x63,
-	0x65, 0x4e, 0x61, 0x6d, 0x65, 0x22, 0x59, 0x0a, 0x0c, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x43,
-	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x25, 0x0a, 0x05, 0x6d, 0x6f, 0x64, 0x65, 0x6c, 0x18, 0x01,
-	0x20, 0x01, 0x28, 0x0b, 0x32, 0x0f, 0x2e, 0x76, 0x31, 0x2e, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65,
-	0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x52, 0x05, 0x6d, 0x6f, 0x64, 0x65, 0x6c, 0x12, 0x22, 0x0a, 0x06,
-	0x64, 0x65, 0x76, 0x69, 0x63, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0a, 0x2e, 0x76,
-	0x31, 0x2e, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x52, 0x06, 0x64, 0x65, 0x76, 0x69, 0x63, 0x65,
-	0x22, 0x35, 0x0a, 0x13, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1e, 0x0a, 0x0a, 0x64, 0x65, 0x76, 0x69, 0x63,
-	0x65, 0x4e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x64, 0x65, 0x76,
-	0x69, 0x63, 0x65, 0x4e, 0x61, 0x6d, 0x65, 0x22, 0x16, 0x0a, 0x14, 0x52, 0x65, 0x6d, 0x6f, 0x76,
-	0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
-	0x5f, 0x0a, 0x13, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1e, 0x0a, 0x0a, 0x64, 0x65, 0x76, 0x69, 0x63, 0x65,
-	0x4e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x64, 0x65, 0x76, 0x69,
-	0x63, 0x65, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x28, 0x0a, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67,
-	0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x10, 0x2e, 0x76, 0x31, 0x2e, 0x44, 0x65, 0x76, 0x69,
-	0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67,
-	0x22, 0x16, 0x0a, 0x14, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x73, 0x0a, 0x19, 0x55, 0x70, 0x64, 0x61,
-	0x74, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1e, 0x0a, 0x0a, 0x64, 0x65, 0x76, 0x69, 0x63, 0x65, 0x4e,
-	0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x64, 0x65, 0x76, 0x69, 0x63,
-	0x65, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x36, 0x0a, 0x0d, 0x64, 0x65, 0x73, 0x69, 0x72, 0x65, 0x64,
-	0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x10, 0x2e, 0x76,
-	0x31, 0x2e, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x0d,
-	0x64, 0x65, 0x73, 0x69, 0x72, 0x65, 0x64, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x22, 0x1c, 0x0a,
-	0x1a, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x53, 0x74, 0x61,
-	0x74, 0x75, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x32, 0x0a, 0x10, 0x47,
-	0x65, 0x74, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12,
+	0x73, 0x74, 0x12, 0x22, 0x0a, 0x06, 0x64, 0x65, 0x76, 0x69, 0x63, 0x65, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x0a, 0x2e, 0x76, 0x31, 0x2e, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x52, 0x06,
+	0x64, 0x65, 0x76, 0x69, 0x63, 0x65, 0x22, 0x36, 0x0a, 0x14, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65,
+	0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1e,
+	0x0a, 0x0a, 0x64, 0x65, 0x76, 0x69, 0x63, 0x65, 0x4e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x0a, 0x64, 0x65, 0x76, 0x69, 0x63, 0x65, 0x4e, 0x61, 0x6d, 0x65, 0x22, 0x41,
+	0x0a, 0x18, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x4d, 0x6f,
+	0x64, 0x65, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x25, 0x0a, 0x05, 0x6d, 0x6f,
+	0x64, 0x65, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0f, 0x2e, 0x76, 0x31, 0x2e, 0x44,
+	0x65, 0x76, 0x69, 0x63, 0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x52, 0x05, 0x6d, 0x6f, 0x64, 0x65,
+	0x6c, 0x22, 0x45, 0x0a, 0x19, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63,
+	0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x28,
+	0x0a, 0x0f, 0x64, 0x65, 0x76, 0x69, 0x63, 0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x4e, 0x61, 0x6d,
+	0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0f, 0x64, 0x65, 0x76, 0x69, 0x63, 0x65, 0x4d,
+	0x6f, 0x64, 0x65, 0x6c, 0x4e, 0x61, 0x6d, 0x65, 0x22, 0x35, 0x0a, 0x13, 0x52, 0x65, 0x6d, 0x6f,
+	0x76, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12,
 	0x1e, 0x0a, 0x0a, 0x64, 0x65, 0x76, 0x69, 0x63, 0x65, 0x4e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20,
 	0x01, 0x28, 0x09, 0x52, 0x0a, 0x64, 0x65, 0x76, 0x69, 0x63, 0x65, 0x4e, 0x61, 0x6d, 0x65, 0x22,
-	0x3d, 0x0a, 0x11, 0x47, 0x65, 0x74, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x28, 0x0a, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x01,
-	0x20, 0x01, 0x28, 0x0b, 0x32, 0x10, 0x2e, 0x76, 0x31, 0x2e, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65,
-	0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x32, 0xb8,
-	0x01, 0x0a, 0x14, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x4d, 0x61, 0x6e, 0x61, 0x67, 0x65, 0x72,
-	0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x49, 0x0a, 0x0e, 0x4d, 0x61, 0x70, 0x70, 0x65,
-	0x72, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x12, 0x19, 0x2e, 0x76, 0x31, 0x2e, 0x4d,
-	0x61, 0x70, 0x70, 0x65, 0x72, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x52, 0x65, 0x71,
-	0x75, 0x65, 0x73, 0x74, 0x1a, 0x1a, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x61, 0x70, 0x70, 0x65, 0x72,
-	0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x22, 0x00, 0x12, 0x55, 0x0a, 0x12, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x44, 0x65, 0x76, 0x69,
-	0x63, 0x65, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x1d, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x65,
-	0x70, 0x6f, 0x72, 0x74, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1e, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x65, 0x70,
-	0x6f, 0x72, 0x74, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x32, 0xf7, 0x02, 0x0a, 0x13, 0x44, 0x65,
-	0x76, 0x69, 0x63, 0x65, 0x4d, 0x61, 0x70, 0x70, 0x65, 0x72, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63,
-	0x65, 0x12, 0x43, 0x0a, 0x0c, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63,
-	0x65, 0x12, 0x17, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x44, 0x65, 0x76,
-	0x69, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e, 0x76, 0x31, 0x2e,
-	0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x43, 0x0a, 0x0c, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65,
-	0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x12, 0x17, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x65, 0x6d, 0x6f,
-	0x76, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
-	0x18, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63,
-	0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x43, 0x0a, 0x0c, 0x55,
-	0x70, 0x64, 0x61, 0x74, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x12, 0x17, 0x2e, 0x76, 0x31,
-	0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x52, 0x65, 0x71,
-	0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e, 0x76, 0x31, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65,
-	0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
-	0x12, 0x55, 0x0a, 0x12, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65,
-	0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x1d, 0x2e, 0x76, 0x31, 0x2e, 0x55, 0x70, 0x64, 0x61,
-	0x74, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1e, 0x2e, 0x76, 0x31, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74,
-	0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x3a, 0x0a, 0x09, 0x47, 0x65, 0x74, 0x44, 0x65,
-	0x76, 0x69, 0x63, 0x65, 0x12, 0x14, 0x2e, 0x76, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x44, 0x65, 0x76,
-	0x69, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x15, 0x2e, 0x76, 0x31, 0x2e,
-	0x47, 0x65, 0x74, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x22, 0x00, 0x42, 0x07, 0x5a, 0x05, 0x2e, 0x2f, 0x3b, 0x76, 0x31, 0x62, 0x06, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x33,
+	0x16, 0x0a, 0x14, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x38, 0x0a, 0x18, 0x52, 0x65, 0x6d, 0x6f, 0x76,
+	0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x12, 0x1c, 0x0a, 0x09, 0x6d, 0x6f, 0x64, 0x65, 0x6c, 0x4e, 0x61, 0x6d, 0x65,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x6d, 0x6f, 0x64, 0x65, 0x6c, 0x4e, 0x61, 0x6d,
+	0x65, 0x22, 0x1b, 0x0a, 0x19, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63,
+	0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x39,
+	0x0a, 0x13, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x22, 0x0a, 0x06, 0x64, 0x65, 0x76, 0x69, 0x63, 0x65, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0a, 0x2e, 0x76, 0x31, 0x2e, 0x44, 0x65, 0x76, 0x69, 0x63,
+	0x65, 0x52, 0x06, 0x64, 0x65, 0x76, 0x69, 0x63, 0x65, 0x22, 0x16, 0x0a, 0x14, 0x55, 0x70, 0x64,
+	0x61, 0x74, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x41, 0x0a, 0x18, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63,
+	0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x25, 0x0a,
+	0x05, 0x6d, 0x6f, 0x64, 0x65, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0f, 0x2e, 0x76,
+	0x31, 0x2e, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x52, 0x05, 0x6d,
+	0x6f, 0x64, 0x65, 0x6c, 0x22, 0x1b, 0x0a, 0x19, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x44, 0x65,
+	0x76, 0x69, 0x63, 0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x73, 0x0a, 0x19, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63,
+	0x65, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1e,
+	0x0a, 0x0a, 0x64, 0x65, 0x76, 0x69, 0x63, 0x65, 0x4e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x0a, 0x64, 0x65, 0x76, 0x69, 0x63, 0x65, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x36,
+	0x0a, 0x0d, 0x64, 0x65, 0x73, 0x69, 0x72, 0x65, 0x64, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x10, 0x2e, 0x76, 0x31, 0x2e, 0x44, 0x65, 0x76, 0x69, 0x63,
+	0x65, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x0d, 0x64, 0x65, 0x73, 0x69, 0x72, 0x65, 0x64,
+	0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x22, 0x1c, 0x0a, 0x1a, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65,
+	0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x32, 0x0a, 0x10, 0x47, 0x65, 0x74, 0x44, 0x65, 0x76, 0x69, 0x63,
+	0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1e, 0x0a, 0x0a, 0x64, 0x65, 0x76, 0x69,
+	0x63, 0x65, 0x4e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x64, 0x65,
+	0x76, 0x69, 0x63, 0x65, 0x4e, 0x61, 0x6d, 0x65, 0x22, 0x37, 0x0a, 0x11, 0x47, 0x65, 0x74, 0x44,
+	0x65, 0x76, 0x69, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x22, 0x0a,
+	0x06, 0x64, 0x65, 0x76, 0x69, 0x63, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0a, 0x2e,
+	0x76, 0x31, 0x2e, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x52, 0x06, 0x64, 0x65, 0x76, 0x69, 0x63,
+	0x65, 0x32, 0xb8, 0x01, 0x0a, 0x14, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x4d, 0x61, 0x6e, 0x61,
+	0x67, 0x65, 0x72, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x49, 0x0a, 0x0e, 0x4d, 0x61,
+	0x70, 0x70, 0x65, 0x72, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x12, 0x19, 0x2e, 0x76,
+	0x31, 0x2e, 0x4d, 0x61, 0x70, 0x70, 0x65, 0x72, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1a, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x61, 0x70,
+	0x70, 0x65, 0x72, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x55, 0x0a, 0x12, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x44,
+	0x65, 0x76, 0x69, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x1d, 0x2e, 0x76, 0x31,
+	0x2e, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x53, 0x74, 0x61,
+	0x74, 0x75, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1e, 0x2e, 0x76, 0x31, 0x2e,
+	0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74,
+	0x75, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x32, 0xf3, 0x04, 0x0a,
+	0x13, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x4d, 0x61, 0x70, 0x70, 0x65, 0x72, 0x53, 0x65, 0x72,
+	0x76, 0x69, 0x63, 0x65, 0x12, 0x43, 0x0a, 0x0c, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x44, 0x65,
+	0x76, 0x69, 0x63, 0x65, 0x12, 0x17, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65,
+	0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e,
+	0x76, 0x31, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x43, 0x0a, 0x0c, 0x52, 0x65, 0x6d,
+	0x6f, 0x76, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x12, 0x17, 0x2e, 0x76, 0x31, 0x2e, 0x52,
+	0x65, 0x6d, 0x6f, 0x76, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x1a, 0x18, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x44, 0x65,
+	0x76, 0x69, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x43,
+	0x0a, 0x0c, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x12, 0x17,
+	0x2e, 0x76, 0x31, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e, 0x76, 0x31, 0x2e, 0x55, 0x70, 0x64,
+	0x61, 0x74, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x00, 0x12, 0x52, 0x0a, 0x11, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x44, 0x65, 0x76,
+	0x69, 0x63, 0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x12, 0x1c, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x72,
+	0x65, 0x61, 0x74, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1d, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x72, 0x65, 0x61,
+	0x74, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x52, 0x0a, 0x11, 0x52, 0x65, 0x6d, 0x6f, 0x76,
+	0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x12, 0x1c, 0x2e, 0x76,
+	0x31, 0x2e, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x4d, 0x6f,
+	0x64, 0x65, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1d, 0x2e, 0x76, 0x31, 0x2e,
+	0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x4d, 0x6f, 0x64, 0x65,
+	0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x52, 0x0a, 0x11, 0x55,
+	0x70, 0x64, 0x61, 0x74, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c,
+	0x12, 0x1c, 0x2e, 0x76, 0x31, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x44, 0x65, 0x76, 0x69,
+	0x63, 0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1d,
+	0x2e, 0x76, 0x31, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65,
+	0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12,
+	0x55, 0x0a, 0x12, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x53,
+	0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x1d, 0x2e, 0x76, 0x31, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74,
+	0x65, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x1a, 0x1e, 0x2e, 0x76, 0x31, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65,
+	0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x3a, 0x0a, 0x09, 0x47, 0x65, 0x74, 0x44, 0x65, 0x76,
+	0x69, 0x63, 0x65, 0x12, 0x14, 0x2e, 0x76, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x44, 0x65, 0x76, 0x69,
+	0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x15, 0x2e, 0x76, 0x31, 0x2e, 0x47,
+	0x65, 0x74, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x22, 0x00, 0x42, 0x07, 0x5a, 0x05, 0x2e, 0x2f, 0x3b, 0x76, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x33,
 }
 
 var (
@@ -3442,7 +3670,7 @@ func file_api_proto_rawDescGZIP() []byte {
 	return file_api_proto_rawDescData
 }
 
-var file_api_proto_msgTypes = make([]protoimpl.MessageInfo, 51)
+var file_api_proto_msgTypes = make([]protoimpl.MessageInfo, 56)
 var file_api_proto_goTypes = []interface{}{
 	(*MapperRegisterRequest)(nil),      // 0: v1.MapperRegisterRequest
 	(*MapperRegisterResponse)(nil),     // 1: v1.MapperRegisterResponse
@@ -3483,19 +3711,24 @@ var file_api_proto_goTypes = []interface{}{
 	(*ReportDeviceStatusResponse)(nil), // 36: v1.ReportDeviceStatusResponse
 	(*CreateDeviceRequest)(nil),        // 37: v1.CreateDeviceRequest
 	(*CreateDeviceResponse)(nil),       // 38: v1.CreateDeviceResponse
-	(*DeviceConfig)(nil),               // 39: v1.DeviceConfig
-	(*RemoveDeviceRequest)(nil),        // 40: v1.RemoveDeviceRequest
-	(*RemoveDeviceResponse)(nil),       // 41: v1.RemoveDeviceResponse
-	(*UpdateDeviceRequest)(nil),        // 42: v1.UpdateDeviceRequest
-	(*UpdateDeviceResponse)(nil),       // 43: v1.UpdateDeviceResponse
-	(*UpdateDeviceStatusRequest)(nil),  // 44: v1.UpdateDeviceStatusRequest
-	(*UpdateDeviceStatusResponse)(nil), // 45: v1.UpdateDeviceStatusResponse
-	(*GetDeviceRequest)(nil),           // 46: v1.GetDeviceRequest
-	(*GetDeviceResponse)(nil),          // 47: v1.GetDeviceResponse
-	nil,                                // 48: v1.CustomizedValue.DataEntry
-	nil,                                // 49: v1.VisitorConfigBluetooth.DataWriteEntry
-	nil,                                // 50: v1.TwinProperty.MetadataEntry
-	(*anypb.Any)(nil),                  // 51: google.protobuf.Any
+	(*CreateDeviceModelRequest)(nil),   // 39: v1.CreateDeviceModelRequest
+	(*CreateDeviceModelResponse)(nil),  // 40: v1.CreateDeviceModelResponse
+	(*RemoveDeviceRequest)(nil),        // 41: v1.RemoveDeviceRequest
+	(*RemoveDeviceResponse)(nil),       // 42: v1.RemoveDeviceResponse
+	(*RemoveDeviceModelRequest)(nil),   // 43: v1.RemoveDeviceModelRequest
+	(*RemoveDeviceModelResponse)(nil),  // 44: v1.RemoveDeviceModelResponse
+	(*UpdateDeviceRequest)(nil),        // 45: v1.UpdateDeviceRequest
+	(*UpdateDeviceResponse)(nil),       // 46: v1.UpdateDeviceResponse
+	(*UpdateDeviceModelRequest)(nil),   // 47: v1.UpdateDeviceModelRequest
+	(*UpdateDeviceModelResponse)(nil),  // 48: v1.UpdateDeviceModelResponse
+	(*UpdateDeviceStatusRequest)(nil),  // 49: v1.UpdateDeviceStatusRequest
+	(*UpdateDeviceStatusResponse)(nil), // 50: v1.UpdateDeviceStatusResponse
+	(*GetDeviceRequest)(nil),           // 51: v1.GetDeviceRequest
+	(*GetDeviceResponse)(nil),          // 52: v1.GetDeviceResponse
+	nil,                                // 53: v1.CustomizedValue.DataEntry
+	nil,                                // 54: v1.VisitorConfigBluetooth.DataWriteEntry
+	nil,                                // 55: v1.TwinProperty.MetadataEntry
+	(*anypb.Any)(nil),                  // 56: google.protobuf.Any
 }
 var file_api_proto_depIdxs = []int32{
 	31, // 0: v1.MapperRegisterRequest.mapper:type_name -> v1.MapperInfo
@@ -3523,14 +3756,14 @@ var file_api_proto_depIdxs = []int32{
 	20, // 22: v1.ProtocolConfigCommon.com:type_name -> v1.ProtocolConfigCOM
 	21, // 23: v1.ProtocolConfigCommon.tcp:type_name -> v1.ProtocolConfigTCP
 	22, // 24: v1.ProtocolConfigCommon.customizedValues:type_name -> v1.CustomizedValue
-	48, // 25: v1.CustomizedValue.data:type_name -> v1.CustomizedValue.DataEntry
+	53, // 25: v1.CustomizedValue.data:type_name -> v1.CustomizedValue.DataEntry
 	22, // 26: v1.ProtocolConfigCustomized.configData:type_name -> v1.CustomizedValue
 	22, // 27: v1.DevicePropertyVisitor.customizedValues:type_name -> v1.CustomizedValue
 	25, // 28: v1.DevicePropertyVisitor.opcua:type_name -> v1.VisitorConfigOPCUA
 	26, // 29: v1.DevicePropertyVisitor.modbus:type_name -> v1.VisitorConfigModbus
 	27, // 30: v1.DevicePropertyVisitor.bluetooth:type_name -> v1.VisitorConfigBluetooth
 	30, // 31: v1.DevicePropertyVisitor.customizedProtocol:type_name -> v1.VisitorConfigCustomized
-	49, // 32: v1.VisitorConfigBluetooth.dataWrite:type_name -> v1.VisitorConfigBluetooth.DataWriteEntry
+	54, // 32: v1.VisitorConfigBluetooth.dataWrite:type_name -> v1.VisitorConfigBluetooth.DataWriteEntry
 	28, // 33: v1.VisitorConfigBluetooth.dataConverter:type_name -> v1.BluetoothReadConverter
 	29, // 34: v1.BluetoothReadConverter.orderOfOperations:type_name -> v1.BluetoothOperations
 	22, // 35: v1.VisitorConfigCustomized.configData:type_name -> v1.CustomizedValue
@@ -3538,30 +3771,36 @@ var file_api_proto_depIdxs = []int32{
 	34, // 37: v1.DeviceStatus.twins:type_name -> v1.Twin
 	35, // 38: v1.Twin.desired:type_name -> v1.TwinProperty
 	35, // 39: v1.Twin.reported:type_name -> v1.TwinProperty
-	50, // 40: v1.TwinProperty.metadata:type_name -> v1.TwinProperty.MetadataEntry
-	39, // 41: v1.CreateDeviceRequest.config:type_name -> v1.DeviceConfig
-	2,  // 42: v1.DeviceConfig.model:type_name -> v1.DeviceModel
-	13, // 43: v1.DeviceConfig.device:type_name -> v1.Device
-	39, // 44: v1.UpdateDeviceRequest.config:type_name -> v1.DeviceConfig
+	55, // 40: v1.TwinProperty.metadata:type_name -> v1.TwinProperty.MetadataEntry
+	13, // 41: v1.CreateDeviceRequest.device:type_name -> v1.Device
+	2,  // 42: v1.CreateDeviceModelRequest.model:type_name -> v1.DeviceModel
+	13, // 43: v1.UpdateDeviceRequest.device:type_name -> v1.Device
+	2,  // 44: v1.UpdateDeviceModelRequest.model:type_name -> v1.DeviceModel
 	33, // 45: v1.UpdateDeviceStatusRequest.desiredDevice:type_name -> v1.DeviceStatus
-	33, // 46: v1.GetDeviceResponse.status:type_name -> v1.DeviceStatus
-	51, // 47: v1.CustomizedValue.DataEntry.value:type_name -> google.protobuf.Any
+	13, // 46: v1.GetDeviceResponse.device:type_name -> v1.Device
+	56, // 47: v1.CustomizedValue.DataEntry.value:type_name -> google.protobuf.Any
 	0,  // 48: v1.DeviceManagerService.MapperRegister:input_type -> v1.MapperRegisterRequest
 	32, // 49: v1.DeviceManagerService.ReportDeviceStatus:input_type -> v1.ReportDeviceStatusRequest
 	37, // 50: v1.DeviceMapperService.CreateDevice:input_type -> v1.CreateDeviceRequest
-	40, // 51: v1.DeviceMapperService.RemoveDevice:input_type -> v1.RemoveDeviceRequest
-	42, // 52: v1.DeviceMapperService.UpdateDevice:input_type -> v1.UpdateDeviceRequest
-	44, // 53: v1.DeviceMapperService.UpdateDeviceStatus:input_type -> v1.UpdateDeviceStatusRequest
-	46, // 54: v1.DeviceMapperService.GetDevice:input_type -> v1.GetDeviceRequest
-	1,  // 55: v1.DeviceManagerService.MapperRegister:output_type -> v1.MapperRegisterResponse
-	36, // 56: v1.DeviceManagerService.ReportDeviceStatus:output_type -> v1.ReportDeviceStatusResponse
-	38, // 57: v1.DeviceMapperService.CreateDevice:output_type -> v1.CreateDeviceResponse
-	41, // 58: v1.DeviceMapperService.RemoveDevice:output_type -> v1.RemoveDeviceResponse
-	43, // 59: v1.DeviceMapperService.UpdateDevice:output_type -> v1.UpdateDeviceResponse
-	45, // 60: v1.DeviceMapperService.UpdateDeviceStatus:output_type -> v1.UpdateDeviceStatusResponse
-	47, // 61: v1.DeviceMapperService.GetDevice:output_type -> v1.GetDeviceResponse
-	55, // [55:62] is the sub-list for method output_type
-	48, // [48:55] is the sub-list for method input_type
+	41, // 51: v1.DeviceMapperService.RemoveDevice:input_type -> v1.RemoveDeviceRequest
+	45, // 52: v1.DeviceMapperService.UpdateDevice:input_type -> v1.UpdateDeviceRequest
+	39, // 53: v1.DeviceMapperService.CreateDeviceModel:input_type -> v1.CreateDeviceModelRequest
+	43, // 54: v1.DeviceMapperService.RemoveDeviceModel:input_type -> v1.RemoveDeviceModelRequest
+	47, // 55: v1.DeviceMapperService.UpdateDeviceModel:input_type -> v1.UpdateDeviceModelRequest
+	49, // 56: v1.DeviceMapperService.UpdateDeviceStatus:input_type -> v1.UpdateDeviceStatusRequest
+	51, // 57: v1.DeviceMapperService.GetDevice:input_type -> v1.GetDeviceRequest
+	1,  // 58: v1.DeviceManagerService.MapperRegister:output_type -> v1.MapperRegisterResponse
+	36, // 59: v1.DeviceManagerService.ReportDeviceStatus:output_type -> v1.ReportDeviceStatusResponse
+	38, // 60: v1.DeviceMapperService.CreateDevice:output_type -> v1.CreateDeviceResponse
+	42, // 61: v1.DeviceMapperService.RemoveDevice:output_type -> v1.RemoveDeviceResponse
+	46, // 62: v1.DeviceMapperService.UpdateDevice:output_type -> v1.UpdateDeviceResponse
+	40, // 63: v1.DeviceMapperService.CreateDeviceModel:output_type -> v1.CreateDeviceModelResponse
+	44, // 64: v1.DeviceMapperService.RemoveDeviceModel:output_type -> v1.RemoveDeviceModelResponse
+	48, // 65: v1.DeviceMapperService.UpdateDeviceModel:output_type -> v1.UpdateDeviceModelResponse
+	50, // 66: v1.DeviceMapperService.UpdateDeviceStatus:output_type -> v1.UpdateDeviceStatusResponse
+	52, // 67: v1.DeviceMapperService.GetDevice:output_type -> v1.GetDeviceResponse
+	58, // [58:68] is the sub-list for method output_type
+	48, // [48:58] is the sub-list for method input_type
 	48, // [48:48] is the sub-list for extension type_name
 	48, // [48:48] is the sub-list for extension extendee
 	0,  // [0:48] is the sub-list for field type_name
@@ -4042,7 +4281,7 @@ func file_api_proto_init() {
 			}
 		}
 		file_api_proto_msgTypes[39].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DeviceConfig); i {
+			switch v := v.(*CreateDeviceModelRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4054,7 +4293,7 @@ func file_api_proto_init() {
 			}
 		}
 		file_api_proto_msgTypes[40].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RemoveDeviceRequest); i {
+			switch v := v.(*CreateDeviceModelResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4066,7 +4305,7 @@ func file_api_proto_init() {
 			}
 		}
 		file_api_proto_msgTypes[41].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RemoveDeviceResponse); i {
+			switch v := v.(*RemoveDeviceRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4078,7 +4317,7 @@ func file_api_proto_init() {
 			}
 		}
 		file_api_proto_msgTypes[42].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateDeviceRequest); i {
+			switch v := v.(*RemoveDeviceResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4090,7 +4329,7 @@ func file_api_proto_init() {
 			}
 		}
 		file_api_proto_msgTypes[43].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateDeviceResponse); i {
+			switch v := v.(*RemoveDeviceModelRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4102,7 +4341,7 @@ func file_api_proto_init() {
 			}
 		}
 		file_api_proto_msgTypes[44].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateDeviceStatusRequest); i {
+			switch v := v.(*RemoveDeviceModelResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4114,7 +4353,7 @@ func file_api_proto_init() {
 			}
 		}
 		file_api_proto_msgTypes[45].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateDeviceStatusResponse); i {
+			switch v := v.(*UpdateDeviceRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4126,7 +4365,7 @@ func file_api_proto_init() {
 			}
 		}
 		file_api_proto_msgTypes[46].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetDeviceRequest); i {
+			switch v := v.(*UpdateDeviceResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4138,6 +4377,66 @@ func file_api_proto_init() {
 			}
 		}
 		file_api_proto_msgTypes[47].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UpdateDeviceModelRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_proto_msgTypes[48].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UpdateDeviceModelResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_proto_msgTypes[49].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UpdateDeviceStatusRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_proto_msgTypes[50].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UpdateDeviceStatusResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_proto_msgTypes[51].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetDeviceRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_proto_msgTypes[52].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetDeviceResponse); i {
 			case 0:
 				return &v.state
@@ -4156,7 +4455,7 @@ func file_api_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_api_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   51,
+			NumMessages:   56,
 			NumExtensions: 0,
 			NumServices:   2,
 		},
@@ -4182,7 +4481,9 @@ const _ = grpc.SupportPackageIsVersion6
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type DeviceManagerServiceClient interface {
+	// MapperRegister register the information of the mapper to device manager
 	MapperRegister(ctx context.Context, in *MapperRegisterRequest, opts ...grpc.CallOption) (*MapperRegisterResponse, error)
+	// ReportDeviceStatus report the status of devices to device manager
 	ReportDeviceStatus(ctx context.Context, in *ReportDeviceStatusRequest, opts ...grpc.CallOption) (*ReportDeviceStatusResponse, error)
 }
 
@@ -4214,7 +4515,9 @@ func (c *deviceManagerServiceClient) ReportDeviceStatus(ctx context.Context, in 
 
 // DeviceManagerServiceServer is the server API for DeviceManagerService service.
 type DeviceManagerServiceServer interface {
+	// MapperRegister register the information of the mapper to device manager
 	MapperRegister(context.Context, *MapperRegisterRequest) (*MapperRegisterResponse, error)
+	// ReportDeviceStatus report the status of devices to device manager
 	ReportDeviceStatus(context.Context, *ReportDeviceStatusRequest) (*ReportDeviceStatusResponse, error)
 }
 
@@ -4290,10 +4593,21 @@ var _DeviceManagerService_serviceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type DeviceMapperServiceClient interface {
+	// CreateDevice create a device to the device mapper
 	CreateDevice(ctx context.Context, in *CreateDeviceRequest, opts ...grpc.CallOption) (*CreateDeviceResponse, error)
+	// RemoveDevice remove a device to the device mapper
 	RemoveDevice(ctx context.Context, in *RemoveDeviceRequest, opts ...grpc.CallOption) (*RemoveDeviceResponse, error)
+	// UpdateDevice update a device to the device mapper
 	UpdateDevice(ctx context.Context, in *UpdateDeviceRequest, opts ...grpc.CallOption) (*UpdateDeviceResponse, error)
+	// CreateDeviceModel create a device model to the device mapper
+	CreateDeviceModel(ctx context.Context, in *CreateDeviceModelRequest, opts ...grpc.CallOption) (*CreateDeviceModelResponse, error)
+	// RemoveDeviceModel remove a device model to the device mapper
+	RemoveDeviceModel(ctx context.Context, in *RemoveDeviceModelRequest, opts ...grpc.CallOption) (*RemoveDeviceModelResponse, error)
+	// UpdateDeviceModel update a device model to the device mapper
+	UpdateDeviceModel(ctx context.Context, in *UpdateDeviceModelRequest, opts ...grpc.CallOption) (*UpdateDeviceModelResponse, error)
+	// UpdateDeviceStatus update a device status to the device mapper
 	UpdateDeviceStatus(ctx context.Context, in *UpdateDeviceStatusRequest, opts ...grpc.CallOption) (*UpdateDeviceStatusResponse, error)
+	// GetDevice get the information of a device from the device mapper
 	GetDevice(ctx context.Context, in *GetDeviceRequest, opts ...grpc.CallOption) (*GetDeviceResponse, error)
 }
 
@@ -4332,6 +4646,33 @@ func (c *deviceMapperServiceClient) UpdateDevice(ctx context.Context, in *Update
 	return out, nil
 }
 
+func (c *deviceMapperServiceClient) CreateDeviceModel(ctx context.Context, in *CreateDeviceModelRequest, opts ...grpc.CallOption) (*CreateDeviceModelResponse, error) {
+	out := new(CreateDeviceModelResponse)
+	err := c.cc.Invoke(ctx, "/v1.DeviceMapperService/CreateDeviceModel", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deviceMapperServiceClient) RemoveDeviceModel(ctx context.Context, in *RemoveDeviceModelRequest, opts ...grpc.CallOption) (*RemoveDeviceModelResponse, error) {
+	out := new(RemoveDeviceModelResponse)
+	err := c.cc.Invoke(ctx, "/v1.DeviceMapperService/RemoveDeviceModel", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deviceMapperServiceClient) UpdateDeviceModel(ctx context.Context, in *UpdateDeviceModelRequest, opts ...grpc.CallOption) (*UpdateDeviceModelResponse, error) {
+	out := new(UpdateDeviceModelResponse)
+	err := c.cc.Invoke(ctx, "/v1.DeviceMapperService/UpdateDeviceModel", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *deviceMapperServiceClient) UpdateDeviceStatus(ctx context.Context, in *UpdateDeviceStatusRequest, opts ...grpc.CallOption) (*UpdateDeviceStatusResponse, error) {
 	out := new(UpdateDeviceStatusResponse)
 	err := c.cc.Invoke(ctx, "/v1.DeviceMapperService/UpdateDeviceStatus", in, out, opts...)
@@ -4352,10 +4693,21 @@ func (c *deviceMapperServiceClient) GetDevice(ctx context.Context, in *GetDevice
 
 // DeviceMapperServiceServer is the server API for DeviceMapperService service.
 type DeviceMapperServiceServer interface {
+	// CreateDevice create a device to the device mapper
 	CreateDevice(context.Context, *CreateDeviceRequest) (*CreateDeviceResponse, error)
+	// RemoveDevice remove a device to the device mapper
 	RemoveDevice(context.Context, *RemoveDeviceRequest) (*RemoveDeviceResponse, error)
+	// UpdateDevice update a device to the device mapper
 	UpdateDevice(context.Context, *UpdateDeviceRequest) (*UpdateDeviceResponse, error)
+	// CreateDeviceModel create a device model to the device mapper
+	CreateDeviceModel(context.Context, *CreateDeviceModelRequest) (*CreateDeviceModelResponse, error)
+	// RemoveDeviceModel remove a device model to the device mapper
+	RemoveDeviceModel(context.Context, *RemoveDeviceModelRequest) (*RemoveDeviceModelResponse, error)
+	// UpdateDeviceModel update a device model to the device mapper
+	UpdateDeviceModel(context.Context, *UpdateDeviceModelRequest) (*UpdateDeviceModelResponse, error)
+	// UpdateDeviceStatus update a device status to the device mapper
 	UpdateDeviceStatus(context.Context, *UpdateDeviceStatusRequest) (*UpdateDeviceStatusResponse, error)
+	// GetDevice get the information of a device from the device mapper
 	GetDevice(context.Context, *GetDeviceRequest) (*GetDeviceResponse, error)
 }
 
@@ -4371,6 +4723,15 @@ func (*UnimplementedDeviceMapperServiceServer) RemoveDevice(context.Context, *Re
 }
 func (*UnimplementedDeviceMapperServiceServer) UpdateDevice(context.Context, *UpdateDeviceRequest) (*UpdateDeviceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateDevice not implemented")
+}
+func (*UnimplementedDeviceMapperServiceServer) CreateDeviceModel(context.Context, *CreateDeviceModelRequest) (*CreateDeviceModelResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateDeviceModel not implemented")
+}
+func (*UnimplementedDeviceMapperServiceServer) RemoveDeviceModel(context.Context, *RemoveDeviceModelRequest) (*RemoveDeviceModelResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveDeviceModel not implemented")
+}
+func (*UnimplementedDeviceMapperServiceServer) UpdateDeviceModel(context.Context, *UpdateDeviceModelRequest) (*UpdateDeviceModelResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateDeviceModel not implemented")
 }
 func (*UnimplementedDeviceMapperServiceServer) UpdateDeviceStatus(context.Context, *UpdateDeviceStatusRequest) (*UpdateDeviceStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateDeviceStatus not implemented")
@@ -4437,6 +4798,60 @@ func _DeviceMapperService_UpdateDevice_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DeviceMapperService_CreateDeviceModel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateDeviceModelRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeviceMapperServiceServer).CreateDeviceModel(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/v1.DeviceMapperService/CreateDeviceModel",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeviceMapperServiceServer).CreateDeviceModel(ctx, req.(*CreateDeviceModelRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DeviceMapperService_RemoveDeviceModel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveDeviceModelRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeviceMapperServiceServer).RemoveDeviceModel(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/v1.DeviceMapperService/RemoveDeviceModel",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeviceMapperServiceServer).RemoveDeviceModel(ctx, req.(*RemoveDeviceModelRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DeviceMapperService_UpdateDeviceModel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateDeviceModelRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeviceMapperServiceServer).UpdateDeviceModel(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/v1.DeviceMapperService/UpdateDeviceModel",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeviceMapperServiceServer).UpdateDeviceModel(ctx, req.(*UpdateDeviceModelRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _DeviceMapperService_UpdateDeviceStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateDeviceStatusRequest)
 	if err := dec(in); err != nil {
@@ -4490,6 +4905,18 @@ var _DeviceMapperService_serviceDesc = grpc.ServiceDesc{
 			Handler:    _DeviceMapperService_UpdateDevice_Handler,
 		},
 		{
+			MethodName: "CreateDeviceModel",
+			Handler:    _DeviceMapperService_CreateDeviceModel_Handler,
+		},
+		{
+			MethodName: "RemoveDeviceModel",
+			Handler:    _DeviceMapperService_RemoveDeviceModel_Handler,
+		},
+		{
+			MethodName: "UpdateDeviceModel",
+			Handler:    _DeviceMapperService_UpdateDeviceModel_Handler,
+		},
+		{
 			MethodName: "UpdateDeviceStatus",
 			Handler:    _DeviceMapperService_UpdateDeviceStatus_Handler,
 		},
@@ -4504,4 +4931,8 @@ var _DeviceMapperService_serviceDesc = grpc.ServiceDesc{
 
 func NewMapperClient(cc grpc.ClientConnInterface) DeviceMapperServiceClient {
 	return &deviceMapperServiceClient{cc}
+}
+
+func NewDeviceManageClient(cc grpc.ClientConnInterface) DeviceManagerServiceClient {
+	return &deviceManagerServiceClient{cc}
 }

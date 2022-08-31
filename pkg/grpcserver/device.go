@@ -15,17 +15,18 @@ import (
 
 func (s *Server) CreateDevice(ctx context.Context, request *dmiapi.CreateDeviceRequest) (*dmiapi.CreateDeviceResponse, error) {
 	klog.V(2).Info("CreateDevice")
-	config := request.GetConfig()
-	if config == nil || config.Device == nil || config.Model == nil {
-		return nil, errors.New("device config is nil")
+	device := request.GetDevice()
+	if device == nil {
+		return nil, errors.New("device is nil")
 	}
-	device := config.Device
-	deviceModel := config.Model
 	if _, err := s.devPanel.GetDevice(device.Name); err == nil {
 		return nil, fmt.Errorf("add device %s failed, has existed", device.Name)
 	}
 
-	model := parse.ParseDeviceModelFromGrpc(deviceModel)
+	model, err := s.devPanel.GetModel(device.Spec.DeviceModelReference)
+	if err != nil {
+		return nil, fmt.Errorf("deviceModel %s not found, err: %s", device.Spec.DeviceModelReference, err)
+	}
 	protocol, err := parse.BuildProtocolFromGrpc(device)
 	if err != nil {
 		return nil, fmt.Errorf("parse device %s protocol failed, err: %s", device.Name, err)
@@ -57,17 +58,18 @@ func (s *Server) RemoveDevice(ctx context.Context, request *dmiapi.RemoveDeviceR
 
 func (s *Server) UpdateDevice(ctx context.Context, request *dmiapi.UpdateDeviceRequest) (*dmiapi.UpdateDeviceResponse, error) {
 	klog.V(2).Info("UpdateDevice")
-	config := request.GetConfig()
-	if config == nil || config.Device == nil || config.Model == nil {
-		return nil, errors.New("device config is nil")
+	device := request.GetDevice()
+	if device == nil {
+		return nil, errors.New("device is nil")
 	}
-	device := config.Device
-	deviceModel := config.Model
 	if _, err := s.devPanel.GetDevice(device.Name); err != nil {
-		return nil, fmt.Errorf("add device %s failed, not existed", device.Name)
+		return nil, fmt.Errorf("update device %s failed, not existed", device.Name)
 	}
 
-	model := parse.ParseDeviceModelFromGrpc(deviceModel)
+	model, err := s.devPanel.GetModel(device.Spec.DeviceModelReference)
+	if err != nil {
+		return nil, fmt.Errorf("deviceModel %s not found, err: %s", device.Spec.DeviceModelReference, err)
+	}
 	protocol, err := parse.BuildProtocolFromGrpc(device)
 	if err != nil {
 		return nil, fmt.Errorf("parse device %s protocol failed, err: %s", device.Name, err)
@@ -87,6 +89,44 @@ func (s *Server) UpdateDevice(ctx context.Context, request *dmiapi.UpdateDeviceR
 	//topic := dtcommon.MemETPrefix + d.NodeName + dtcommon.MemETUpdateSuffix
 
 	return &dmiapi.UpdateDeviceResponse{}, nil
+}
+
+func (s *Server) CreateDeviceModel(ctx context.Context, request *dmiapi.CreateDeviceModelRequest) (*dmiapi.CreateDeviceModelResponse, error) {
+	deviceModel := request.GetModel()
+	if deviceModel == nil {
+		return nil, errors.New("deviceModel is nil")
+	}
+	if _, err := s.devPanel.GetModel(deviceModel.Name); err != nil {
+		return nil, fmt.Errorf("add deviceModel %s failed, has existed", deviceModel.Name)
+	}
+
+	model := parse.ParseDeviceModelFromGrpc(deviceModel)
+
+	s.devPanel.UpdateModel(&model)
+
+	return &dmiapi.CreateDeviceModelResponse{DeviceModelName: deviceModel.Name}, nil
+}
+
+func (s *Server) UpdateDeviceModel(ctx context.Context, request *dmiapi.UpdateDeviceModelRequest) (*dmiapi.UpdateDeviceModelResponse, error) {
+	deviceModel := request.GetModel()
+	if deviceModel == nil {
+		return nil, errors.New("deviceModel is nil")
+	}
+	if _, err := s.devPanel.GetModel(deviceModel.Name); err != nil {
+		return nil, fmt.Errorf("update deviceModel %s failed, not existed", deviceModel.Name)
+	}
+
+	model := parse.ParseDeviceModelFromGrpc(deviceModel)
+
+	s.devPanel.UpdateModel(&model)
+
+	return &dmiapi.UpdateDeviceModelResponse{}, nil
+}
+
+func (s *Server) RemoveDeviceModel(ctx context.Context, request *dmiapi.RemoveDeviceModelRequest) (*dmiapi.RemoveDeviceModelResponse, error) {
+	s.devPanel.RemoveModel(request.ModelName)
+
+	return &dmiapi.RemoveDeviceModelResponse{}, nil
 }
 
 func (s *Server) UpdateDeviceStatus(ctx context.Context, request *dmiapi.UpdateDeviceStatusRequest) (*dmiapi.UpdateDeviceStatusResponse, error) {
@@ -123,7 +163,11 @@ func (s *Server) GetDevice(ctx context.Context, request *dmiapi.GetDeviceRequest
 	if err != nil {
 		return nil, err
 	}
-	res := &dmiapi.GetDeviceResponse{Status: &dmiapi.DeviceStatus{}}
+	res := &dmiapi.GetDeviceResponse{
+		Device: &dmiapi.Device{
+			Status: &dmiapi.DeviceStatus{},
+		},
+	}
 	switch s.cfg.Protocol {
 	case common.ProtocolModbus:
 		d := device.(*modbus.ModbusDev)
@@ -131,8 +175,8 @@ func (s *Server) GetDevice(ctx context.Context, request *dmiapi.GetDeviceRequest
 		if err != nil {
 			return nil, err
 		}
-		res.Status.Twins = twins
-		res.Status.State = common.DEVSTOK
+		res.Device.Status.Twins = twins
+		res.Device.Status.State = common.DEVSTOK
 	default:
 		return nil, fmt.Errorf("current mapper only support protocol %s's device", s.cfg.Protocol)
 	}
