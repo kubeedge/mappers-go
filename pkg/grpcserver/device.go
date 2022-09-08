@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/dmi/v1"
 	"github.com/kubeedge/mappers-go/pkg/common"
@@ -23,7 +24,17 @@ func (s *Server) CreateDevice(ctx context.Context, request *dmiapi.CreateDeviceR
 		return nil, fmt.Errorf("add device %s failed, has existed", device.Name)
 	}
 
-	model, err := s.devPanel.GetModel(device.Spec.DeviceModelReference)
+	var model common.DeviceModel
+	var err error
+	for i := 0; i < 3; i++ {
+		model, err = s.devPanel.GetModel(device.Spec.DeviceModelReference)
+		if err != nil {
+			klog.Errorf("deviceModel %s not found, err: %s", device.Spec.DeviceModelReference, err)
+			time.Sleep(1 * time.Second)
+		} else {
+			break
+		}
+	}
 	if err != nil {
 		return nil, fmt.Errorf("deviceModel %s not found, err: %s", device.Spec.DeviceModelReference, err)
 	}
@@ -31,6 +42,7 @@ func (s *Server) CreateDevice(ctx context.Context, request *dmiapi.CreateDeviceR
 	if err != nil {
 		return nil, fmt.Errorf("parse device %s protocol failed, err: %s", device.Name, err)
 	}
+	klog.Infof("model: %+v", model)
 	deviceInstance, err := parse.ParseDeviceFromGrpc(device, &model)
 	if err != nil {
 		return nil, fmt.Errorf("parse device %s instance failed, err: %s", device.Name, err)
@@ -53,7 +65,7 @@ func (s *Server) RemoveDevice(ctx context.Context, request *dmiapi.RemoveDeviceR
 		return nil, errors.New("device name is nil")
 	}
 
-	return nil, s.devPanel.RemoveDevice(request.GetDeviceName())
+	return &dmiapi.RemoveDeviceResponse{}, s.devPanel.RemoveDevice(request.GetDeviceName())
 }
 
 func (s *Server) UpdateDevice(ctx context.Context, request *dmiapi.UpdateDeviceRequest) (*dmiapi.UpdateDeviceResponse, error) {
@@ -63,7 +75,7 @@ func (s *Server) UpdateDevice(ctx context.Context, request *dmiapi.UpdateDeviceR
 		return nil, errors.New("device is nil")
 	}
 	if _, err := s.devPanel.GetDevice(device.Name); err != nil {
-		return nil, fmt.Errorf("update device %s failed, not existed", device.Name)
+		return nil, fmt.Errorf("update device %s failed, GetDevice err: %v", device.Name, err)
 	}
 
 	model, err := s.devPanel.GetModel(device.Spec.DeviceModelReference)
@@ -74,6 +86,8 @@ func (s *Server) UpdateDevice(ctx context.Context, request *dmiapi.UpdateDeviceR
 	if err != nil {
 		return nil, fmt.Errorf("parse device %s protocol failed, err: %s", device.Name, err)
 	}
+
+	klog.Infof("model: %+v", model)
 	deviceInstance, err := parse.ParseDeviceFromGrpc(device, &model)
 	if err != nil {
 		return nil, fmt.Errorf("parse device %s instance failed, err: %s", device.Name, err)
@@ -93,16 +107,16 @@ func (s *Server) UpdateDevice(ctx context.Context, request *dmiapi.UpdateDeviceR
 
 func (s *Server) CreateDeviceModel(ctx context.Context, request *dmiapi.CreateDeviceModelRequest) (*dmiapi.CreateDeviceModelResponse, error) {
 	deviceModel := request.GetModel()
+	klog.Infof("start create deviceModel: %v", deviceModel.Name)
 	if deviceModel == nil {
 		return nil, errors.New("deviceModel is nil")
-	}
-	if _, err := s.devPanel.GetModel(deviceModel.Name); err != nil {
-		return nil, fmt.Errorf("add deviceModel %s failed, has existed", deviceModel.Name)
 	}
 
 	model := parse.ParseDeviceModelFromGrpc(deviceModel)
 
 	s.devPanel.UpdateModel(&model)
+
+	klog.Infof("create deviceModel done: %v", deviceModel.Name)
 
 	return &dmiapi.CreateDeviceModelResponse{DeviceModelName: deviceModel.Name}, nil
 }

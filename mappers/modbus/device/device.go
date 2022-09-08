@@ -26,13 +26,11 @@ import (
 	"sync"
 	"time"
 
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"k8s.io/klog/v2"
 
 	"github.com/kubeedge/mappers-go/config"
 	"github.com/kubeedge/mappers-go/pkg/common"
 	"github.com/kubeedge/mappers-go/pkg/driver/modbus"
-	"github.com/kubeedge/mappers-go/pkg/global"
 	"github.com/kubeedge/mappers-go/pkg/util/parse"
 )
 
@@ -72,57 +70,6 @@ func setVisitor(visitorConfig *modbus.ModbusVisitorConfig, twin *common.Twin, cl
 func getDeviceID(topic string) (id string) {
 	re := regexp.MustCompile(`hw/events/device/(.+)/twin/update/delta`)
 	return re.FindStringSubmatch(topic)[1]
-}
-
-// onMessage callback function of Mqtt subscribe message.
-func (d *DevPanel) onMessage() mqtt.MessageHandler {
-	return func(client mqtt.Client, message mqtt.Message) {
-		klog.V(2).Info("Receive message", message.Topic())
-		// Get device ID and get device instance
-		id := getDeviceID(message.Topic())
-		if id == "" {
-			klog.Error("Wrong topic")
-			return
-		}
-		klog.V(2).Info("Device id: ", id)
-
-		var dev *modbus.ModbusDev
-		var ok bool
-		if dev, ok = d.devices[id]; !ok {
-			klog.Error("Device not exist")
-			return
-		}
-
-		// Get twin map key as the propertyName
-		var delta common.DeviceTwinDelta
-		if err := json.Unmarshal(message.Payload(), &delta); err != nil {
-			klog.Errorf("Unmarshal message failed: %v", err)
-			return
-		}
-		for twinName, twinValue := range delta.Delta {
-			i := 0
-			for i = 0; i < len(dev.Instance.Twins); i++ {
-				if twinName == dev.Instance.Twins[i].PropertyName {
-					break
-				}
-			}
-			if i == len(dev.Instance.Twins) {
-				klog.Error("Twin not found: ", twinName)
-				continue
-			}
-			// Desired value is not changed.
-			if dev.Instance.Twins[i].Desired.Value == twinValue {
-				continue
-			}
-			dev.Instance.Twins[i].Desired.Value = twinValue
-			var visitorConfig modbus.ModbusVisitorConfig
-			if err := json.Unmarshal(dev.Instance.Twins[i].PVisitor.VisitorConfig, &visitorConfig); err != nil {
-				klog.Errorf("Unmarshal visitor config failed: %v", err)
-				continue
-			}
-			setVisitor(&visitorConfig, &dev.Instance.Twins[i], dev.ModbusClient)
-		}
-	}
 }
 
 // isRS485Enabled is RS485 feature enabled for RTU.
@@ -178,7 +125,8 @@ func initTwin(ctx context.Context, dev *modbus.ModbusDev) {
 			Name:          dev.Instance.Twins[i].PropertyName,
 			Type:          dev.Instance.Twins[i].Desired.Metadatas.Type,
 			VisitorConfig: &visitorConfig,
-			Topic:         fmt.Sprintf(common.TopicTwinUpdate, dev.Instance.ID)}
+			Topic:         fmt.Sprintf(common.TopicTwinUpdate, dev.Instance.ID),
+			DeviceName:    dev.Instance.Name}
 		collectCycle := time.Duration(dev.Instance.Twins[i].PVisitor.CollectCycle)
 		// If the collect cycle is not set, set it to 1 second.
 		if collectCycle == 0 {
@@ -226,13 +174,6 @@ func initData(ctx context.Context, dev *modbus.ModbusDev) {
 	}
 }
 
-// initSubscribeMqtt subscribe Mqtt topics.
-func (d *DevPanel) initSubscribeMqtt(instanceID string) error {
-	topic := fmt.Sprintf(common.TopicTwinUpdateDelta, instanceID)
-	klog.V(1).Info("Subscribe topic: ", topic)
-	return global.MqttClient.Subscribe(topic, d.onMessage())
-}
-
 // initGetStatus start timer to get device status and send to eventbus.
 func initGetStatus(ctx context.Context, dev *modbus.ModbusDev) {
 	getStatus := GetStatus{Client: dev.ModbusClient,
@@ -264,7 +205,7 @@ func (d *DevPanel) start(ctx context.Context, dev *modbus.ModbusDev) {
 
 	client, err := initModbus(protocolCommConfig, protocolConfig.SlaveID)
 	if err != nil {
-		klog.Errorf("Init error: %v", err)
+		klog.Errorf("Init dev %s error: %v", dev.Instance.Name, err)
 		d.wg.Done()
 		return
 	}
@@ -272,13 +213,6 @@ func (d *DevPanel) start(ctx context.Context, dev *modbus.ModbusDev) {
 
 	go initTwin(ctx, dev)
 	go initData(ctx, dev)
-
-	if err := d.initSubscribeMqtt(dev.Instance.ID); err != nil {
-		klog.Errorf("Init subscribe mqtt error: %v", err)
-		d.deviceMuxs[dev.Instance.ID]()
-		d.wg.Done()
-		return
-	}
 
 	go initGetStatus(ctx, dev)
 	<-ctx.Done()
@@ -422,8 +356,12 @@ func (d *DevPanel) GetDevice(deviceID string) (interface{}, error) {
 	if !ok || found == nil {
 		return nil, fmt.Errorf("device %s not found", deviceID)
 	}
+	klog.Infof("found: %+v", found)
+
 	// get the latest reported twin value
 	for i, twin := range found.Instance.Twins {
+		klog.Infof("found device twin %s: %+v", twin.PropertyName, twin.PVisitor)
+
 		payload, err := getTwinData(deviceID, twin, found.ModbusClient)
 		if err != nil {
 			return nil, err
@@ -434,10 +372,15 @@ func (d *DevPanel) GetDevice(deviceID string) (interface{}, error) {
 }
 
 func (d *DevPanel) RemoveDevice(deviceID string) error {
+	delete(d.devices, deviceID)
+	klog.Infof("deviceMuxs: %+v", d.deviceMuxs)
+	klog.Infof("devices: %+v", d.devices)
+	klog.Infof("delete device %s", deviceID)
 	return d.stopDev(deviceID)
 }
 
 func (d *DevPanel) GetModel(modelName string) (common.DeviceModel, error) {
+	klog.Infof("###models: %v", d.models)
 	found, ok := d.models[modelName]
 	if !ok {
 		return common.DeviceModel{}, fmt.Errorf("deviceModel %s not found", modelName)
@@ -448,6 +391,7 @@ func (d *DevPanel) GetModel(modelName string) (common.DeviceModel, error) {
 
 func (d *DevPanel) UpdateModel(model *common.DeviceModel) {
 	d.models[model.Name] = *model
+	klog.Infof("models: %+v", d.models)
 }
 
 func (d *DevPanel) RemoveModel(modelName string) {

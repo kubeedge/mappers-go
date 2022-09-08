@@ -28,8 +28,8 @@ import (
 	"github.com/kubeedge/kubeedge/cloud/pkg/apis/devices/v1alpha2"
 	"github.com/kubeedge/mappers-go/config"
 	"github.com/kubeedge/mappers-go/pkg/common"
+	"github.com/kubeedge/mappers-go/pkg/util/grpcclient"
 	"github.com/kubeedge/mappers-go/pkg/util/httpclient"
-	"github.com/kubeedge/mappers-go/pkg/util/register"
 	"k8s.io/klog/v2"
 )
 
@@ -366,7 +366,7 @@ func ParseByUsingRegister(cfg *config.Config,
 	dms map[string]common.DeviceModel,
 	protocols map[string]common.Protocol) error {
 	klog.Infoln("======parse device and model from register")
-	deviceList, deviceModelList, err := register.RegisterMapper(cfg, true)
+	deviceList, deviceModelList, err := grpcclient.RegisterMapper(cfg, true)
 	if err != nil {
 		return err
 	}

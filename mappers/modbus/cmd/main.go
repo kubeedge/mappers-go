@@ -29,8 +29,8 @@ import (
 	"github.com/kubeedge/mappers-go/pkg/global"
 	"github.com/kubeedge/mappers-go/pkg/grpcserver"
 	"github.com/kubeedge/mappers-go/pkg/httpserver"
+	"github.com/kubeedge/mappers-go/pkg/util/grpcclient"
 	"github.com/kubeedge/mappers-go/pkg/util/parse"
-	"github.com/kubeedge/mappers-go/pkg/util/register"
 )
 
 func main() {
@@ -45,6 +45,20 @@ func main() {
 		os.Exit(1)
 	}
 	klog.Infof("config: %+v", c)
+
+	grpcclient.Init(&c)
+
+	// start grpc server
+	grpcServer := grpcserver.NewServer(
+		grpcserver.Config{
+			SockPath: c.GrpcServer.SocketPath,
+			Protocol: common.ProtocolModbus,
+		},
+	)
+	go func() {
+		_ = grpcServer.Start()
+	}()
+	klog.Infoln("grpc server start finished")
 
 	global.MqttClient = common.MqttClient{
 		IP:         c.Mqtt.ServerAddress,
@@ -71,6 +85,11 @@ func main() {
 		time.Sleep(2 * time.Second)
 		i++
 		klog.Infof("retry to init device, time: %d", i)
+
+		if i == 5 {
+			klog.Infof("retry 5 times. break")
+			break
+		}
 	}
 
 	klog.Infoln("devInit finished")
@@ -80,26 +99,13 @@ func main() {
 	if c.DevInit.Mode != common.DevInitModeRegister {
 		klog.Infoln("======dev init mode is not register, will register to edgecore")
 		// TODO health check
-		if _, _, err = register.RegisterMapper(&c, false); err != nil {
+		if _, _, err = grpcclient.RegisterMapper(&c, false); err != nil {
 			klog.Fatal(err)
 		}
 		klog.Infoln("registerMapper finished")
 	}
 
-	// start grpc server
-	grpcServer := grpcserver.NewServer(
-		grpcserver.Config{
-			SockPath: c.GrpcServer.SocketPath,
-			Protocol: common.ProtocolModbus,
-		},
-	)
-	go func() {
-		_ = grpcServer.Start()
-	}()
-	klog.Infoln("grpc server start finished")
-	go func() {
-		_ = httpserver.StartHTTPServer(c.HttpServer.Host)
-	}()
-	klog.Infoln("http server start finished")
 	panel.DevStart()
+	_ = httpserver.StartHTTPServer(c.HttpServer.Host)
+	klog.Infoln("http server start finished")
 }
