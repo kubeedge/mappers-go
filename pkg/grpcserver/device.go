@@ -53,7 +53,7 @@ func (s *Server) RemoveDevice(ctx context.Context, request *dmiapi.RemoveDeviceR
 		return nil, errors.New("device name is nil")
 	}
 
-	return nil, s.devPanel.RemoveDevice(request.GetDeviceName())
+	return &dmiapi.RemoveDeviceResponse{}, s.devPanel.RemoveDevice(request.GetDeviceName())
 }
 
 func (s *Server) UpdateDevice(ctx context.Context, request *dmiapi.UpdateDeviceRequest) (*dmiapi.UpdateDeviceResponse, error) {

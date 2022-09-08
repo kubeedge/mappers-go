@@ -46,6 +46,18 @@ func main() {
 	}
 	klog.Infof("config: %+v", c)
 
+	// start grpc server
+	grpcServer := grpcserver.NewServer(
+		grpcserver.Config{
+			SockPath: c.GrpcServer.SocketPath,
+			Protocol: common.ProtocolModbus,
+		},
+	)
+	go func() {
+		_ = grpcServer.Start()
+	}()
+	klog.Infoln("grpc server start finished")
+
 	global.MqttClient = common.MqttClient{
 		IP:         c.Mqtt.ServerAddress,
 		User:       c.Mqtt.Username,
@@ -71,6 +83,11 @@ func main() {
 		time.Sleep(2 * time.Second)
 		i++
 		klog.Infof("retry to init device, time: %d", i)
+
+		if i == 5 {
+			klog.Infof("retry 5 times. break")
+			break
+		}
 	}
 
 	klog.Infoln("devInit finished")
@@ -86,20 +103,10 @@ func main() {
 		klog.Infoln("registerMapper finished")
 	}
 
-	// start grpc server
-	grpcServer := grpcserver.NewServer(
-		grpcserver.Config{
-			SockPath: c.GrpcServer.SocketPath,
-			Protocol: common.ProtocolModbus,
-		},
-	)
-	go func() {
-		_ = grpcServer.Start()
-	}()
-	klog.Infoln("grpc server start finished")
-	go func() {
-		_ = httpserver.StartHTTPServer(c.HttpServer.Host)
-	}()
-	klog.Infoln("http server start finished")
+	//go func() {
+	//	_ = httpserver.StartHTTPServer(c.HttpServer.Host)
+	//}()
 	panel.DevStart()
+	_ = httpserver.StartHTTPServer(c.HttpServer.Host)
+	klog.Infoln("http server start finished")
 }

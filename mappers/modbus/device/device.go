@@ -434,6 +434,10 @@ func (d *DevPanel) GetDevice(deviceID string) (interface{}, error) {
 }
 
 func (d *DevPanel) RemoveDevice(deviceID string) error {
+	delete(d.devices, deviceID)
+	klog.Infof("deviceMuxs: %+v", d.deviceMuxs)
+	klog.Infof("devices: %+v", d.devices)
+	klog.Infof("delete device %s", deviceID)
 	return d.stopDev(deviceID)
 }
 

@@ -46,16 +46,15 @@ func NewServer(cfg Config) Server {
 
 func (s *Server) Start() error {
 	klog.Infof("uds socket path: %s", s.cfg.SockPath)
-	f, err := os.Stat(s.cfg.SockPath)
+	err := initSock(s.cfg.SockPath)
 	if err != nil {
+		klog.Fatalf("failed to remove uds socket with err: %v", err)
 		return err
-	}
-	if f.IsDir() {
-		return fmt.Errorf("socket file path is a directory")
 	}
 
 	lis, err := net.Listen("unix", s.cfg.SockPath)
 	if err != nil {
+		klog.Fatalf("failed to remove uds socket with err: %v", err)
 		return err
 	}
 	grpcServer := grpc.NewServer()
@@ -63,4 +62,20 @@ func (s *Server) Start() error {
 	reflection.Register(grpcServer)
 
 	return grpcServer.Serve(lis)
+}
+
+func initSock(sockPath string) error {
+	klog.Infof("init uds socket: %s", sockPath)
+	_, err := os.Stat(sockPath)
+	if err == nil {
+		err = os.Remove(sockPath)
+		if err != nil {
+			return err
+		}
+		return nil
+	} else if os.IsNotExist(err) {
+		return nil
+	} else {
+		return fmt.Errorf("fail to stat uds socket path")
+	}
 }
