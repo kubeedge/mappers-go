@@ -128,5 +128,6 @@ func StartHTTPServer(addr string) error {
 		Response(w, res)
 	})
 	klog.Infof("http server listen on: %s", addr)
-	return http.ListenAndServe(addr, mux)
+	http.ListenAndServe(addr, mux)
+	return nil
 }

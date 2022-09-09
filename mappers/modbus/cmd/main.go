@@ -105,9 +105,6 @@ func main() {
 		klog.Infoln("registerMapper finished")
 	}
 
-	//go func() {
-	//	_ = httpserver.StartHTTPServer(c.HttpServer.Host)
-	//}()
 	panel.DevStart()
 	_ = httpserver.StartHTTPServer(c.HttpServer.Host)
 	klog.Infoln("http server start finished")

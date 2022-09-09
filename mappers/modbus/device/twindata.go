@@ -125,6 +125,8 @@ func TransferData(isRegisterSwap bool, isSwap bool,
 
 func (td *TwinData) GetPayload() ([]byte, error) {
 	var err error
+	klog.Infof("td: %+v", td)
+	klog.Infof("td.visitorconfig: %+v", td.VisitorConfig)
 
 	td.Results, err = td.Client.Get(td.VisitorConfig.Register, td.VisitorConfig.Offset, uint16(td.VisitorConfig.Limit))
 	if err != nil {
