@@ -23,8 +23,8 @@ import (
 
 	"k8s.io/klog/v2"
 
-	"github.com/kubeedge/mappers-go/mappers/Template/driver"
-	"github.com/kubeedge/mappers-go/mappers/Template/globals"
+	"github.com/kubeedge/mappers-go/_template/mapper/driver"
+	"github.com/kubeedge/mappers-go/_template/mapper/globals"
 )
 
 // TwinData is the timer structure for getting twin/data.

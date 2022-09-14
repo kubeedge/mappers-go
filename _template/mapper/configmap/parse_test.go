@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/kubeedge/mappers-go/mappers/Template/globals"
+	"github.com/kubeedge/mappers-go/_template/mapper/globals"
 )
 
 func TestParse(t *testing.T) {

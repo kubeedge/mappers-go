@@ -39,7 +39,6 @@ func main() {
 		klog.Fatal(err)
 		os.Exit(1)
 	}
-	klog.V(4).Info(c.Configmap)
 
 	global.MqttClient = common.MqttClient{IP: c.Mqtt.ServerAddress,
 		User:       c.Mqtt.Username,

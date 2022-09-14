@@ -17,7 +17,7 @@ limitations under the License.
 package globals
 
 import (
-	"github.com/kubeedge/mappers-go/mappers/Template/driver"
+	"github.com/kubeedge/mappers-go/_template/mapper/driver"
 	"github.com/kubeedge/mappers-go/pkg/common"
 )
 

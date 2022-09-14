@@ -23,7 +23,7 @@ import (
 
 	"k8s.io/klog/v2"
 
-	"github.com/kubeedge/mappers-go/mappers/Template/globals"
+	"github.com/kubeedge/mappers-go/_template/mapper/globals"
 	"github.com/kubeedge/mappers-go/pkg/common"
 )
 
