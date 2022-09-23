@@ -28,7 +28,6 @@ import (
 	"github.com/kubeedge/mappers-go/mappers/onvif/device"
 	"github.com/kubeedge/mappers-go/pkg/common"
 	"github.com/kubeedge/mappers-go/pkg/global"
-	"github.com/kubeedge/mappers-go/pkg/httpserver"
 )
 
 func main() {
@@ -58,8 +57,5 @@ func main() {
 		os.Exit(1)
 	}
 
-	go func() {
-		_ = httpserver.StartHTTPServer(c.HttpServer.Host)
-	}()
 	device.DevStart()
 }
