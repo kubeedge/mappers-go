@@ -20,12 +20,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/kubeedge/mappers-go/pkg/common"
+	"golang.org/x/net/context"
+	"k8s.io/klog/v2"
 
 	"github.com/currantlabs/ble"
 	"github.com/currantlabs/ble/linux"
-	"golang.org/x/net/context"
-	"k8s.io/klog/v2"
+	"github.com/kubeedge/mappers-go/pkg/common"
 )
 
 type BleConfig struct {

@@ -23,10 +23,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/kubeedge/mappers-go/pkg/common"
-
 	"github.com/use-go/onvif"
 	"k8s.io/klog/v2"
+
+	"github.com/kubeedge/mappers-go/pkg/common"
 )
 
 // OnvifConfig is the structure for client configuration.

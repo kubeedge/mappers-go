@@ -9,7 +9,7 @@ import (
 
 	"github.com/kubeedge/kubeedge/cloud/pkg/apis/devices/v1alpha2"
 	"github.com/kubeedge/kubeedge/cloud/pkg/devicecontroller/controller"
-	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/dmi/v1"
+	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/dmi/v1alpha1"
 	"github.com/kubeedge/mappers-go/pkg/common"
 )
 

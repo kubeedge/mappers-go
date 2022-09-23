@@ -6,10 +6,11 @@ import (
 	"net"
 	"time"
 
-	"github.com/kubeedge/mappers-go/config"
-	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/dmi/v1"
-	"github.com/kubeedge/mappers-go/pkg/common"
 	"google.golang.org/grpc"
+
+	"github.com/kubeedge/mappers-go/config"
+	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/dmi/v1alpha1"
+	"github.com/kubeedge/mappers-go/pkg/common"
 )
 
 // RegisterMapper if withData is true, edgecore will send device and model list.

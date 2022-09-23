@@ -26,9 +26,7 @@ import (
 	"github.com/kubeedge/mappers-go/config"
 	"github.com/kubeedge/mappers-go/mappers/modbus/device"
 	"github.com/kubeedge/mappers-go/pkg/common"
-	"github.com/kubeedge/mappers-go/pkg/global"
 	"github.com/kubeedge/mappers-go/pkg/grpcserver"
-	"github.com/kubeedge/mappers-go/pkg/httpserver"
 	"github.com/kubeedge/mappers-go/pkg/util/grpcclient"
 	"github.com/kubeedge/mappers-go/pkg/util/parse"
 )
@@ -55,25 +53,8 @@ func main() {
 			Protocol: common.ProtocolModbus,
 		},
 	)
-	go func() {
-		_ = grpcServer.Start()
-	}()
-	klog.Infoln("grpc server start finished")
-
-	global.MqttClient = common.MqttClient{
-		IP:         c.Mqtt.ServerAddress,
-		User:       c.Mqtt.Username,
-		Passwd:     c.Mqtt.Password,
-		Cert:       c.Mqtt.Cert,
-		PrivateKey: c.Mqtt.PrivateKey,
-	}
-	if err = global.MqttClient.Connect(); err != nil {
-		klog.Fatal(err)
-		os.Exit(1)
-	}
 
 	panel := device.NewDevPanel()
-	i := 0
 	for {
 		err = panel.DevInit(&c)
 		if err == nil {
@@ -83,13 +64,7 @@ func main() {
 			klog.Error(err)
 		}
 		time.Sleep(2 * time.Second)
-		i++
-		klog.Infof("retry to init device, time: %d", i)
-
-		if i == 5 {
-			klog.Infof("retry 5 times. break")
-			break
-		}
+		// TODO..
 	}
 
 	klog.Infoln("devInit finished")
@@ -106,6 +81,9 @@ func main() {
 	}
 
 	panel.DevStart()
-	_ = httpserver.StartHTTPServer(c.HttpServer.Host)
-	klog.Infoln("http server start finished")
+
+	if err = grpcServer.Start(); err != nil {
+		klog.Fatal(err)
+	}
+	klog.Infoln("grpc server start finished")
 }

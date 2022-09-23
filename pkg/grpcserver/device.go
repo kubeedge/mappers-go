@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/dmi/v1"
+	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/dmi/v1alpha1"
 	"github.com/kubeedge/mappers-go/pkg/common"
 	"github.com/kubeedge/mappers-go/pkg/driver/modbus"
 	"github.com/kubeedge/mappers-go/pkg/util/parse"
@@ -14,8 +14,8 @@ import (
 	"k8s.io/klog/v2"
 )
 
-func (s *Server) CreateDevice(ctx context.Context, request *dmiapi.CreateDeviceRequest) (*dmiapi.CreateDeviceResponse, error) {
-	klog.V(2).Info("CreateDevice")
+func (s *Server) RegisterDevice(ctx context.Context, request *dmiapi.RegisterDeviceRequest) (*dmiapi.RegisterDeviceResponse, error) {
+	klog.V(2).Info("RegisterDevice")
 	device := request.GetDevice()
 	if device == nil {
 		return nil, errors.New("device is nil")
@@ -51,7 +51,7 @@ func (s *Server) CreateDevice(ctx context.Context, request *dmiapi.CreateDeviceR
 
 	s.devPanel.UpdateDev(&model, deviceInstance, &protocol)
 
-	return &dmiapi.CreateDeviceResponse{DeviceName: device.Name}, nil
+	return &dmiapi.RegisterDeviceResponse{DeviceName: device.Name}, nil
 }
 
 func (s *Server) RemoveDevice(ctx context.Context, request *dmiapi.RemoveDeviceRequest) (*dmiapi.RemoveDeviceResponse, error) {

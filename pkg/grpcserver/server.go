@@ -5,14 +5,14 @@ import (
 	"net"
 	"os"
 
-	modbusdevice "github.com/kubeedge/mappers-go/mappers/modbus/device"
-	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/dmi/v1"
-	"github.com/kubeedge/mappers-go/pkg/common"
-	"github.com/kubeedge/mappers-go/pkg/global"
-
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"k8s.io/klog/v2"
+
+	modbusdevice "github.com/kubeedge/mappers-go/mappers/modbus/device"
+	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/dmi/v1alpha1"
+	"github.com/kubeedge/mappers-go/pkg/common"
+	"github.com/kubeedge/mappers-go/pkg/global"
 )
 
 type Config struct {

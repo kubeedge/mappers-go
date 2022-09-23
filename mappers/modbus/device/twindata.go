@@ -24,10 +24,12 @@ import (
 	"strconv"
 	"strings"
 
+	"k8s.io/klog/v2"
+
+	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/dmi/v1alpha1"
 	"github.com/kubeedge/mappers-go/pkg/common"
 	"github.com/kubeedge/mappers-go/pkg/driver/modbus"
-	"github.com/kubeedge/mappers-go/pkg/global"
-	"k8s.io/klog/v2"
+	"github.com/kubeedge/mappers-go/pkg/util/grpcclient"
 )
 
 // TwinData is the timer structure for getting twin/data.
@@ -121,8 +123,6 @@ func TransferData(isRegisterSwap bool, isSwap bool,
 
 func (td *TwinData) GetPayload() ([]byte, error) {
 	var err error
-	klog.Infof("td: %+v", td)
-	klog.Infof("td.visitorconfig: %+v", td.VisitorConfig)
 
 	td.Results, err = td.Client.Get(td.VisitorConfig.Register, td.VisitorConfig.Offset, uint16(td.VisitorConfig.Limit))
 	if err != nil {
@@ -151,12 +151,21 @@ func (td *TwinData) GetPayload() ([]byte, error) {
 
 // Run timer function.
 func (td *TwinData) Run() {
-	payload, err := td.GetPayload()
-	if err != nil {
-		klog.Errorf("twindata %s get payload failed, err: %s", td.Name, err)
-		return
+	//payload, err := td.GetPayload()
+	//if err != nil {
+	//	klog.Errorf("twindata %s get payload failed, err: %s", td.Name, err)
+	//	return
+	//}
+
+	var rdsr = &dmiapi.ReportDeviceStatusRequest{
+		DeviceName: td.DeviceName,
+		ReportedDevice: &dmiapi.DeviceStatus{
+			Twins: []*dmiapi.Twin{}, // todo
+			State: "OK",
+		},
 	}
-	if err = global.MqttClient.Publish(td.Topic, payload); err != nil {
-		klog.Errorf("Publish topic %v failed, err: %v", td.Topic, err)
+	rdsr.ReportedDevice.Twins[0].Reported.Metadata["propertyType"] = "int"
+	if err := grpcclient.ReportDeviceStatus(rdsr); err != nil {
+		klog.Errorf("fail to report device status of %s with err: %+v", rdsr.DeviceName, err)
 	}
 }

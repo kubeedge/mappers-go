@@ -146,47 +146,6 @@ func initTwin(ctx context.Context, dev *modbus.ModbusDev) {
 	}
 }
 
-// initData initialize the timer to get data.
-func initData(ctx context.Context, dev *modbus.ModbusDev) {
-	for i := 0; i < len(dev.Instance.Datas.Properties); i++ {
-		var visitorConfig modbus.ModbusVisitorConfig
-		if err := json.Unmarshal([]byte(dev.Instance.Datas.Properties[i].PVisitor.VisitorConfig), &visitorConfig); err != nil {
-			klog.Errorf("Unmarshal VisitorConfig error: %v", err)
-			continue
-		}
-		twinData := TwinData{Client: dev.ModbusClient,
-			Name:          dev.Instance.Datas.Properties[i].PropertyName,
-			Type:          dev.Instance.Datas.Properties[i].Metadatas.Type,
-			VisitorConfig: &visitorConfig,
-			Topic:         fmt.Sprintf(common.TopicDataUpdate, dev.Instance.ID)}
-		collectCycle := time.Duration(dev.Instance.Datas.Properties[i].PVisitor.CollectCycle)
-		// If the collect cycle is not set, set it to 1 second.
-		if collectCycle == 0 {
-			collectCycle = 1 * time.Second
-		}
-		ticker := time.NewTicker(collectCycle)
-		select {
-		case <-ticker.C:
-			twinData.Run()
-		case <-ctx.Done():
-			return
-		}
-	}
-}
-
-// initGetStatus start timer to get device status and send to eventbus.
-func initGetStatus(ctx context.Context, dev *modbus.ModbusDev) {
-	getStatus := GetStatus{Client: dev.ModbusClient,
-		topic: fmt.Sprintf(common.TopicStateUpdate, dev.Instance.ID)}
-	ticker := time.NewTicker(time.Second)
-	select {
-	case <-ticker.C:
-		getStatus.Run()
-	case <-ctx.Done():
-		return
-	}
-}
-
 // start the device.
 func (d *DevPanel) start(ctx context.Context, dev *modbus.ModbusDev) {
 	var protocolCommConfig modbus.ModbusProtocolCommonConfig
@@ -212,9 +171,7 @@ func (d *DevPanel) start(ctx context.Context, dev *modbus.ModbusDev) {
 	dev.ModbusClient = client
 
 	go initTwin(ctx, dev)
-	go initData(ctx, dev)
 
-	go initGetStatus(ctx, dev)
 	<-ctx.Done()
 	d.wg.Done()
 }

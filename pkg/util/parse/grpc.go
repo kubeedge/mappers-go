@@ -8,7 +8,7 @@ import (
 	"k8s.io/klog/v2"
 
 	"github.com/kubeedge/kubeedge/cloud/pkg/devicecontroller/controller"
-	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/dmi/v1"
+	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/dmi/v1alpha1"
 	"github.com/kubeedge/mappers-go/pkg/common"
 )
 
@@ -227,10 +227,8 @@ func buildPropertyVisitorsFromGrpc(device *dmiapi.Device) []common.PropertyVisit
 			Protocol:      protocolName,
 			VisitorConfig: visitorConfig,
 		}
-		klog.Infof("cur: %+v", cur)
 		res = append(res, cur)
 	}
-	klog.Infof("res: %+v", res)
 	return res
 }
 

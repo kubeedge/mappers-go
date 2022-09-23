@@ -4,6 +4,7 @@ metadata:
   name: sensor-tag-model
   namespace: default
 spec:
+  protocol: modbus
   properties:
     - name: temperature
       description: temperature in degree celsius

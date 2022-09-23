@@ -21,10 +21,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/kubeedge/mappers-go/pkg/common"
-
-	"github.com/sailorvii/modbus"
 	"k8s.io/klog/v2"
+
+	"github.com/kubeedge/mappers-go/pkg/common"
+	"github.com/sailorvii/modbus"
 )
 
 // ModbusTCP is the configurations of modbus TCP.

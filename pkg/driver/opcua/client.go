@@ -22,11 +22,11 @@ import (
 	"io/ioutil"
 	"strconv"
 
-	"github.com/kubeedge/mappers-go/pkg/common"
-
 	"github.com/gopcua/opcua"
 	"github.com/gopcua/opcua/ua"
 	"k8s.io/klog/v2"
+
+	"github.com/kubeedge/mappers-go/pkg/common"
 )
 
 // OPCUAConfig configurations for OPCUA.
