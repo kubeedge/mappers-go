@@ -51,12 +51,6 @@ func (s *Server) CreateDevice(ctx context.Context, request *dmiapi.CreateDeviceR
 
 	s.devPanel.UpdateDev(&model, deviceInstance, &protocol)
 
-	// TODO need edgecore publish?
-	// publish device twin to mqtt
-	//topic := dtcommon.DeviceETPrefix + device.Name + dtcommon.DeviceETUpdatedSuffix
-	// publish device to mqtt
-	//topic := dtcommon.MemETPrefix + d.NodeName + dtcommon.MemETUpdateSuffix
-
 	return &dmiapi.CreateDeviceResponse{DeviceName: device.Name}, nil
 }
 
@@ -95,12 +89,6 @@ func (s *Server) UpdateDevice(ctx context.Context, request *dmiapi.UpdateDeviceR
 	deviceInstance.PProtocol = protocol
 
 	s.devPanel.UpdateDev(&model, deviceInstance, &protocol)
-
-	// TODO need edgecore publish?
-	// publish device twin to mqtt
-	//topic := dtcommon.DeviceETPrefix + device.Name + dtcommon.DeviceETUpdatedSuffix
-	// publish device to mqtt
-	//topic := dtcommon.MemETPrefix + d.NodeName + dtcommon.MemETUpdateSuffix
 
 	return &dmiapi.UpdateDeviceResponse{}, nil
 }

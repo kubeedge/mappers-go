@@ -14,7 +14,7 @@ import (
 
 // RegisterMapper if withData is true, edgecore will send device and model list.
 func RegisterMapper(cfg *config.Config, withData bool) ([]*dmiapi.Device, []*dmiapi.DeviceModel, error) {
-	// 连接grpc服务器
+	// 连接grpc server
 	//conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
 	conn, err := grpc.Dial(cfg.Common.EdgeCoreSock,
 		grpc.WithInsecure(),
@@ -32,19 +32,16 @@ func RegisterMapper(cfg *config.Config, withData bool) ([]*dmiapi.Device, []*dmi
 	if err != nil {
 		return nil, nil, fmt.Errorf("did not connect: %v", err)
 	}
-	// 延迟关闭连接
 	defer conn.Close()
 
-	// 初始化Greeter服务客户端
+	// init Greeter client
 	c := dmiapi.NewDeviceManagerServiceClient(conn)
 
-	// 初始化上下文，设置请求超时时间为1秒
+	// init ctx，set timeout
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	// 延迟关闭请求会话
 	defer cancel()
 
-	// 调用SayHello接口，发送一条消息
-	fmt.Println("======send grpc to edgecore for mapperRegister")
+	// call SayHello api，send a message
 	resp, err := c.MapperRegister(ctx, &dmiapi.MapperRegisterRequest{
 		WithData: withData,
 		Mapper: &dmiapi.MapperInfo{
@@ -59,8 +56,6 @@ func RegisterMapper(cfg *config.Config, withData bool) ([]*dmiapi.Device, []*dmi
 	if err != nil {
 		return nil, nil, err
 	}
-	fmt.Println("======send grpc to edgecore for mapperRegister finished")
-	fmt.Printf("======register response: %+v", resp)
 
 	return resp.DeviceList, resp.ModelList, err
 }

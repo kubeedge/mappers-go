@@ -331,9 +331,6 @@ func ParseByUsingMetaServer(cfg *config.Config,
 	if len(deviceModelList) == 0 {
 		return ErrEmptyData
 	}
-	// TODO test only
-	//deviceList := tmpDevices
-	//deviceModelList := tmpDeviceModels
 	modelMap := make(map[string]common.DeviceModel)
 	for _, model := range deviceModelList {
 		cur := ParseDeviceModel(&model)
@@ -365,7 +362,6 @@ func ParseByUsingRegister(cfg *config.Config,
 	devices map[string]*common.DeviceInstance,
 	dms map[string]common.DeviceModel,
 	protocols map[string]common.Protocol) error {
-	klog.Infoln("======parse device and model from register")
 	deviceList, deviceModelList, err := grpcclient.RegisterMapper(cfg, true)
 	if err != nil {
 		return err
@@ -376,16 +372,12 @@ func ParseByUsingRegister(cfg *config.Config,
 	}
 	modelMap := make(map[string]common.DeviceModel)
 	for _, model := range deviceModelList {
-		klog.Infof("======ParseByUsingRegister model %+v", model)
 		cur := ParseDeviceModelFromGrpc(model)
-		klog.Infof("======model map key: %s, value: %+v", model.Name, cur)
 		modelMap[model.Name] = cur
 	}
 
 	for _, device := range deviceList {
-		klog.Infof("======ParseByUsingRegister device %+v", device)
 		commonModel := modelMap[device.Spec.DeviceModelReference]
-		klog.Infof("======get model from map, ref key: %s, value: %+v", device.Spec.DeviceModelReference, commonModel)
 		protocol, err := BuildProtocolFromGrpc(device)
 		if err != nil {
 			return err

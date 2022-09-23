@@ -181,44 +181,36 @@ func buildDataFromGrpc(device *dmiapi.Device) common.Data {
 }
 
 func buildPropertyVisitorsFromGrpc(device *dmiapi.Device) []common.PropertyVisitor {
-	klog.Infof("##########################")
 	if len(device.Spec.PropertyVisitors) == 0 {
 		return nil
 	}
-	klog.Infof("##########################")
 	protocolName, err := getProtocolNameFromGrpc(device)
 	if err != nil {
 		return nil
 	}
-	klog.Infof("##########################")
 	res := make([]common.PropertyVisitor, 0, len(device.Spec.PropertyVisitors))
 	for _, pptv := range device.Spec.PropertyVisitors {
-		klog.Infof("##########################")
 		var visitorConfig []byte
 		switch protocolName {
 		case controller.Modbus:
-			klog.Infof("##########################")
 			visitorConfig, err = json.Marshal(pptv.Modbus)
 			if err != nil {
 				klog.Errorf("err: %+v", err)
 				return nil
 			}
 		case controller.OPCUA:
-			klog.Infof("##########################")
 			visitorConfig, err = json.Marshal(pptv.Opcua)
 			if err != nil {
 				klog.Errorf("err: %+v", err)
 				return nil
 			}
 		case controller.Bluetooth:
-			klog.Infof("##########################")
 			visitorConfig, err = json.Marshal(pptv.Bluetooth)
 			if err != nil {
 				klog.Errorf("err: %+v", err)
 				return nil
 			}
 		case controller.CustomizedProtocol:
-			klog.Infof("##########################")
 			visitorConfig, err = json.Marshal(pptv.CustomizedProtocol)
 			if err != nil {
 				klog.Errorf("err: %+v", err)
@@ -226,7 +218,6 @@ func buildPropertyVisitorsFromGrpc(device *dmiapi.Device) []common.PropertyVisit
 			}
 		}
 
-		klog.Infof("##########################")
 		cur := common.PropertyVisitor{
 			Name:          pptv.PropertyName,
 			PropertyName:  pptv.PropertyName,
@@ -238,7 +229,6 @@ func buildPropertyVisitorsFromGrpc(device *dmiapi.Device) []common.PropertyVisit
 		}
 		klog.Infof("cur: %+v", cur)
 		res = append(res, cur)
-		klog.Infof("##########################")
 	}
 	klog.Infof("res: %+v", res)
 	return res
@@ -297,8 +287,6 @@ func ParseDeviceModelFromGrpc(model *dmiapi.DeviceModel) common.DeviceModel {
 }
 
 func ParseDeviceFromGrpc(device *dmiapi.Device, commonModel *common.DeviceModel) (*common.DeviceInstance, error) {
-	klog.Infof("model: %+v", commonModel)
-	klog.Infof("device: %+v", device)
 	protocolName, err := getProtocolNameFromGrpc(device)
 	if err != nil {
 		return nil, err
@@ -319,21 +307,16 @@ func ParseDeviceFromGrpc(device *dmiapi.Device, commonModel *common.DeviceModel)
 			continue
 		}
 
-		klog.Infof("======commonmodel property len: %d", len(commonModel.Properties))
 		for _, property := range commonModel.Properties {
 			if property.Name == instance.PropertyVisitors[i].PropertyName {
-				klog.Infof("======common property %s equal, set instance propertyVisitor PProperty", property.Name)
 				instance.PropertyVisitors[i].PProperty = property
 				break
 			}
 		}
-		klog.Infof("======set propertyVisitorMap property, key: %s, value: %+v", instance.PropertyVisitors[i].PProperty.Name, instance.PropertyVisitors[i])
 		propertyVisitorMap[instance.PropertyVisitors[i].PProperty.Name] = instance.PropertyVisitors[i]
 	}
 	for i := 0; i < len(instance.Twins); i++ {
-		klog.Infof("====== current instance twin property name %s", instance.Twins[i].PropertyName)
 		if v, ok := propertyVisitorMap[instance.Twins[i].PropertyName]; ok {
-			klog.Infof("====== current instance twin property set visitor %+v", v)
 			instance.Twins[i].PVisitor = &v
 		}
 	}
