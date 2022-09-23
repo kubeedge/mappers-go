@@ -19,12 +19,11 @@ package main
 import (
 	"errors"
 	"os"
-	"time"
 
 	"k8s.io/klog/v2"
 
 	"github.com/kubeedge/mappers-go/config"
-	"github.com/kubeedge/mappers-go/mappers/modbus/device"
+	"github.com/kubeedge/mappers-go/mappers/modbus-dmi/device"
 	"github.com/kubeedge/mappers-go/pkg/common"
 	"github.com/kubeedge/mappers-go/pkg/grpcserver"
 	"github.com/kubeedge/mappers-go/pkg/util/grpcclient"
@@ -55,18 +54,10 @@ func main() {
 	)
 
 	panel := device.NewDevPanel()
-	for {
-		err = panel.DevInit(&c)
-		if err == nil {
-			break
-		}
-		if !errors.Is(err, parse.ErrEmptyData) {
-			klog.Error(err)
-		}
-		time.Sleep(2 * time.Second)
-		// TODO..
+	err = panel.DevInit(&c)
+	if err != nil || !errors.Is(err, parse.ErrEmptyData) {
+		klog.Fatal(err)
 	}
-
 	klog.Infoln("devInit finished")
 
 	// register to edgecore

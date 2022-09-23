@@ -17,7 +17,6 @@ limitations under the License.
 package main
 
 import (
-	"github.com/kubeedge/mappers-go/_template/mapper/globals"
 	"os"
 
 	"k8s.io/klog/v2"
@@ -25,6 +24,7 @@ import (
 	"github.com/kubeedge/mappers-go/config"
 	"github.com/kubeedge/mappers-go/mappers/modbus/device"
 	"github.com/kubeedge/mappers-go/pkg/common"
+	"github.com/kubeedge/mappers-go/pkg/global"
 )
 
 func main() {
@@ -39,12 +39,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	globals.MqttClient = common.MqttClient{IP: c.Mqtt.ServerAddress,
+	global.MqttClient = common.MqttClient{IP: c.Mqtt.ServerAddress,
 		User:       c.Mqtt.Username,
 		Passwd:     c.Mqtt.Password,
 		Cert:       c.Mqtt.Cert,
 		PrivateKey: c.Mqtt.PrivateKey}
-	if err = globals.MqttClient.Connect(); err != nil {
+	if err = global.MqttClient.Connect(); err != nil {
 		klog.Fatal(err)
 		os.Exit(1)
 	}
