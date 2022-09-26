@@ -1,0 +1,217 @@
+apiVersion: devices.kubeedge.io/v1alpha2
+kind: Device
+metadata:
+  name: camera-instance
+  labels:
+    model: camera-instance-model
+spec:
+  deviceModelRef:
+    name: camera-instance-model
+  protocol:
+    common:
+      customizedValues:
+        deviceSN: '23636483'
+    customizedProtocol:
+      protocolName: GigEVision
+  nodeSelector:
+    nodeSelectorTerms:
+      - matchExpressions:
+          - key: ''
+            operator: In
+            values:
+              - edge51
+  propertyVisitors:
+    - propertyName: PixelFormat
+      collectCycle: 1000000000
+      reportCycle: 1000000000
+      customizedProtocol:
+        protocolName: GigEVision
+        configData:
+          FeatureName: 'PixelFormat'
+    - propertyName: ImageTrigger
+      collectCycle: -1
+      reportCycle: -1
+      customizedProtocol:
+        protocolName: GigEVision
+        configData:
+          FeatureName: 'ImageTrigger'
+    - propertyName: ImageFormat
+      collectCycle: 1000000000
+      reportCycle: 1000000000
+      customizedProtocol:
+        protocolName: GigEVision
+        configData:
+          FeatureName: 'ImageFormat'
+    - propertyName: ImageURL
+      collectCycle: 1000000000
+      reportCycle: 1000000000
+      customizedProtocol:
+        protocolName: GigEVision
+        configData:
+          FeatureName: 'ImageURL'
+    - propertyName: Width
+      collectCycle: 1000000000
+      reportCycle: 1000000000
+      customizedProtocol:
+        protocolName: GigEVision
+        configData:
+          FeatureName: 'Width'
+    - propertyName: Height
+      collectCycle: 1000000000
+      reportCycle: 1000000000
+      customizedProtocol:
+        protocolName: GigEVision
+        configData:
+          FeatureName: 'Height'
+    - propertyName: OffsetX
+      collectCycle: 1000000000
+      reportCycle: 1000000000
+      customizedProtocol:
+        protocolName: GigEVision
+        configData:
+          FeatureName: 'OffsetX'
+    - propertyName: OffsetY
+      collectCycle: 1000000000
+      reportCycle: 1000000000
+      customizedProtocol:
+        protocolName: GigEVision
+        configData:
+          FeatureName: 'OffsetY'
+    - propertyName: AcquisitionFrameRateAbs
+      collectCycle: 1000000000
+      reportCycle: 1000000000
+      customizedProtocol:
+        protocolName: GigEVision
+        configData:
+          FeatureName: 'AcquisitionFrameRateAbs'
+    - propertyName: AcquisitionFrameRateEnable
+      collectCycle: 1000000000
+      reportCycle: 1000000000
+      customizedProtocol:
+        protocolName: GigEVision
+        configData:
+          FeatureName: 'AcquisitionFrameRateEnable'
+    - propertyName: ExposureTimeAbs
+      collectCycle: 1000000000
+      reportCycle: 1000000000
+      customizedProtocol:
+        protocolName: GigEVision
+        configData:
+          FeatureName: 'ExposureTimeAbs'
+    - propertyName: AutoFunctionAOIUsageWhiteBalance
+      collectCycle: 1000000000
+      reportCycle: 1000000000
+      customizedProtocol:
+        protocolName: GigEVision
+        configData:
+          FeatureName: 'AutoFunctionAOIUsageWhiteBalance'
+status:
+  twins:
+    - propertyName: PixelFormat
+      desired:
+        metadata:
+          type: string
+        value: 'Mono8'
+      reported:
+        metadata:
+          type: string
+        value: 'Mono8'
+    - propertyName: ImageTrigger
+      desired:
+        metadata:
+          type: string
+        value: ''
+      reported:
+        metadata:
+          type: string
+        value: ''
+    - propertyName: ImageFormat
+      desired:
+        metadata:
+          type: string
+        value: ''
+      reported:
+        metadata:
+          type: string
+        value: 'jpeg'
+    - propertyName: ImageURL
+      desired:
+        metadata:
+          type: string
+        value: ''
+      reported:
+        metadata:
+          type: string
+        value: '192.168.137.61'
+    - propertyName: Width
+      desired:
+        metadata:
+          type: integer
+        value: '600'
+      reported:
+        metadata:
+          type: integer
+        value: '659'
+    - propertyName: Height
+      desired:
+        metadata:
+          type: integer
+        value: '494'
+      reported:
+        metadata:
+          type: integer
+        value: '494'
+    - propertyName: OffsetX
+      desired:
+        metadata:
+          type: integer
+        value: '0'
+      reported:
+        metadata:
+          type: integer
+        value: '0'
+    - propertyName: OffsetY
+      desired:
+        metadata:
+          type: integer
+        value: '0'
+      reported:
+        metadata:
+          type: integer
+        value: '0'
+    - propertyName: AcquisitionFrameRateAbs
+      desired:
+        metadata:
+          type: float
+        value: '10'
+      reported:
+        metadata:
+          type: float
+        value: '10'
+    - propertyName: AcquisitionFrameRateEnable
+      desired:
+        metadata:
+          type: boolean
+        value: '0'
+      reported:
+        metadata:
+          type: boolean
+        value: '0'
+    - propertyName: ExposureTimeAbs
+      desired:
+        metadata:
+          type: float
+        value: '8000'
+      reported:
+        metadata:
+          type: float
+        value: '8000'
+    - propertyName: AutoFunctionAOIUsageWhiteBalance
+      desired:
+        metadata:
+          type: boolean
+        value: '0'
+      reported:
+        metadata:
+          type: boolean
+        value: '0'

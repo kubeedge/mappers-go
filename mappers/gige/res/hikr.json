@@ -1,0 +1,490 @@
+{
+  "deviceInstances": [
+    {
+      "id": "hikrobot-mv-ca050-12gc",
+      "name": "hikrobot-mv-ca050-12gc",
+      "protocol": "customized-protocol-hikrobot-mv-ca050-12gc",
+      "model": "hikrobot-model",
+      "twins": [
+        {
+          "propertyName": "ImageFormat",
+          "desired": {
+            "value": "",
+            "metadata": {
+              "timestamp": "1550049403598",
+              "type": "string"
+            }
+          },
+          "reported": {
+            "value": "",
+            "metadata": {
+              "timestamp": "1550049403598",
+              "type": "string"
+            }
+          }
+        },
+        {
+          "propertyName": "PixelFormat",
+          "desired": {
+            "value": "BayerRG8",
+            "metadata": {
+              "timestamp": "1550049403598",
+              "type": "string"
+            }
+          },
+          "reported": {
+            "value": "BayerRG8",
+            "metadata": {
+              "timestamp": "1550049403598",
+              "type": "string"
+            }
+          }
+        },
+        {
+          "propertyName": "ImageTrigger",
+          "desired": {
+            "value": "",
+            "metadata": {
+              "timestamp": "1550049403598",
+              "type": "bytes"
+            }
+          },
+          "reported": {
+            "value": "",
+            "metadata": {
+              "timestamp": "1550049403598",
+              "type": "string"
+            }
+          }
+        },
+        {
+          "propertyName": "Width",
+          "desired": {
+            "value": "",
+            "metadata": {
+              "timestamp": "1550049403598",
+              "type": "integer"
+            }
+          },
+          "reported": {
+            "value": "2000",
+            "metadata": {
+              "timestamp": "1550049403598",
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "propertyName": "Height",
+          "desired": {
+            "value": "",
+            "metadata": {
+              "timestamp": "1550049403598",
+              "type": "integer"
+            }
+          },
+          "reported": {
+            "value": "2000",
+            "metadata": {
+              "timestamp": "1550049403598",
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "propertyName": "OffsetX",
+          "desired": {
+            "value": "0",
+            "metadata": {
+              "timestamp": "1550049403598",
+              "type": "integer"
+            }
+          },
+          "reported": {
+            "value": "0",
+            "metadata": {
+              "timestamp": "1550049403598",
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "propertyName": "OffsetY",
+          "desired": {
+            "value": "0",
+            "metadata": {
+              "timestamp": "1550049403598",
+              "type": "integer"
+            }
+          },
+          "reported": {
+            "value": "0",
+            "metadata": {
+              "timestamp": "1550049403598",
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "propertyName": "AcquisitionFrameRateEnable",
+          "desired": {
+            "value": "true",
+            "metadata": {
+              "timestamp": "1550049403598",
+              "type": "boolean"
+            }
+          },
+          "reported": {
+            "value": "true",
+            "metadata": {
+              "timestamp": "1550049403598",
+              "type": "boolean"
+            }
+          }
+        },
+        {
+          "propertyName": "AcquisitionFrameRate",
+          "desired": {
+            "value": "20.0",
+            "metadata": {
+              "timestamp": "1550049403598",
+              "type": "float"
+            }
+          },
+          "reported": {
+            "value": "20.0",
+            "metadata": {
+              "timestamp": "1550049403598",
+              "type": "float"
+            }
+          }
+        },
+        {
+          "propertyName": "ExposureAuto",
+          "desired": {
+            "value": "Off",
+            "metadata": {
+              "timestamp": "1550049403598",
+              "type": "string"
+            }
+          },
+          "reported": {
+            "value": "Off",
+            "metadata": {
+              "timestamp": "1550049403598",
+              "type": "string"
+            }
+          }
+        },
+        {
+          "propertyName": "ExposureTime",
+          "desired": {
+            "value": "40000.0",
+            "metadata": {
+              "timestamp": "1550049403598",
+              "type": "float"
+            }
+          },
+          "reported": {
+            "value": "40000.0",
+            "metadata": {
+              "timestamp": "1550049403598",
+              "type": "float"
+            }
+          }
+        },
+        {
+          "propertyName": "BalanceWhiteAuto",
+          "desired": {
+            "value": "Continuous",
+            "metadata": {
+              "timestamp": "1550049403598",
+              "type": "string"
+            }
+          },
+          "reported": {
+            "value": "Continuous",
+            "metadata": {
+              "timestamp": "1550049403598",
+              "type": "string"
+            }
+          }
+        }
+      ],
+      "propertyVisitors": [
+        {
+          "name": "PixelFormat",
+          "propertyName": "PixelFormat",
+          "modelName": "hikrobot-model",
+          "protocol": "customized-protocol",
+          "collectCycle": 2000000000,
+          "visitorConfig": {
+            "protocolName": "GigEVision",
+            "configData": {
+              "FeatureName": "PixelFormat"
+            }
+          }
+        },
+        {
+          "name": "ImageTrigger",
+          "propertyName": "ImageTrigger",
+          "modelName": "hikrobot-model",
+          "protocol": "customized-protocol",
+          "collectCycle": -1,
+          "visitorConfig": {
+            "protocolName": "GigEVision",
+            "configData": {
+              "FeatureName": "ImageTrigger"
+            }
+          }
+        },
+        {
+          "name": "ImageFormat",
+          "propertyName": "ImageFormat",
+          "modelName": "hikrobot-model",
+          "protocol": "customized-protocol",
+          "collectCycle": -1,
+          "visitorConfig": {
+            "protocolName": "GigEVision",
+            "configData": {
+              "FeatureName": "ImageFormat"
+            }
+          }
+        },
+        {
+          "name": "Width",
+          "propertyName": "Width",
+          "modelName": "hikrobot-model",
+          "protocol": "customized-protocol",
+          "collectCycle": 2000000000,
+          "visitorConfig": {
+            "protocolName": "GigEVision",
+            "configData": {
+              "FeatureName": "Width"
+            }
+          }
+        },
+        {
+          "name": "Height",
+          "propertyName": "Height",
+          "modelName": "hikrobot-model",
+          "protocol": "customized-protocol",
+          "collectCycle": 2000000000,
+          "visitorConfig": {
+            "protocolName": "gigevision",
+            "configData": {
+              "FeatureName": "Height"
+            }
+          }
+        },
+        {
+          "name": "OffsetX",
+          "propertyName": "OffsetX",
+          "modelName": "hikrobot-model",
+          "protocol": "customized-protocol",
+          "collectCycle": 2000000000,
+          "visitorConfig": {
+            "protocolName": "GigEVision",
+            "configData": {
+              "FeatureName": "OffsetX"
+            }
+          }
+        },
+        {
+          "name": "OffsetY",
+          "propertyName": "OffsetY",
+          "modelName": "hikrobot-model",
+          "protocol": "customized-protocol",
+          "collectCycle": 2000000000,
+          "visitorConfig": {
+            "protocolName": "GigEVision",
+            "configData": {
+              "FeatureName": "OffsetY"
+            }
+          }
+        },
+        {
+          "name": "AcquisitionFrameRateEnable",
+          "propertyName": "AcquisitionFrameRateEnable",
+          "modelName": "hikrobot-model",
+          "protocol": "customized-protocol",
+          "collectCycle": 2000000000,
+          "visitorConfig": {
+            "protocolName": "GigEVision",
+            "configData": {
+              "FeatureName": "AcquisitionFrameRateEnable"
+            }
+          }
+        },
+        {
+          "name": "AcquisitionFrameRate",
+          "propertyName": "AcquisitionFrameRate",
+          "modelName": "hikrobot-model",
+          "protocol": "customized-protocol",
+          "collectCycle": 2000000000,
+          "visitorConfig": {
+            "protocolName": "GigEVision",
+            "configData": {
+              "FeatureName": "AcquisitionFrameRate"
+            }
+          }
+        },
+        {
+          "name": "ExposureAuto",
+          "propertyName": "ExposureAuto",
+          "modelName": "hikrobot-model",
+          "protocol": "customized-protocol",
+          "collectCycle": 2000000000,
+          "visitorConfig": {
+            "protocolName": "GigEVision",
+            "configData": {
+              "FeatureName": "ExposureAuto"
+            }
+          }
+        },
+        {
+          "name": "ExposureTime",
+          "propertyName": "ExposureTime",
+          "modelName": "hikrobot-model",
+          "protocol": "customized-protocol",
+          "collectCycle": 2000000000,
+          "visitorConfig": {
+            "protocolName": "GigEVision",
+            "configData": {
+              "FeatureName": "ExposureTime"
+            }
+          }
+        },
+        {
+          "name": "BalanceWhiteAuto",
+          "propertyName": "BalanceWhiteAuto",
+          "modelName": "hikrobot-model",
+          "protocol": "customized-protocol",
+          "collectCycle": 2000000000,
+          "visitorConfig": {
+            "protocolName": "GigEVision",
+            "configData": {
+              "FeatureName": "BalanceWhiteAuto"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "deviceModels": [
+    {
+      "name": "hikrobot-model",
+      "properties": [
+        {
+          "name": "PixelFormat",
+          "dataType": "string",
+          "description": "PixelFormat",
+          "accessMode": "ReadWrite",
+          "defaultValue": "BayerRG8"
+        },
+        {
+          "name": "ImageTrigger",
+          "dataType": "bytes",
+          "description": "ImageTrigger",
+          "accessMode": "ReadOnly"
+        },
+        {
+          "name": "ImageFormat",
+          "dataType": "string",
+          "description": "ImageFormat",
+          "accessMode": "ReadWrite",
+          "defaultValue": ""
+        },
+        {
+          "name": "Width",
+          "dataType": "int",
+          "description": "ImageWidth",
+          "accessMode": "ReadWrite",
+          "defaultValue": 2000,
+          "minimum": 32,
+          "maximum": 2448
+        },
+        {
+          "name": "Height",
+          "dataType": "int",
+          "description": "ImageHeight",
+          "accessMode": "ReadWrite",
+          "defaultValue": 2000,
+          "minimum": 32,
+          "maximum": 2048
+        },
+        {
+          "name": "OffsetX",
+          "dataType": "int",
+          "description": "ImageOffsetX",
+          "accessMode": "ReadWrite",
+          "defaultValue": 0,
+          "minimum": 0,
+          "maximum": 0
+        },
+        {
+          "name": "OffsetY",
+          "dataType": "int",
+          "description": "ImageOffsetY",
+          "accessMode": "ReadWrite",
+          "defaultValue": 0,
+          "minimum": 0,
+          "maximum": 0
+        },
+        {
+          "name": "AcquisitionFrameRateEnable",
+          "dataType": "boolean",
+          "description": "AcquisitionFrameRateEnable",
+          "accessMode": "ReadWrite",
+          "defaultValue": true
+        },
+        {
+          "name": "AcquisitionFrameRate",
+          "dataType": "float",
+          "description": "AcquisitionFrameRate",
+          "accessMode": "ReadWrite",
+          "defaultValue": 20,
+          "minimum": 0,
+          "maximum": 0
+        },
+        {
+          "name": "ExposureAuto",
+          "dataType": "string",
+          "description": "ExposureAuto",
+          "accessMode": "ReadWrite",
+          "defaultValue": "Off"
+        },
+        {
+          "name": "ExposureTime",
+          "dataType": "float",
+          "description": "ImageOffsetY",
+          "accessMode": "ReadWrite",
+          "defaultValue": 40000,
+          "minimum": 0,
+          "maximum": 0
+        },
+        {
+          "name": "BalanceWhiteAuto",
+          "dataType": "string",
+          "description": "BalanceWhiteAuto",
+          "accessMode": "ReadWrite",
+          "defaultValue": "Continuous"
+        }
+      ]
+    }
+  ],
+  "protocols": [
+    {
+      "name": "customized-protocol-hikrobot-mv-ca050-12gc",
+      "protocol": "customized-protocol",
+      "protocolConfig": {
+        "protocolName": "GigEVision"
+      },
+      "protocolCommonConfig": {
+        "customizedValues": {
+          "deviceSN": "00F57418188"
+        }
+      }
+    }
+  ]
+}

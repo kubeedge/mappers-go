@@ -1,0 +1,72 @@
+apiVersion: devices.kubeedge.io/v1alpha2
+kind: DeviceModel
+metadata:
+  name: camera-instance-model
+spec:
+  properties:
+    - name: PixelFormat
+      type:
+        string:
+          accessMode: ReadWrite
+          defaultValue: 'Mono8'
+    - name: ImageTrigger
+      type:
+        bytes:
+          accessMode: ReadOnly
+    - name: ImageFormat
+      type:
+        boolean:
+          accessMode: ReadWrite
+          defaultValue: "jpeg"
+    - name: ImageURL
+      type:
+        string:
+          accessMode: ReadWrite
+    - name: AutoFunctionAOIUsageWhiteBalance
+      type:
+        boolean:
+          accessMode: ReadWrite
+          defaultValue: false
+    - name: AcquisitionFrameRateEnable
+      type:
+        boolean:
+          accessMode: ReadWrite
+          defaultValue: false
+    - name: ExposureTimeAbs
+      type:
+        float:
+          accessMode: ReadWrite
+          defaultValue: 8000.0
+          minimum: 4
+          maximum: 100000
+          unit: 'us'
+    - name: AcquisitionFrameRateAbs
+      type:
+        float:
+          accessMode: ReadWrite
+          defaultValue: 10.0
+          unit: 'Hz'
+    - name: Width
+      type:
+        int:
+          accessMode: ReadWrite
+          defaultValue: 659
+          minimum: 0
+          maximum: 659
+    - name: Height
+      type:
+        int:
+          accessMode: ReadWrite
+          defaultValue: 494
+          minimum: 0
+          maximum: 494
+    - name: OffsetX
+      type:
+        int:
+          accessMode: ReadWrite
+          defaultValue: 0
+    - name: OffsetY
+      type:
+        int:
+          accessMode: ReadWrite
+          defaultValue: 0
