@@ -1,0 +1,23 @@
+mqtt:
+  server: tcp://127.0.0.1:1883
+  #  server: tcp://192.168.2.69:1883
+  username: ""
+  password: ""
+  certification: ""
+http_server:
+  host: 127.0.0.1:10555
+grpc_server:
+  socket_path: /tmp/a.sock
+common:
+  name: mapper-test
+  version: v1.0.0
+  api_version: v1.0.0
+  protocol: modbus
+  address: 127.0.0.1
+  edgecore_sock: /tmp/edgecore.sock
+dev_init:
+  mode: register #register/metaserver/configmap
+  configmap: /opt/kubeedge/deviceProfile.json
+  metaserver:
+    addr: http://10.32.209.110:10550
+    namespace: dec-public
