@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/dmi/v1alpha1"
+	dmiapi "github.com/kubeedge/kubeedge/pkg/apis/dmi/v1alpha1"
 	"github.com/kubeedge/mappers-go/pkg/common"
 	"github.com/kubeedge/mappers-go/pkg/driver/modbus"
 	"github.com/kubeedge/mappers-go/pkg/util/parse"

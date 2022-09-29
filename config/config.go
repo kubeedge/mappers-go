@@ -36,30 +36,9 @@ var defaultConfigFile = "./config.yaml"
 
 // Config is the common mapper configuration.
 type Config struct {
-	Mqtt       Mqtt       `yaml:"mqtt,omitempty"`
-	HttpServer HTTPServer `yaml:"http_server"`
 	GrpcServer GRPCServer `yaml:"grpc_server"`
 	Common     Common     `yaml:"common"`
 	DevInit    DevInit    `yaml:"dev_init"`
-}
-
-// Mqtt is the Mqtt configuration.
-type Mqtt struct {
-	ServerAddress string `yaml:"server,omitempty"`
-	Username      string `yaml:"username,omitempty"`
-	Password      string `yaml:"password,omitempty"`
-	Cert          string `yaml:"certification,omitempty"`
-	PrivateKey    string `yaml:"privatekey,omitempty"`
-}
-
-// MetaServer is the MetaServer configuration.
-type MetaServer struct {
-	Addr      string `yaml:"addr"`
-	Namespace string `json:"namespace"`
-}
-
-type HTTPServer struct {
-	Host string `yaml:"host"`
 }
 
 type GRPCServer struct {
@@ -76,9 +55,8 @@ type Common struct {
 }
 
 type DevInit struct {
-	Mode       string     `yaml:"mode"`
-	Configmap  string     `yaml:"configmap"`
-	MetaServer MetaServer `yaml:"metaserver"`
+	Mode      string `yaml:"mode"`
+	Configmap string `yaml:"configmap"`
 }
 
 // Parse the configuration file. If failed, return error.
@@ -89,7 +67,6 @@ func (c *Config) Parse() error {
 
 	pflag.StringVar(&loglevel, "v", "1", "log level")
 	pflag.StringVar(&configFile, "config-file", defaultConfigFile, "Config file name")
-	pflag.StringVar(&c.DevInit.MetaServer.Addr, "metaserver-addr", "http://127.0.0.1:10550", "edgecore meta server addr")
 
 	cf, err := ioutil.ReadFile(configFile)
 	if err != nil {
@@ -99,10 +76,6 @@ func (c *Config) Parse() error {
 		return err
 	}
 	if err = level.Set(loglevel); err != nil {
-		return err
-	}
-
-	if err = c.parseFlags(); err != nil {
 		return err
 	}
 
@@ -121,30 +94,11 @@ func (c *Config) Parse() error {
 		}
 	case common.DevInitModeRegister:
 	case "": // if mode is nil, use meta server mode
-		c.DevInit.Mode = common.DevInitModeMetaServer
+		c.DevInit.Mode = common.DevInitModeRegister
 		fallthrough
-	case common.DevInitModeMetaServer:
-		if c.DevInit.MetaServer.Namespace == "" {
-			c.DevInit.MetaServer.Namespace = "default"
-		}
 	default:
 		return errors.New("unsupported dev init mode " + c.DevInit.Mode)
 	}
 
-	return nil
-}
-
-// parseFlags parse flags. Certification and Private key must be provided at the same time.
-func (c *Config) parseFlags() error {
-	pflag.StringVar(&c.Mqtt.ServerAddress, "mqtt-address", c.Mqtt.ServerAddress, "MQTT broker address")
-	pflag.StringVar(&c.Mqtt.Username, "mqtt-username", c.Mqtt.Username, "username")
-	pflag.StringVar(&c.Mqtt.Password, "mqtt-password", c.Mqtt.Password, "password")
-	pflag.StringVar(&c.Mqtt.Cert, "mqtt-certification", c.Mqtt.Cert, "certification file path")
-	pflag.StringVar(&c.Mqtt.PrivateKey, "mqtt-privatekey", c.Mqtt.PrivateKey, "private key file path")
-	pflag.Parse()
-	if (c.Mqtt.Cert != "" && c.Mqtt.PrivateKey == "") ||
-		(c.Mqtt.Cert == "" && c.Mqtt.PrivateKey != "") {
-		return ErrConfigCert
-	}
 	return nil
 }

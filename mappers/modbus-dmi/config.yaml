@@ -8,8 +8,5 @@ common:
   address: 127.0.0.1
   edgecore_sock: /etc/kubeedge/dmi.sock
 dev_init:
-  mode: register #register/metaserver/configmap
+  mode: register #register/configmap
   configmap: /opt/kubeedge/deviceProfile.json
-  metaserver:
-    addr: http://10.32.209.110:10550
-    namespace: dec-public

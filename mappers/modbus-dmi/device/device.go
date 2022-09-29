@@ -181,10 +181,6 @@ func (d *DevPanel) DevInit(cfg *config.Config) error {
 	devs := make(map[string]*common.DeviceInstance)
 
 	switch cfg.DevInit.Mode {
-	case common.DevInitModeMetaServer:
-		if err := parse.ParseByUsingMetaServer(cfg, devs, d.models, d.protocols); err != nil {
-			return err
-		}
 	case common.DevInitModeConfigmap:
 		if err := parse.Parse(cfg.DevInit.Configmap, devs, d.models, d.protocols); err != nil {
 			return err
@@ -313,12 +309,9 @@ func (d *DevPanel) GetDevice(deviceID string) (interface{}, error) {
 	if !ok || found == nil {
 		return nil, fmt.Errorf("device %s not found", deviceID)
 	}
-	klog.Infof("found: %+v", found)
 
 	// get the latest reported twin value
 	for i, twin := range found.Instance.Twins {
-		klog.Infof("found device twin %s: %+v", twin.PropertyName, twin.PVisitor)
-
 		payload, err := getTwinData(deviceID, twin, found.ModbusClient)
 		if err != nil {
 			return nil, err
@@ -330,14 +323,10 @@ func (d *DevPanel) GetDevice(deviceID string) (interface{}, error) {
 
 func (d *DevPanel) RemoveDevice(deviceID string) error {
 	delete(d.devices, deviceID)
-	klog.Infof("deviceMuxs: %+v", d.deviceMuxs)
-	klog.Infof("devices: %+v", d.devices)
-	klog.Infof("delete device %s", deviceID)
 	return d.stopDev(deviceID)
 }
 
 func (d *DevPanel) GetModel(modelName string) (common.DeviceModel, error) {
-	klog.Infof("###models: %v", d.models)
 	found, ok := d.models[modelName]
 	if !ok {
 		return common.DeviceModel{}, fmt.Errorf("deviceModel %s not found", modelName)
@@ -348,7 +337,6 @@ func (d *DevPanel) GetModel(modelName string) (common.DeviceModel, error) {
 
 func (d *DevPanel) UpdateModel(model *common.DeviceModel) {
 	d.models[model.Name] = *model
-	klog.Infof("models: %+v", d.models)
 }
 
 func (d *DevPanel) RemoveModel(modelName string) {

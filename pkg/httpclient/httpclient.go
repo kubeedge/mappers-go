@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/kubeedge/kubeedge/cloud/pkg/apis/devices/v1alpha2"
+	"github.com/kubeedge/kubeedge/pkg/apis/devices/v1alpha2"
 )
 
 var (

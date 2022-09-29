@@ -8,7 +8,7 @@ import (
 
 	"google.golang.org/grpc"
 
-	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/dmi/v1alpha1"
+	dmiapi "github.com/kubeedge/kubeedge/pkg/apis/dmi/v1alpha1"
 )
 
 // ReportDeviceStatus report device status to edgecore
@@ -29,15 +29,13 @@ func ReportDeviceStatus(request *dmiapi.ReportDeviceStatusRequest) error {
 	if err != nil {
 		return fmt.Errorf("did not connect: %v", err)
 	}
-	// 延迟关闭连接
 	defer conn.Close()
 
-	// 初始化Greeter服务客户端
+	// init Greeter client
 	c := dmiapi.NewDeviceManagerServiceClient(conn)
 
-	// 初始化上下文，设置请求超时时间为1秒
+	// init context，set timeout
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	// 延迟关闭请求会话
 	defer cancel()
 
 	_, err = c.ReportDeviceStatus(ctx, request)

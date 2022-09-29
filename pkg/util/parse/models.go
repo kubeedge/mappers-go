@@ -1,6 +1,6 @@
 package parse
 
-import "github.com/kubeedge/kubeedge/cloud/pkg/apis/devices/v1alpha2"
+import "github.com/kubeedge/kubeedge/pkg/apis/devices/v1alpha2"
 
 type DeviceData struct {
 	Device      *v1alpha2.Device      `json:"device"`

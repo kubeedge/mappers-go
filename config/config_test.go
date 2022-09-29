@@ -13,6 +13,5 @@ func TestParse(t *testing.T) {
 		t.FailNow()
 	}
 
-	assert.Equal(t, "tcp://127.0.0.1:1883", config.Mqtt.ServerAddress)
 	assert.Equal(t, "/opt/kubeedge/deviceProfile.json", config.DevInit.Configmap)
 }

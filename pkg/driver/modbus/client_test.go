@@ -31,7 +31,7 @@ import (
 
 	v12 "k8s.io/api/core/v1"
 
-	"github.com/kubeedge/kubeedge/cloud/pkg/apis/devices/v1alpha2"
+	"github.com/kubeedge/kubeedge/pkg/apis/devices/v1alpha2"
 	"github.com/kubeedge/mappers-go/pkg/util/parse"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

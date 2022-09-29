@@ -7,24 +7,24 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/kubeedge/kubeedge/cloud/pkg/apis/devices/v1alpha2"
-	"github.com/kubeedge/kubeedge/cloud/pkg/devicecontroller/controller"
-	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/dmi/v1alpha1"
+	"github.com/kubeedge/kubeedge/cloud/pkg/devicecontroller/constants"
+	"github.com/kubeedge/kubeedge/pkg/apis/devices/v1alpha2"
+	dmiapi "github.com/kubeedge/kubeedge/pkg/apis/dmi/v1alpha1"
 	"github.com/kubeedge/mappers-go/pkg/common"
 )
 
 func getProtocolName(device *v1alpha2.Device) (string, error) {
 	if device.Spec.Protocol.Modbus != nil {
-		return controller.Modbus, nil
+		return constants.Modbus, nil
 	}
 	if device.Spec.Protocol.OpcUA != nil {
-		return controller.OPCUA, nil
+		return constants.OPCUA, nil
 	}
 	if device.Spec.Protocol.Bluetooth != nil {
-		return controller.Bluetooth, nil
+		return constants.Bluetooth, nil
 	}
 	if device.Spec.Protocol.CustomizedProtocol != nil {
-		return controller.CustomizedProtocol, nil
+		return constants.CustomizedProtocol, nil
 	}
 	return "", errors.New("can not parse device protocol")
 }
@@ -40,22 +40,22 @@ func BuildProtocol(device *v1alpha2.Device) (common.Protocol, error) {
 	}
 	var protocolConfig []byte
 	switch protocolName {
-	case controller.Modbus:
+	case constants.Modbus:
 		protocolConfig, err = json.Marshal(device.Spec.Protocol.Modbus)
 		if err != nil {
 			return common.Protocol{}, err
 		}
-	case controller.OPCUA:
+	case constants.OPCUA:
 		protocolConfig, err = json.Marshal(device.Spec.Protocol.OpcUA)
 		if err != nil {
 			return common.Protocol{}, err
 		}
-	case controller.Bluetooth:
+	case constants.Bluetooth:
 		protocolConfig, err = json.Marshal(device.Spec.Protocol.Bluetooth)
 		if err != nil {
 			return common.Protocol{}, err
 		}
-	case controller.CustomizedProtocol:
+	case constants.CustomizedProtocol:
 		protocolConfig, err = json.Marshal(device.Spec.Protocol.CustomizedProtocol)
 		if err != nil {
 			return common.Protocol{}, err
@@ -136,22 +136,22 @@ func buildPropertyVisitors(device *v1alpha2.Device) []common.PropertyVisitor {
 	for _, pptv := range device.Spec.PropertyVisitors {
 		var visitorConfig []byte
 		switch protocolName {
-		case controller.Modbus:
+		case constants.Modbus:
 			visitorConfig, err = json.Marshal(pptv.Modbus)
 			if err != nil {
 				return nil
 			}
-		case controller.OPCUA:
+		case constants.OPCUA:
 			visitorConfig, err = json.Marshal(pptv.OpcUA)
 			if err != nil {
 				return nil
 			}
-		case controller.Bluetooth:
+		case constants.Bluetooth:
 			visitorConfig, err = json.Marshal(pptv.Bluetooth)
 			if err != nil {
 				return nil
 			}
-		case controller.CustomizedProtocol:
+		case constants.CustomizedProtocol:
 			visitorConfig, err = json.Marshal(pptv.CustomizedProtocol)
 			if err != nil {
 				return nil

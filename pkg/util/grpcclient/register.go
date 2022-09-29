@@ -8,15 +8,14 @@ import (
 
 	"google.golang.org/grpc"
 
+	dmiapi "github.com/kubeedge/kubeedge/pkg/apis/dmi/v1alpha1"
 	"github.com/kubeedge/mappers-go/config"
-	dmiapi "github.com/kubeedge/mappers-go/pkg/apis/dmi/v1alpha1"
 	"github.com/kubeedge/mappers-go/pkg/common"
 )
 
 // RegisterMapper if withData is true, edgecore will send device and model list.
 func RegisterMapper(cfg *config.Config, withData bool) ([]*dmiapi.Device, []*dmiapi.DeviceModel, error) {
-	// 连接grpc server
-	//conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
+	// connect grpc server
 	conn, err := grpc.Dial(cfg.Common.EdgeCoreSock,
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
@@ -42,7 +41,6 @@ func RegisterMapper(cfg *config.Config, withData bool) ([]*dmiapi.Device, []*dmi
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	// call SayHello api，send a message
 	resp, err := c.MapperRegister(ctx, &dmiapi.MapperRegisterRequest{
 		WithData: withData,
 		Mapper: &dmiapi.MapperInfo{

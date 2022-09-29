@@ -24,7 +24,7 @@ import (
 	"github.com/currantlabs/ble"
 	"k8s.io/klog/v2"
 
-	"github.com/kubeedge/kubeedge/cloud/pkg/apis/devices/v1alpha2"
+	"github.com/kubeedge/kubeedge/pkg/apis/devices/v1alpha2"
 	"github.com/kubeedge/mappers-go/mappers/ble/configmap"
 	"github.com/kubeedge/mappers-go/mappers/ble/driver"
 	"github.com/kubeedge/mappers-go/mappers/ble/globals"
