@@ -330,3 +330,27 @@ func ConvGrpcToTwins(twins []*dmiapi.Twin, srcTwins []common.Twin) ([]common.Twi
 	}
 	return res, nil
 }
+
+func ConvMsgTwinToGrpc(msgTwin map[string]*common.MsgTwin) []*dmiapi.Twin {
+	var twins []*dmiapi.Twin
+	for name, twin := range msgTwin {
+		twinData := &dmiapi.Twin{
+			PropertyName: name,
+			Desired: &dmiapi.TwinProperty{
+				Value: *twin.Expected.Value,
+				Metadata: map[string]string{
+					"type":      twin.Metadata.Type,
+					"timestamp": twin.Expected.Metadata.Timestamp,
+				}},
+			Reported: &dmiapi.TwinProperty{
+				Value: *twin.Actual.Value,
+				Metadata: map[string]string{
+					"type":      twin.Metadata.Type,
+					"timestamp": twin.Actual.Metadata.Timestamp,
+				}},
+		}
+		twins = append(twins, twinData)
+	}
+
+	return twins
+}

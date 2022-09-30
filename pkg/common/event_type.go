@@ -30,7 +30,7 @@ type TwinValue struct {
 
 // ValueMetadata the meta of value.
 type ValueMetadata struct {
-	Timestamp int64 `json:"timestamp,omitempty"`
+	Timestamp string `json:"timestamp,omitempty"`
 }
 
 // TypeMetadata the meta of value type.

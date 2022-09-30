@@ -31,6 +31,7 @@ import (
 	"github.com/kubeedge/mappers-go/pkg/common"
 	"github.com/kubeedge/mappers-go/pkg/driver/modbus"
 	"github.com/kubeedge/mappers-go/pkg/util/grpcclient"
+	"github.com/kubeedge/mappers-go/pkg/util/parse"
 )
 
 // TwinData is the timer structure for getting twin/data.
@@ -164,23 +165,7 @@ func (td *TwinData) Run() {
 		return
 	}
 
-	var twins []*dmiapi.Twin
-	for _, twin := range msg.Twin {
-		expectMetaValue, _ := json.Marshal(twin.Expected.Metadata)
-		reportedMetaValue, _ := json.Marshal(twin.Actual.Metadata)
-		twinData := &dmiapi.Twin{
-			PropertyName: td.Name,
-			Desired: &dmiapi.TwinProperty{
-				Value:    *twin.Expected.Value,
-				Metadata: map[string]string{twin.Metadata.Type: string(expectMetaValue)},
-			},
-			Reported: &dmiapi.TwinProperty{
-				Value:    *twin.Actual.Value,
-				Metadata: map[string]string{twin.Metadata.Type: string(reportedMetaValue)},
-			},
-		}
-		twins = append(twins, twinData)
-	}
+	twins := parse.ConvMsgTwinToGrpc(msg.Twin)
 
 	var rdsr = &dmiapi.ReportDeviceStatusRequest{
 		DeviceName: td.DeviceName,
