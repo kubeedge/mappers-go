@@ -21,3 +21,18 @@ Please configuration the device instance and device model. You could refer to th
   Float
   Double
 - The get device status function "driver.GetStatus" should be written depending the device.
+
+- Build a mapper of `opcua` with command:
+    ```
+    make mapper opcua build
+    ```
+    and find the binary in `mappers-go/mappers/opcua/bin/`
+
+- Build an image of opcua mapper with command:
+    ```
+    make mapper opcua package
+    ```
+    and get the infomation of the image with command:
+    ```
+    docker images opcua-mapper
+    ```
