@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: modbus-mapper
+  name: modbus-dmi-mapper
 spec:
   replicas: 1
   selector:
@@ -15,7 +15,7 @@ spec:
       hostNetwork: true
       containers:
         - name: modbus-mapper-container
-          image: modbusmapper:v1.0
+          image: modbus-dmi-mapper:v1.0-linux-amd64
           imagePullPolicy: IfNotPresent
           securityContext:
             privileged: true
@@ -26,9 +26,14 @@ spec:
               name: modbus-dev0
             - mountPath: /dev/ttyS1
               name: modbus-dev1
+            - name: sock-path
+              mountPath: /etc/kubeedge
       nodeSelector:
         modbus: "true"
       volumes:
+        - name: sock-path
+          hostPath:
+            path: /etc/kubeedge
         - name: config-volume
           configMap:
             name: device-profile-config-test
