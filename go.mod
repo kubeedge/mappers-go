@@ -9,7 +9,7 @@ require (
 	github.com/goburrow/modbus v0.1.0
 	github.com/goburrow/serial v0.1.0
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
-	github.com/gopcua/opcua v0.1.13
+	github.com/gopcua/opcua v0.2.6
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/kubeedge/kubeedge v1.5.0
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
