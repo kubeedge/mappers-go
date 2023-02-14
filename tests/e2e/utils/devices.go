@@ -17,7 +17,7 @@ limitations under the License.
 package utils
 
 import (
-	log "k8s.io/klog"
+	log "k8s.io/klog/v2"
 	"os/exec"
 )
 

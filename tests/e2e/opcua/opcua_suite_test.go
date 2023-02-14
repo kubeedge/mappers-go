@@ -21,7 +21,7 @@ import (
 	"github.com/kubeedge/mappers-go/tests/e2e/utils"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	log "k8s.io/klog"
+	log "k8s.io/klog/v2"
 	"testing"
 )
 
