@@ -18,7 +18,7 @@ package utils
 
 import (
 	"fmt"
-	log "k8s.io/klog"
+	log "k8s.io/klog/v2"
 	"os/exec"
 	"time"
 )

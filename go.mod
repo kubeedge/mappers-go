@@ -18,7 +18,7 @@ require (
 	github.com/sailorvii/goav v0.1.4
 	github.com/sailorvii/modbus v0.1.2
 	github.com/spf13/cobra v1.2.1
-	github.com/spf13/pflag v1.0.5
+	github.com/spf13/pflag v1.0.6-0.20210604193023-d5e0c0615ace
 	github.com/stretchr/testify v1.7.0
 	github.com/tbrandon/mbserver v0.0.0-20210320091329-a1f8ae952881
 	github.com/use-go/onvif v0.0.1
@@ -28,7 +28,7 @@ require (
 	k8s.io/api v0.24.1
 	k8s.io/apimachinery v0.24.1
 	k8s.io/klog v1.0.0
-	k8s.io/klog/v2 v2.60.1
+	k8s.io/klog/v2 v2.80.1
 	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9
 )
 
@@ -39,7 +39,7 @@ require (
 	github.com/elgs/gostrgen v0.0.0-20161222160715-9d61ae07eeae // indirect
 	github.com/emicklei/go-restful v2.9.6+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
-	github.com/go-logr/logr v0.4.0 // indirect
+	github.com/go-logr/logr v1.2.0 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.19.5 // indirect
 	github.com/go-openapi/swag v0.19.14 // indirect
@@ -105,7 +105,6 @@ replace (
 	k8s.io/csi-translation-lib v0.0.0 => k8s.io/csi-translation-lib v0.19.3
 	k8s.io/gengo v0.0.0 => k8s.io/gengo v0.19.3
 	k8s.io/heapster => k8s.io/heapster v1.2.0-beta.1 // indirect
-	k8s.io/klog/v2 => k8s.io/klog/v2 v2.2.0
 	k8s.io/kube-aggregator v0.0.0 => k8s.io/kube-aggregator v0.19.3
 	k8s.io/kube-controller-manager v0.0.0 => k8s.io/kube-controller-manager v0.19.3
 	k8s.io/kube-openapi v0.0.0 => k8s.io/kube-openapi v0.19.3
