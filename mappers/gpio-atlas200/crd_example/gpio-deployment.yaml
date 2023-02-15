@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gpio-deploy-edge-line
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gpio-line1
+  template:
+    metadata:
+      labels:
+        app: gpio-line1
+    spec:
+      hostNetwork: true
+      containers:
+      - name: gpio-container
+        image: gpio-mapper-arm64:v1.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 1215
+          hostPort: 1215
+          hostIP: 0.0.0.0
+        securityContext:
+          privileged: false
+        volumeMounts:
+        - name: config-volume
+          mountPath: /opt/kubeedge/
+        - name: gpio0-direction
+          mountPath: /sys/class/gpio/gpio504/direction
+        - name: gpio1-direction
+          mountPath: /sys/class/gpio/gpio444/direction
+        - name: gpio0-value
+          mountPath: /sys/class/gpio/gpio504/value
+        - name: gpio1-value
+          mountPath: /sys/class/gpio/gpio444/value
+      nodeName: edge-a200
+      volumes:
+      - name: config-volume
+        configMap:
+          name: device-profile-config-edge-a200
+      - name: gpio0-direction
+        hostPath:
+          path: /sys/class/gpio/gpio504/direction
+      - name: gpio1-direction
+        hostPath:
+          path: /sys/class/gpio/gpio444/direction
+      - name: gpio0-value
+        hostPath:
+          path: /sys/class/gpio/gpio504/value
+      - name: gpio1-value
+        hostPath:
+          path: /sys/class/gpio/gpio444/value
+      restartPolicy: Always

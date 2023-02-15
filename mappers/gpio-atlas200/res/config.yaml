@@ -1,0 +1,14 @@
+mqtt:
+  server: mqtt://127.0.0.1:1884
+  servername: 127.0.0.1
+  username: ""
+  password: ""
+  clientId: ""
+  certification: ""
+  privatekey:
+  caCert:
+http:
+  certification: ""
+  privatekey: ""
+  caCert: ""
+configmap: /opt/kubeedge/deviceProfile.json
