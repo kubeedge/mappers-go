@@ -44,12 +44,14 @@ type GigEVisionDevice struct {
 }
 
 type DeviceMeta struct {
-	dev           *C.uint
-	FeatureName   string
-	deviceStatus  bool
-	imageFormat   string
-	imageURL      string
-	maxRetryTimes int
+	dev              *C.uint
+	FeatureName      string
+	deviceStatus     bool
+	imageFormat      string
+	imageURL         string
+	ImageTrigger     string
+	ImagePostingFlag bool
+	maxRetryTimes    int
 }
 
 func (gigEClient *GigEVisionDevice) InitDevice(protocolCommon []byte) (err error) {
@@ -165,4 +167,3 @@ func (gigEClient *GigEVisionDevice) ReconnectDevice(DeviceSN string) {
 	}
 	fmt.Printf("Device %s restart success!\n", DeviceSN)
 }
-

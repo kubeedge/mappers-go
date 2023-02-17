@@ -2,6 +2,7 @@ FROM ubuntu:16.04
 WORKDIR /usr/local/bin
 COPY ./res /usr/local/res
 COPY ./bin /usr/local/bin
+COPY ./bin/librcapi_aarch64.so /usr/local/bin/librcapi.so
 COPY ./baumer/Ubuntu-16.04/arm64 /usr/local/bin/cti
 ENV GENICAM_GENTL64_PATH /usr/local/bin/cti
 RUN apt update && apt install -y libpng16-dev libjpeg9-dev
