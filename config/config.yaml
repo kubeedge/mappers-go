@@ -10,3 +10,4 @@ common:
 dev_init:
   mode: register #register/configmap
   configmap: /opt/kubeedge/deviceProfile.json
+log_level: 1

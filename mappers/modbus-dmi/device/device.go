@@ -18,9 +18,11 @@ package device
 
 import (
 	"context"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"regexp"
 	"strconv"
 	"sync"
@@ -51,17 +53,65 @@ func setVisitor(visitorConfig *modbus.ModbusVisitorConfig, twin *common.Twin, cl
 		return
 	}
 
-	klog.V(2).Infof("Convert type: %s, value: %s ", twin.PVisitor.PProperty.DataType, twin.Desired.Value)
-	value, err := common.Convert(twin.PVisitor.PProperty.DataType, twin.Desired.Value)
-	if err != nil {
-		klog.Errorf("Convert error: %v", err)
-		return
-	}
-
-	valueInt, _ := value.(int64)
-	_, err = client.Set(visitorConfig.Register, visitorConfig.Offset, uint16(valueInt))
-	if err != nil {
-		klog.Errorf("Set visitor error: %v %v", err, visitorConfig)
+	klog.Infof("Convert type: %s, value: %s ", twin.PVisitor.PProperty.DataType, twin.Desired.Value)
+	value := twin.Desired.Value
+	switch twin.PVisitor.PProperty.DataType {
+	case "int":
+		valueInt, err := strconv.ParseInt(value, 10, 64)
+		if err != nil {
+			klog.Errorf("twin %s Convert error: %v", value, err)
+			return
+		}
+		_, err = client.Set(visitorConfig.Register, visitorConfig.Offset, uint16(valueInt))
+		if err != nil {
+			klog.Errorf("Set visitor error: %v %v", err, visitorConfig)
+			return
+		}
+	case "float":
+		valueFloat, err := strconv.ParseFloat(value, 32)
+		if err != nil {
+			klog.Errorf("twin %s Convert error: %v", value, err)
+			return
+		}
+		_, err = client.SetString(visitorConfig.Register, visitorConfig.Offset, visitorConfig.Limit, string(ConvertFloat32ToBytes(float32(valueFloat))))
+		if err != nil {
+			klog.Errorf("Set visitor error: %v %v", err, visitorConfig)
+			return
+		}
+	case "double":
+		valueDouble, err := strconv.ParseFloat(value, 64)
+		if err != nil {
+			klog.Errorf("twin %s Convert error: %v", value, err)
+			return
+		}
+		_, err = client.SetString(visitorConfig.Register, visitorConfig.Offset, visitorConfig.Limit, string(ConvertFloat64ToBytes(valueDouble)))
+		if err != nil {
+			klog.Errorf("Set visitor error: %v %v", err, visitorConfig)
+			return
+		}
+	case "boolean":
+		valueBool, err := strconv.ParseBool(value)
+		if err != nil {
+			klog.Errorf("twin %s Convert error: %v", value, err)
+			return
+		}
+		var valueSet uint16 = 0x0000
+		if valueBool {
+			valueSet = 0xFF00
+		}
+		_, err = client.Set(visitorConfig.Register, visitorConfig.Offset, valueSet)
+		if err != nil {
+			klog.Errorf("Set visitor error: %v %v", err, visitorConfig)
+			return
+		}
+	case "string":
+		_, err := client.SetString(visitorConfig.Register, visitorConfig.Offset, visitorConfig.Limit, value)
+		if err != nil {
+			klog.Errorf("Set visitor error: %v %v", err, visitorConfig)
+			return
+		}
+	default:
+		klog.Errorf("wrong DataType of twin %s: %s", value, twin.PVisitor.PProperty.DataType)
 		return
 	}
 }
@@ -130,7 +180,7 @@ func initTwin(ctx context.Context, dev *modbus.ModbusDev) {
 			DeviceID:      dev.Instance.ID,
 			DeviceName:    dev.Instance.Name,
 		}
-		collectCycle := time.Duration(dev.Instance.Twins[i].PVisitor.CollectCycle)
+		collectCycle := time.Duration(dev.Instance.Twins[i].PVisitor.CollectCycle) * time.Second
 		// If the collect cycle is not set, set it to 1 second.
 		if collectCycle == 0 {
 			collectCycle = 1 * time.Second
@@ -178,7 +228,7 @@ func (d *DevPanel) start(ctx context.Context, dev *modbus.ModbusDev) {
 	klog.Infof("All twins has been set, %+v", dev.Instance)
 
 	d.wg.Done()
-	klog.InfoS("sync wait group donw", "deviceID", dev.Instance.ID, "device name", dev.Instance.Name)
+	klog.InfoS("sync wait group done", "deviceID", dev.Instance.ID, "device name", dev.Instance.Name)
 }
 
 // DevInit initialize the device data.
@@ -349,4 +399,16 @@ func (d *DevPanel) UpdateModel(model *common.DeviceModel) {
 
 func (d *DevPanel) RemoveModel(modelName string) {
 	delete(d.models, modelName)
+}
+
+func ConvertFloat64ToBytes(f float64) []byte {
+	res := make([]byte, 8)
+	binary.BigEndian.PutUint64(res, math.Float64bits(f))
+	return res
+}
+
+func ConvertFloat32ToBytes(f float32) []byte {
+	res := make([]byte, 4)
+	binary.BigEndian.PutUint32(res, math.Float32bits(f))
+	return res
 }

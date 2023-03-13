@@ -39,6 +39,7 @@ type Config struct {
 	GrpcServer GRPCServer `yaml:"grpc_server"`
 	Common     Common     `yaml:"common"`
 	DevInit    DevInit    `yaml:"dev_init"`
+	LogLevel   string     `yaml:"log_level"`
 }
 
 type GRPCServer struct {
@@ -63,9 +64,13 @@ type DevInit struct {
 func (c *Config) Parse() error {
 	var level klog.Level
 	var loglevel string
-	var configFile string
 
 	pflag.StringVar(&loglevel, "v", "1", "log level")
+	if err := level.Set(loglevel); err != nil {
+		return err
+	}
+
+	var configFile string
 	pflag.StringVar(&configFile, "config-file", defaultConfigFile, "Config file name")
 
 	cf, err := ioutil.ReadFile(configFile)
@@ -75,8 +80,10 @@ func (c *Config) Parse() error {
 	if err = yaml.Unmarshal(cf, c); err != nil {
 		return err
 	}
-	if err = level.Set(loglevel); err != nil {
-		return err
+	if len(c.LogLevel) != 0 && c.LogLevel != "0" {
+		if serr := level.Set(c.LogLevel); serr != nil {
+			return serr
+		}
 	}
 
 	switch c.DevInit.Mode {

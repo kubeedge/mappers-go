@@ -114,16 +114,57 @@ func TransferData(isRegisterSwap bool, isSwap bool,
 		}
 		bits := binary.BigEndian.Uint32(value)
 		data := float64(math.Float32frombits(bits)) * scale
-		sData := strconv.FormatFloat(data, 'f', 6, 64)
+		sData := strconv.FormatFloat(data, 'f', 2, 64)
 		return sData, nil
 	case "boolean":
-		return strconv.FormatBool(value[0] == 1), nil
+		return strconv.FormatBool(value[0] == 0xFF), nil
 	case "string":
-		data := string(value)
+		for i, b := range value {
+			if !isUpper(b) && !isLowercase(b) && !isNumber(b) && !isSpecial(b) {
+				value[i] = ' '
+			}
+		}
+		data := strings.ReplaceAll(string(value), " ", "")
 		return data, nil
 	default:
 		return "", errors.New("data type is not support")
 	}
+}
+
+func isUpper(b byte) bool {
+	return 'A' <= b && b <= 'Z'
+}
+
+func isLowercase(b byte) bool {
+	return 'a' <= b && b <= 'z'
+}
+
+func isNumber(b byte) bool {
+	return '0' <= b && b <= '9'
+}
+
+func isSpecial(b byte) bool {
+	whiteList := map[byte]byte{
+		'/': '/',
+		'-': '-',
+		'_': '_',
+		'.': '.',
+		'%': '%',
+		'+': '+',
+		',': ',',
+		'=': '=',
+		'@': '@',
+		'#': '#',
+		':': ':',
+		'^': '^',
+		'~': '~',
+		'?': '?',
+		'&': '&',
+		'!': '!',
+		'*': '*',
+	}
+	_, ok := whiteList[b]
+	return ok
 }
 
 func (td *TwinData) GetPayload() ([]byte, bool, error) {

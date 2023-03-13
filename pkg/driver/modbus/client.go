@@ -159,7 +159,7 @@ func (c *ModbusClient) Get(registerType string, addr uint16, quantity uint16) (r
 	case "InputRegister":
 		results, err = c.Client.ReadInputRegisters(addr, quantity)
 	default:
-		return nil, errors.New("Bad register type")
+		return nil, errors.New("bad register type")
 	}
 	klog.V(2).Info("Get result: ", results)
 	return results, err
@@ -181,15 +181,47 @@ func (c *ModbusClient) Set(registerType string, addr uint16, value uint16) (resu
 		case 1:
 			valueSet = 0xFF00
 		default:
-			return nil, errors.New("Wrong value")
+			return nil, errors.New("wrong value")
 		}
 		results, err = c.Client.WriteSingleCoil(addr, valueSet)
 	case "HoldingRegister":
 		results, err = c.Client.WriteSingleRegister(addr, value)
 	default:
-		return nil, errors.New("Bad register type")
+		return nil, errors.New("bad register type")
 	}
 	klog.V(1).Info("Set result:", err, results)
+	return results, err
+}
+
+func (c *ModbusClient) SetString(registerType string, offset uint16, limit int, value string) (results []byte, err error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	klog.V(1).InfoS("ModbusClient Set:", "register", registerType, "offset", offset, "limit", limit, "value", value)
+
+	switch registerType {
+	case "CoilRegister":
+		var valueSet uint16
+		switch value {
+		case "0":
+			valueSet = 0x0000
+		case "1":
+			valueSet = 0xFF00
+		default:
+			return nil, errors.New("wrong value")
+		}
+		results, err = c.Client.WriteSingleCoil(offset, valueSet)
+	case "HoldingRegister":
+		valueBytes := make([]byte, limit*2)
+		copy(valueBytes, value)
+		results, err = c.Client.WriteMultipleRegisters(offset, uint16(limit), valueBytes)
+		if err != nil {
+			klog.ErrorS(err, "Failed to set HoldingRegister", "offset", offset, "limit", limit, "value", value)
+		}
+	default:
+		return nil, errors.New("bad register type")
+	}
+	klog.V(1).InfoS("ModbusClient Set result", "results", results)
 	return results, err
 }
 
