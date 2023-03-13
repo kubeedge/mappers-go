@@ -44,6 +44,7 @@ type TwinData struct {
 	Type          string
 	VisitorConfig *modbus.ModbusVisitorConfig
 	Results       []byte
+	LastValue     string
 	Topic         string
 }
 
@@ -125,39 +126,46 @@ func TransferData(isRegisterSwap bool, isSwap bool,
 	}
 }
 
-func (td *TwinData) GetPayload() ([]byte, error) {
+func (td *TwinData) GetPayload() ([]byte, bool, error) {
 	var err error
 
 	td.Results, err = td.Client.Get(td.VisitorConfig.Register, td.VisitorConfig.Offset, uint16(td.VisitorConfig.Limit))
 	if err != nil {
-		return nil, fmt.Errorf("get register failed: %v", err)
+		return nil, false, fmt.Errorf("get register failed: %v", err)
 	}
 	// transfer data according to the dpl configuration
 	sData, err := TransferData(td.VisitorConfig.IsRegisterSwap,
 		td.VisitorConfig.IsSwap, td.Type, td.VisitorConfig.Scale, td.Results)
 	if err != nil {
-		return nil, fmt.Errorf("transfer Data failed: %v", err)
+		return nil, false, fmt.Errorf("transfer Data failed: %v", err)
 	}
+
+	// do not report if the twin data is not changed to prevent triggering traffic limiting
+	changed := sData != td.LastValue
+	td.LastValue = sData
 	// construct payload
 	var payload []byte
 	if strings.Contains(td.Topic, "$hw") {
 		if payload, err = common.CreateMessageTwinUpdate(td.Name, td.Type, sData); err != nil {
-			return nil, fmt.Errorf("create message twin update failed: %v", err)
+			return nil, false, fmt.Errorf("create message twin update failed: %v", err)
 		}
 	} else {
 		if payload, err = common.CreateMessageData(td.Name, td.Type, sData); err != nil {
-			return nil, fmt.Errorf("create message data failed: %v", err)
+			return nil, false, fmt.Errorf("create message data failed: %v", err)
 		}
 	}
 	klog.V(2).Infof("Get the %s value as %s", td.Name, sData)
-	return payload, nil
+	return payload, changed, nil
 }
 
 // Run timer function.
 func (td *TwinData) Run() {
-	payload, err := td.GetPayload()
+	payload, changed, err := td.GetPayload()
 	if err != nil {
 		klog.Errorf("twindata %s get payload failed, err: %s", td.Name, err)
+		return
+	}
+	if !changed {
 		return
 	}
 

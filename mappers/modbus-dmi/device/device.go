@@ -308,7 +308,8 @@ func getTwinData(deviceID string, twin common.Twin, client *modbus.ModbusClient)
 		VisitorConfig: &visitorConfig,
 		Topic:         fmt.Sprintf(common.TopicTwinUpdate, deviceID),
 	}
-	return td.GetPayload()
+	payload, _, err := td.GetPayload()
+	return payload, err
 }
 
 func (d *DevPanel) GetDevice(deviceID string) (interface{}, error) {
