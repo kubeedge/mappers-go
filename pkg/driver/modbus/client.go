@@ -23,8 +23,9 @@ import (
 
 	"k8s.io/klog/v2"
 
-	"github.com/kubeedge/mappers-go/pkg/common"
 	"github.com/sailorvii/modbus"
+
+	"github.com/kubeedge/mappers-go/pkg/common"
 )
 
 // ModbusTCP is the configurations of modbus TCP.

@@ -28,6 +28,7 @@ import (
 	"k8s.io/klog/v2"
 
 	dmiapi "github.com/kubeedge/kubeedge/pkg/apis/dmi/v1alpha1"
+
 	"github.com/kubeedge/mappers-go/pkg/common"
 	"github.com/kubeedge/mappers-go/pkg/driver/modbus"
 	"github.com/kubeedge/mappers-go/pkg/util/grpcclient"
@@ -36,6 +37,7 @@ import (
 
 // TwinData is the timer structure for getting twin/data.
 type TwinData struct {
+	DeviceID      string
 	DeviceName    string
 	Client        *modbus.ModbusClient
 	Name          string
@@ -119,7 +121,7 @@ func TransferData(isRegisterSwap bool, isSwap bool,
 		data := string(value)
 		return data, nil
 	default:
-		return "", errors.New("Data type is not support")
+		return "", errors.New("data type is not support")
 	}
 }
 
@@ -168,7 +170,7 @@ func (td *TwinData) Run() {
 	twins := parse.ConvMsgTwinToGrpc(msg.Twin)
 
 	var rdsr = &dmiapi.ReportDeviceStatusRequest{
-		DeviceName: td.DeviceName,
+		DeviceName: td.DeviceID,
 		ReportedDevice: &dmiapi.DeviceStatus{
 			Twins: twins,
 			State: "OK",

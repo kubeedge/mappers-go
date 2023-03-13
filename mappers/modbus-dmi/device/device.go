@@ -121,17 +121,21 @@ func initTwin(ctx context.Context, dev *modbus.ModbusDev) {
 		}
 		setVisitor(&visitorConfig, &dev.Instance.Twins[i], dev.ModbusClient)
 
-		twinData := TwinData{Client: dev.ModbusClient,
+		twinData := TwinData{
+			Client:        dev.ModbusClient,
 			Name:          dev.Instance.Twins[i].PropertyName,
 			Type:          dev.Instance.Twins[i].Desired.Metadatas.Type,
 			VisitorConfig: &visitorConfig,
 			Topic:         fmt.Sprintf(common.TopicTwinUpdate, dev.Instance.ID),
-			DeviceName:    dev.Instance.Name}
+			DeviceID:      dev.Instance.ID,
+			DeviceName:    dev.Instance.Name,
+		}
 		collectCycle := time.Duration(dev.Instance.Twins[i].PVisitor.CollectCycle)
 		// If the collect cycle is not set, set it to 1 second.
 		if collectCycle == 0 {
 			collectCycle = 1 * time.Second
 		}
+		klog.V(2).InfoS("Start to collect", "twin", twinData.Name, "cycle", collectCycle)
 		ticker := time.NewTicker(collectCycle)
 		go func() {
 			for {
@@ -171,9 +175,10 @@ func (d *DevPanel) start(ctx context.Context, dev *modbus.ModbusDev) {
 	dev.ModbusClient = client
 
 	go initTwin(ctx, dev)
+	klog.Infof("All twins has been set, %+v", dev.Instance)
 
-	<-ctx.Done()
 	d.wg.Done()
+	klog.InfoS("sync wait group donw", "deviceID", dev.Instance.ID, "device name", dev.Instance.Name)
 }
 
 // DevInit initialize the device data.
@@ -215,13 +220,15 @@ func NewDevPanel() *DevPanel {
 // DevStart start all devices.
 func (d *DevPanel) DevStart() {
 	for id, dev := range d.devices {
-		klog.V(4).Info("Dev: ", id, dev)
+		klog.Info("Dev: ", id, dev)
 		ctx, cancel := context.WithCancel(context.Background())
 		d.deviceMuxs[id] = cancel
 		d.wg.Add(1)
 		go d.start(ctx, dev)
 	}
+	klog.Infoln("Wait all sync wait group")
 	d.wg.Wait()
+	klog.Infoln("All sync wait group done")
 }
 
 func (d *DevPanel) UpdateDevTwins(deviceID string, twins []common.Twin) error {
