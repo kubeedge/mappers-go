@@ -62,7 +62,7 @@ func setVisitor(visitorConfig *modbus.ModbusVisitorConfig, twin *common.Twin, cl
 			klog.Errorf("twin %s Convert error: %v", value, err)
 			return
 		}
-		_, err = client.Set(visitorConfig.Register, visitorConfig.Offset, uint16(valueInt))
+		_, err = client.SetWithRetry(visitorConfig.Register, visitorConfig.Offset, uint16(valueInt), 2)
 		if err != nil {
 			klog.Errorf("Set visitor error: %v %v", err, visitorConfig)
 			return
@@ -73,7 +73,7 @@ func setVisitor(visitorConfig *modbus.ModbusVisitorConfig, twin *common.Twin, cl
 			klog.Errorf("twin %s Convert error: %v", value, err)
 			return
 		}
-		_, err = client.SetString(visitorConfig.Register, visitorConfig.Offset, visitorConfig.Limit, string(ConvertFloat32ToBytes(float32(valueFloat))))
+		_, err = client.SetStringWithRetry(visitorConfig.Register, visitorConfig.Offset, visitorConfig.Limit, string(ConvertFloat32ToBytes(float32(valueFloat))), 2)
 		if err != nil {
 			klog.Errorf("Set visitor error: %v %v", err, visitorConfig)
 			return
@@ -84,7 +84,7 @@ func setVisitor(visitorConfig *modbus.ModbusVisitorConfig, twin *common.Twin, cl
 			klog.Errorf("twin %s Convert error: %v", value, err)
 			return
 		}
-		_, err = client.SetString(visitorConfig.Register, visitorConfig.Offset, visitorConfig.Limit, string(ConvertFloat64ToBytes(valueDouble)))
+		_, err = client.SetStringWithRetry(visitorConfig.Register, visitorConfig.Offset, visitorConfig.Limit, string(ConvertFloat64ToBytes(valueDouble)), 2)
 		if err != nil {
 			klog.Errorf("Set visitor error: %v %v", err, visitorConfig)
 			return
@@ -99,13 +99,13 @@ func setVisitor(visitorConfig *modbus.ModbusVisitorConfig, twin *common.Twin, cl
 		if valueBool {
 			valueSet = 0xFF00
 		}
-		_, err = client.Set(visitorConfig.Register, visitorConfig.Offset, valueSet)
+		_, err = client.SetWithRetry(visitorConfig.Register, visitorConfig.Offset, valueSet, 2)
 		if err != nil {
 			klog.Errorf("Set visitor error: %v %v", err, visitorConfig)
 			return
 		}
 	case "string":
-		_, err := client.SetString(visitorConfig.Register, visitorConfig.Offset, visitorConfig.Limit, value)
+		_, err := client.SetStringWithRetry(visitorConfig.Register, visitorConfig.Offset, visitorConfig.Limit, value, 2)
 		if err != nil {
 			klog.Errorf("Set visitor error: %v %v", err, visitorConfig)
 			return

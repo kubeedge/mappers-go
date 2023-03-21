@@ -193,6 +193,7 @@ func (c *ModbusClient) Set(registerType string, addr uint16, value uint16) (resu
 	return results, err
 }
 
+// SetString set string.
 func (c *ModbusClient) SetString(registerType string, offset uint16, limit int, value string) (results []byte, err error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -237,4 +238,78 @@ func parity(ori string) string {
 		p = "N"
 	}
 	return p
+}
+
+// Reconnect close the connection and reconnect to device.
+func (c *ModbusClient) Reconnect() error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	err := c.Client.Close()
+	if err != nil {
+		klog.Errorf("fail to close the modbus connection with error: %+v", err)
+		return err
+	}
+
+	err = c.Client.Connect()
+	if err != nil {
+		klog.Errorf("fail to connect the modbus connection with error: %+v", err)
+		return err
+	}
+
+	return nil
+}
+
+// GetWithRetry get register with retry.
+func (c *ModbusClient) GetWithRetry(registerType string, addr uint16, quantity uint16, retryTime int) (results []byte, err error) {
+	for i := 0; i < retryTime; i++ {
+		results, err = c.Get(registerType, addr, quantity)
+		if err == nil {
+			return results, nil
+		}
+
+		klog.Warningf("fail to get register, reconnect and retry")
+		errConn := c.Reconnect()
+		if errConn != nil {
+			klog.Errorf("fail to reconnect with error: %+v", errConn)
+			continue
+		}
+	}
+	return results, err
+}
+
+// SetWithRetry set register with retry.
+func (c *ModbusClient) SetWithRetry(registerType string, addr uint16, value uint16, retryTime int) (results []byte, err error) {
+	for i := 0; i < retryTime; i++ {
+		results, err = c.Set(registerType, addr, value)
+		if err == nil {
+			return results, nil
+		}
+
+		klog.Warningf("fail to set register, reconnect and retry")
+		errConn := c.Reconnect()
+		if errConn != nil {
+			klog.Errorf("fail to reconnect with error: %+v", errConn)
+			continue
+		}
+	}
+	return results, err
+}
+
+// SetStringWithRetry set string with retry.
+func (c *ModbusClient) SetStringWithRetry(registerType string, offset uint16, limit int, value string, retryTime int) (results []byte, err error) {
+	for i := 0; i < retryTime; i++ {
+		results, err = c.SetString(registerType, offset, limit, value)
+		if err == nil {
+			return results, nil
+		}
+
+		klog.Warningf("fail to set string, reconnect and retry")
+		errConn := c.Reconnect()
+		if errConn != nil {
+			klog.Errorf("fail to reconnect with error: %+v", errConn)
+			continue
+		}
+	}
+	return results, err
 }

@@ -170,7 +170,7 @@ func isSpecial(b byte) bool {
 func (td *TwinData) GetPayload() ([]byte, bool, error) {
 	var err error
 
-	td.Results, err = td.Client.Get(td.VisitorConfig.Register, td.VisitorConfig.Offset, uint16(td.VisitorConfig.Limit))
+	td.Results, err = td.Client.GetWithRetry(td.VisitorConfig.Register, td.VisitorConfig.Offset, uint16(td.VisitorConfig.Limit), 2)
 	if err != nil {
 		return nil, false, fmt.Errorf("get register failed: %v", err)
 	}
