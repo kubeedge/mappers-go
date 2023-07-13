@@ -1,6 +1,5 @@
 SHELL := /bin/bash
 
-GOPATH?=$(shell go env GOPATH)
 curr_dir := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 rest_args := $(wordlist 2, $(words $(MAKECMDGOALS)), $(MAKECMDGOALS))
 $(eval $(rest_args):;@:)
@@ -9,10 +8,7 @@ help:
 	#
 	# Usage:
 	#   make template :  create a mapper based on a template.
-	#   make dmitemplate : create a mapper-dmi based on a template.
-	#   make mapper {mapper-name} <action> <parameter>: execute mapper building process.
-	#   make device {device-name} <action> <parameter>: execute device simulator build process. (only used by modbus)
-	#   make e2e  {mapper-name} : execute mapper e2e building process. (only support modbus and opcua)
+	#   make mapper {mapper-name} <action> <parameter>:  execute mapper building process.
 	#   make all :  execute building process to all mappers.
 	#
 	# Actions:
@@ -36,5 +32,5 @@ make_rules := $(shell ls $(curr_dir)/hack/make-rules | sed 's/.sh//g')
 $(make_rules):
 	@$(curr_dir)/hack/make-rules/$@.sh $(rest_args)
 
-.DEFAULT_GOAL := all
-.PHONY: $(make_rules) build
+.DEFAULT_GOAL := help
+.PHONY: $(make_rules) build test package
