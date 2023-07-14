@@ -13,7 +13,6 @@ type CustomizedDev struct {
 }
 
 type CustomizedClient struct {
-	intMaxValue int
 	deviceMutex sync.Mutex
 	TemplateProtocolCommonConfig
 	TemplateProtocolConfig
