@@ -169,30 +169,16 @@ func (s *Server) GetDevice(ctx context.Context, request *dmiapi.GetDeviceRequest
 			Status: &dmiapi.DeviceStatus{},
 		},
 	}
-	switch s.cfg.Protocol {
-	case common.ProtocolModbus:
-		d := device.(*modbus.ModbusDev)
-		twins, err := parse.ConvTwinsToGrpc(d.Instance.Twins)
-		if err != nil {
-			return nil, err
-		}
-		res.Device.Status.Twins = twins
-		res.Device.Status.State = common.DEVSTOK
-	case common.ProtocolCustomized:
-		deviceValue := reflect.ValueOf(device)
-		//d := device.(*customizedDriver.CustomizedDev)
-		twinsValue := deviceValue.FieldByName("Instance").FieldByName("Twins")
-		if !twinsValue.IsValid() {
-			return nil, fmt.Errorf("twins field not found")
-		}
-		twins, err := parse.ConvTwinsToGrpc(twinsValue.Interface().([]common.Twin))
-		if err != nil {
-			return nil, err
-		}
-		res.Device.Status.Twins = twins
-		res.Device.Status.State = common.DEVSTOK
-	default:
-		return nil, fmt.Errorf("current mapper only support protocol %s's device", s.cfg.Protocol)
+	deviceValue := reflect.ValueOf(device)
+	twinsValue := deviceValue.FieldByName("Instance").FieldByName("Twins")
+	if !twinsValue.IsValid() {
+		return nil, fmt.Errorf("twins field not found")
 	}
+	twins, err := parse.ConvTwinsToGrpc(twinsValue.Interface().([]common.Twin))
+	if err != nil {
+		return nil, err
+	}
+	res.Device.Status.Twins = twins
+	res.Device.Status.State = common.DEVSTOK
 	return res, nil
 }

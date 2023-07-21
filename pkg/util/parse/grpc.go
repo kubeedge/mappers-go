@@ -88,17 +88,19 @@ func BuildProtocolFromGrpc(device *dmiapi.Device) (common.Protocol, error) {
 			return common.Protocol{}, err
 		}
 	case constants.CustomizedProtocol:
-		recvAdapter := make(map[string]interface{})
-		for k, v := range device.Spec.Protocol.CustomizedProtocol.ConfigData.Data {
-			value, err := common.DecodeAnyValue(v)
-			if err != nil {
-				continue
-			}
-			recvAdapter[k] = value
-		}
 		customizedProtocol := make(map[string]interface{})
 		customizedProtocol["protocolName"] = device.Spec.Protocol.CustomizedProtocol.ProtocolName
-		customizedProtocol["configData"] = recvAdapter
+		if device.Spec.Protocol.CustomizedProtocol.ConfigData != nil {
+			recvAdapter := make(map[string]interface{})
+			for k, v := range device.Spec.Protocol.CustomizedProtocol.ConfigData.Data {
+				value, err := common.DecodeAnyValue(v)
+				if err != nil {
+					continue
+				}
+				recvAdapter[k] = value
+			}
+			customizedProtocol["configData"] = recvAdapter
+		}
 		protocolConfig, err = json.Marshal(customizedProtocol)
 		if err != nil {
 			return common.Protocol{}, err
@@ -150,17 +152,19 @@ func buildTwinsFromGrpc(device *dmiapi.Device) []common.Twin {
 				return nil
 			}
 		case constants.CustomizedProtocol:
-			recvAdapter := make(map[string]interface{})
-			for k, v := range visitor.CustomizedProtocol.ConfigData.Data {
-				value, err := common.DecodeAnyValue(v)
-				if err != nil {
-					continue
-				}
-				recvAdapter[k] = value
-			}
 			customizedProtocol := make(map[string]interface{})
 			customizedProtocol["protocolName"] = visitor.CustomizedProtocol.ProtocolName
-			customizedProtocol["configData"] = recvAdapter
+			if visitor.CustomizedProtocol.ConfigData != nil {
+				recvAdapter := make(map[string]interface{})
+				for k, v := range visitor.CustomizedProtocol.ConfigData.Data {
+					value, err := common.DecodeAnyValue(v)
+					if err != nil {
+						continue
+					}
+					recvAdapter[k] = value
+				}
+				customizedProtocol["configData"] = recvAdapter
+			}
 			visitorConfig, err = json.Marshal(customizedProtocol)
 			if err != nil {
 				return nil
