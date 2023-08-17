@@ -20,6 +20,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"regexp"
+	"strconv"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -124,6 +125,7 @@ func CreateMessageTwinUpdate(name string, valueType string, value string) (msg [
 	updateMsg.Twin = map[string]*MsgTwin{}
 	updateMsg.Twin[name] = &MsgTwin{}
 	updateMsg.Twin[name].Actual = &TwinValue{Value: &value}
+	updateMsg.Twin[name].Actual.Metadata.Timestamp = strconv.FormatInt(getTimestamp(), 10)
 	updateMsg.Twin[name].Metadata = &TypeMetadata{Type: valueType}
 
 	msg, err = json.Marshal(updateMsg)

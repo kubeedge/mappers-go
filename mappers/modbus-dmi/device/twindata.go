@@ -119,7 +119,7 @@ func TransferData(isRegisterSwap bool, isSwap bool,
 		data := string(value)
 		return data, nil
 	default:
-		return "", errors.New("Data type is not support")
+		return "", errors.New("Data type is not support: " + dataType)
 	}
 }
 
@@ -177,4 +177,5 @@ func (td *TwinData) Run() {
 	if err := grpcclient.ReportDeviceStatus(rdsr); err != nil {
 		klog.Errorf("fail to report device status of %s with err: %+v", rdsr.DeviceName, err)
 	}
+	klog.V(2).Infof("reported status: %s", td.DeviceName)
 }
