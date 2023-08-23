@@ -172,7 +172,6 @@ func (d *DevPanel) start(ctx context.Context, dev *modbus.ModbusDev) {
 
 	go initTwin(ctx, dev)
 
-	<-ctx.Done()
 	d.wg.Done()
 }
 
