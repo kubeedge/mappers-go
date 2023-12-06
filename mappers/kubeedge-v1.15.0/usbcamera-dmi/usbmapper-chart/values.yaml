@@ -1,0 +1,125 @@
+global:
+  replicaCounts:
+    influxdb:
+      replicaCount: 1
+      namespace: default
+    redis:
+      namespace: default
+      replicaCount: 2
+    cameraUsbMapper:
+      replicaCount: 1
+      namespace: default
+  deviceModel:
+    namespace: default
+    name: camera-usb
+    protocol: camera-usb
+    waitTimes: 500000
+
+  nodeSelectorAndDevPath:
+    pushMethod:
+      fag: true
+      mqtt:
+        flag: false
+        conf:
+          address: 'http://127.0.0.1:1883'
+          retained: true
+      http:
+        flag: false
+        conf:
+          hostName: ''
+          port: 0
+          requestPath: '/'
+          timeout: 0
+      dbMethod:
+        flag: true
+        influxdb2:
+          flag: true
+          storageSize: 10Gi
+          storage: "influxdb-storage"
+          token: "aDSvXfxdjUmVF66qbt-y2-U146cxRdiw_AKUgQNPfWszSrmFQAtyl7IA0pVqua_VuS4_JBZbi3mNCsL3wUA2Ig=="
+          conf:
+            influxdb2ClientConfig:
+              org: 'kubeEdge'
+            influxdb2DataConfig:
+              measurement: "usb-camera"
+              fieldKey: "image-value"
+        redis:
+          flag: false
+          storage: "redis-storage"
+          storageSize: 10Gi
+    mapper:
+#      - edgeNode: "edgenode02"
+#        devPath: '/dev/video0'
+      - edgeNode: "edgenode1"
+        devPath: '/dev/video17'
+
+
+  images:
+    influxdb:
+      repository: influxdb
+      tag: 2.1.1
+      name: influxdb
+      pullPolicy: IfNotPresent
+    redis:
+      repository: redis
+      tag: 5.0.5
+      name: redis
+      pullPolicy: IfNotPresent
+    cameraUsbMapper:
+      repository: camerausbmapper
+      tag: v2.0
+      name: camerausbmapper
+      pullPolicy: IfNotPresent
+
+  imagePullSecrets: [ ]
+  nameOverride: ""
+  fullnameOverride: ""
+
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: { }
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: ""
+
+  podAnnotations: { }
+  podSecurityContext: { }
+
+  securityContext: { }
+
+  services:
+    redis:
+      clusterIP:
+        port: 6379
+        serviceName: redis-cluster-ip
+      nodePort:
+        port: 32379
+        serviceName: redis
+      headless:
+        port: 6379
+        serviceName: redis-service
+    influxdb:
+      clusterIP:
+        port: 8086
+        serviceName: influxdb-cluster-ip
+      nodePort:
+        port: 32086
+        serviceName: influxdb
+      headless:
+        port: 8086
+        serviceName: influxdb-service
+    cameraUsbMapper:
+      clusterIP:
+        port: 8898
+        serviceName: camerausbmapper-cluster-ip
+      nodePort:
+        port: 32898
+        serviceName: camerausbmapper
+      headless:
+        port: 8898
+        serviceName: camerausbmapper-service
+
+
+

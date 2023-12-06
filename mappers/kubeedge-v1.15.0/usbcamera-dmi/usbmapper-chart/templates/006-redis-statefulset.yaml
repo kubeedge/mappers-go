@@ -1,0 +1,129 @@
+{{- if $.Values.global.nodeSelectorAndDevPath.pushMethod.dbMethod.redis.flag }}
+---
+apiVersion: v1
+data:
+  redis.conf: |-
+    bind 0.0.0.0
+    port 6379
+    #requirepass ""
+    pidfile /var/run/redis_6379.pid
+    save 900 1
+    save 300 10
+    save 60 10000
+    rdbcompression yes
+    rdbchecksum yes
+    dbfilename dump.rdb
+    appendonly yes
+    appendfilename "appendonly.aof"
+    appendfsync everysec
+    dir /data
+    logfile "/data/redis-6379.log"
+    protected-mode no
+kind: ConfigMap
+metadata:
+  name: redis-config
+  namespace: {{ .Values.global.replicaCounts.redis.namespace }}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+  namespace: {{ .Values.global.replicaCounts.redis.namespace }}
+spec:
+  replicas: {{ .Values.global.replicaCounts.redis.replicaCount }}
+  selector:
+    matchLabels:
+      app: redis
+  serviceName:  {{ $.Values.global.services.redis.headless.serviceName }}
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-role.kubernetes.io/agent
+                    operator: DoesNotExist
+      containers:
+        - image: {{ .Values.global.images.redis.repository }}:{{ .Values.global.images.redis.tag }}
+          command: [ "redis-server","/etc/redis/redis.conf" ]
+          name: {{ .Values.global.images.redis.name }}
+          volumeMounts:
+            - name: redis-config
+              mountPath: /etc/redis/redis.conf
+              subPath: redis.conf
+            - name: redis-data
+              mountPath: /data
+      volumes:
+        - name: redis-config
+          configMap:
+            name: redis-config
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: redis-data-redis
+  volumeClaimTemplates:
+    - metadata:
+        name: redis-data
+        namespace: {{ .Values.global.replicaCounts.redis.namespace }}
+      spec:
+        storageClassName: {{ $.Values.global.nodeSelectorAndDevPath.pushMethod.dbMethod.redis.storage }}
+        accessModes:
+          - ReadWriteOnce
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.global.services.redis.nodePort.serviceName }}
+  namespace: {{ .Values.global.replicaCounts.redis.namespace }}
+  labels:
+    service.kubernetes.io/service-proxy-name: "" #不让kube-proxy代理，交由edgeMesh代理
+spec:
+  type: NodePort   # 如果需要集群外部访问,这里改为NodePort
+  ports:
+    - port: 6379
+      protocol: TCP
+      targetPort: 6379
+      name: {{ .Values.global.services.redis.nodePort.serviceName }}
+      nodePort: {{ .Values.global.services.redis.nodePort.port }}
+  selector:
+    app: redis
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.global.services.redis.clusterIP.serviceName }}
+  namespace: {{ .Values.global.replicaCounts.redis.namespace }}
+  labels:
+    service.kubernetes.io/service-proxy-name: "" #不让kube-proxy代理，交由edgeMesh代理
+spec:
+  type: ClusterIP  # 如果需要集群外部访问,这里改为NodePort
+  ports:
+    - port: {{ .Values.global.services.redis.clusterIP.port }}
+      protocol: TCP
+      targetPort: 6379
+      name: {{ $.Values.global.services.redis.clusterIP.serviceName }}
+  selector:
+    app: redis
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $.Values.global.services.redis.headless.serviceName }}
+  namespace: {{ $.Values.global.replicaCounts.redis.namespace }}
+  labels:
+    service.kubernetes.io/service-proxy-name: "" #不让kube-proxy代理，交由edgeMesh代理
+spec:
+  clusterIP: None
+  ports:
+    - port: {{ $.Values.global.services.redis.headless.port }}
+      protocol: TCP
+      targetPort: 6379
+      name: {{ $.Values.global.services.redis.headless.serviceName }}
+  selector:
+    app: redis
+
+{{- end}}

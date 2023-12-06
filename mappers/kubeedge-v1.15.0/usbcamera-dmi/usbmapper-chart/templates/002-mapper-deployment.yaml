@@ -1,0 +1,97 @@
+{{- if $.Values.global.nodeSelectorAndDevPath.pushMethod.dbMethod.influxdb2.flag }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: influxdb-configmap
+data:
+  token: "{{ $.Values.global.nodeSelectorAndDevPath.pushMethod.dbMethod.influxdb2.token }}"
+{{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: usb-dmi-mapper
+spec:
+  replicas: {{ $.Values.global.replicaCounts.cameraUsbMapper.replicaCount }}
+  selector:
+    matchLabels:
+      app: cameraUsbMapper
+  template:
+    metadata:
+      labels:
+        app: cameraUsbMapper
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-role.kubernetes.io/agent
+                    operator: Exists
+                  {{- if gt (len .Values.global.nodeSelectorAndDevPath.mapper)  0 }}
+                  - key: edgeNode
+                    operator: In
+                    values:
+                    {{- range .Values.global.nodeSelectorAndDevPath.mapper }}
+                      - {{ .edgeNode | quote }}
+                    {{- end }}
+                  {{- end}}
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - cameraUsbMapper
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+        - name: {{ .Values.global.images.cameraUsbMapper.name }}
+          image: {{ .Values.global.images.cameraUsbMapper.repository }}:{{ .Values.global.images.cameraUsbMapper.tag }}
+          imagePullPolicy: {{ .Values.global.images.cameraUsbMapper.pullPolicy }}
+          command: ["/bin/sh", "-c"]
+          args: ["/kubeedge/main --config-file /kubeedge/config.yaml --v 5"]
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - mountPath: /dev
+              name: usb-dev
+            - name: sock-path
+              mountPath: /etc/kubeedge
+          {{- if $.Values.global.nodeSelectorAndDevPath.pushMethod.dbMethod.influxdb2.flag }}
+          env:
+            - name: TOKEN
+              valueFrom:
+                configMapKeyRef:
+                  key: token
+                  name: influxdb-configmap
+          {{- end }}
+      volumes:
+        - name: sock-path
+          hostPath:
+            path: /etc/kubeedge
+            type: Directory
+        - name: usb-dev
+          hostPath:
+            path: /dev
+            type: Directory
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.global.services.cameraUsbMapper.clusterIP.serviceName }}
+  namespace: {{ .Values.global.replicaCounts.cameraUsbMapper.namespace }}
+  labels:
+    service.kubernetes.io/service-proxy-name: "" #不让kube-proxy代理，交由edgeMesh代理
+spec:
+  ports:
+    - port: {{ .Values.global.services.cameraUsbMapper.clusterIP.port }}
+      targetPort: 8898
+      protocol: TCP
+  selector:
+    app: cameraUsbMapper
+  type: ClusterIP
+
+
+

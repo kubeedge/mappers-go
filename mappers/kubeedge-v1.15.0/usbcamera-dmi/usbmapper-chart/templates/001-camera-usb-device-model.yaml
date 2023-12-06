@@ -1,0 +1,83 @@
+apiVersion: devices.kubeedge.io/v1beta1
+kind: DeviceModel
+metadata:
+  name: {{ $.Values.global.deviceModel.name }}
+  namespace: {{ $.Values.global.deviceModel.namespace }}
+spec:
+  protocol: {{ $.Values.global.deviceModel.protocol }}
+  properties:
+    - name: Framerate
+      description: Framerate
+      type: FLOAT
+      accessMode: ReadWrite
+    - name: Input
+      description: Input
+      type: INT
+      accessMode: ReadOnly
+    - name: BusInfo
+      description: BusInfo
+      type: STRING
+      accessMode: ReadOnly
+    - name: WhiteBalanceTemperature
+      description: White Balance Temperature
+      type: INT
+      accessMode: ReadOnly
+      maximum: "6500"
+      minimum: "2800"
+    - name: WhiteBalanceTemperatureAuto
+      description: White Balance Temperature, Auto
+      type: INT
+      accessMode: ReadWrite
+      maximum: "1"
+      minimum: "0"
+    - name: ExposureAbsolute
+      description: Exposure (Absolute)
+      type: INT
+      accessMode: ReadOnly
+      maximum: "2500"
+      minimum: "5"
+    - name: ExposureAuto
+      description: Exposure, Auto
+      type: INT
+      accessMode: ReadWrite
+      maximum: "3"
+      minimum: "0"
+    - name: PowerLineFrequency
+      description: Power Line Frequency
+      type: INT
+      accessMode: ReadWrite
+      maximum: "2"
+      minimum: "0"
+    - name: Sharpness
+      description: Sharpness
+      type: INT
+      accessMode: ReadWrite
+      maximum: "255"
+      minimum: "1"
+    - name: Contrast
+      description: Contrast
+      type: INT
+      accessMode: ReadWrite
+      maximum: "255"
+      minimum: "1"
+    - name: Saturation
+      description: Saturation
+      type: INT
+      accessMode: ReadWrite
+      maximum: "255"
+      minimum: "1"
+    - name: Gain
+      description: Gain
+      type: INT
+      accessMode: ReadWrite
+      maximum: "100"
+      minimum: "1"
+    - name: Brightness
+      description: Brightness
+      type: INT
+      accessMode: ReadWrite
+      maximum: "255"
+      minimum: "1"
+    - name: ImageTrigger
+      type: STRING
+      accessMode: ReadOnly
