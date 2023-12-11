@@ -1,0 +1,62 @@
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: random-instance-01
+  labels:
+    model: random-01
+spec:
+  deviceModelRef:
+    name: random-01
+  protocol:
+    protocolName: virtualProtocol
+    configData:   # Fill in the fields required by the modbus protocol here.
+      deviceID: 2
+      serialPort: '/dev/ttyS0'
+      baudRate: 9600
+      dataBits: 8
+      parity: even
+      stopBits: 1
+      protocolID: 1
+  nodeName: edge-node
+  properties:
+    - name: random-int
+      visitors:
+        protocolName: virtualProtocol
+        configData:
+          dataType: int
+      reportCycle: 10000000000   # The frequency of reporting data to the cloud, once every 10 seconds
+      collectCycle: 10000000000  # The frequency of data push to user applications or databases, once every 10 seconds
+      reportToCloud: true
+      desired:
+        value: "100"
+      pushMethod:
+        mqtt:
+          address: tcp://127.0.0.1:1883  # Replace it with your own mqtt server address
+          topic: random-int
+          qos: 0
+          retained: false
+        dbMethod:
+          influxdb2:
+            influxdb2ClientConfig:
+              url: http://127.0.0.1:8086  # Replace it with your own influxdb address
+              org: test-org
+              bucket: test-bucket
+            influxdb2DataConfig:
+              measurement: stat
+              tag:
+                unit: temperature
+              fieldKey: test
+    - name: random-float
+      visitors:
+        protocolName: virtualProtocol
+        configData:
+          dataType: float
+      reportCycle: 10000000000
+      collectCycle: 10000000000
+      reportToCloud: true
+      pushMethod:
+        mqtt:
+          address: tcp://127.0.0.1:1883
+          topic: random-float
+          qos: 0
+          retained: false
