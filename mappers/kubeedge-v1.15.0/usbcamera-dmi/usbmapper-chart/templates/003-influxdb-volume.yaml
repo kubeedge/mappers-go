@@ -1,0 +1,54 @@
+{{- if $.Values.global.nodeSelectorAndDevPath.pushMethod.dbMethod.influxdb2.flag }}
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: {{ $.Values.global.nodeSelectorAndDevPath.pushMethod.dbMethod.influxdb2.storage }}
+provisioner: kubernetes.io/no-provisioner
+#volumeBindingMode: WaitForFirstConsumer
+
+
+{{- $replica:=int $.Values.global.replicaCounts.influxdb.replicaCount }}
+{{- range $i := until  $replica }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: influxdb-data-influxdb-{{ $i }}
+  namespace:  {{ $.Values.global.replicaCounts.influxdb.namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ $.Values.global.nodeSelectorAndDevPath.pushMethod.dbMethod.influxdb2.storageSize }}
+  selector:
+    matchLabels:
+      app: influxdb-pv-{{ $i }}
+  storageClassName: {{ $.Values.global.nodeSelectorAndDevPath.pushMethod.dbMethod.influxdb2.storage }}
+  volumeMode: Filesystem
+{{- end }}
+
+
+
+{{- range $i := until  $replica }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: influxdb-pv-{{ $i }}
+  labels:
+    app: influxdb-pv-{{ $i }}
+spec:
+  capacity:
+    storage: {{ $.Values.global.nodeSelectorAndDevPath.pushMethod.dbMethod.influxdb2.storageSize }}
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  hostPath:
+    path: /var/lib/influxdb/data-{{ $i }}
+    type: DirectoryOrCreate
+  storageClassName: {{ $.Values.global.nodeSelectorAndDevPath.pushMethod.dbMethod.influxdb2.storage }}
+{{- end }}
+{{- end }}
+

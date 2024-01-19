@@ -1,0 +1,51 @@
+{{- if $.Values.global.nodeSelectorAndDevPath.pushMethod.dbMethod.redis.flag }}
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: {{ $.Values.global.nodeSelectorAndDevPath.pushMethod.dbMethod.redis.flag }}
+provisioner: kubernetes.io/no-provisioner
+#volumeBindingMode: WaitForFirstConsumer
+
+{{- $replica:=int $.Values.global.replicaCounts.redis.replicaCount }}
+{{- range $i := until   $replica }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-data-redis-{{ $i }}
+  namespace:  {{ $.Values.global.replicaCounts.redis.namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ $.Values.global.nodeSelectorAndDevPath.pushMethod.dbMethod.redis.storageSize }}
+  selector:
+    matchLabels:
+      app: redis-pv-{{ $i }}
+  storageClassName: {{ $.Values.global.nodeSelectorAndDevPath.pushMethod.dbMethod.redis.storage }}
+  volumeMode: Filesystem
+{{- end }}
+
+{{- range $i := until  $replica }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: redis-pv-{{ $i }}
+  labels:
+    app: redis-pv-{{ $i }}
+spec:
+  capacity:
+    storage: {{ $.Values.global.nodeSelectorAndDevPath.pushMethod.dbMethod.redis.storageSize }}
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  hostPath:
+    path: /var/lib/redis/data-{{ $i }}
+    type: DirectoryOrCreate
+  storageClassName: {{ $.Values.global.nodeSelectorAndDevPath.pushMethod.dbMethod.redis.storage }}
+{{- end }}
+
+{{- end }}

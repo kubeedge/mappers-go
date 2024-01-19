@@ -1,0 +1,97 @@
+{{- if $.Values.global.nodeSelectorAndDevPath.pushMethod.dbMethod.influxdb2.flag }}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: influxdb
+  name: influxdb
+  namespace: {{ .Values.global.replicaCounts.influxdb.namespace }}
+spec:
+  serviceName: {{ .Values.global.services.influxdb.headless.serviceName }}
+  replicas: {{ .Values.global.replicaCounts.influxdb.replicaCount }}
+  selector:
+    matchLabels:
+      app: influxdb
+  template:
+    metadata:
+      labels:
+        app: influxdb
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-role.kubernetes.io/agent
+                    operator: Exists
+      containers:
+        - image: {{ .Values.global.images.influxdb.repository }}:{{ .Values.global.images.influxdb.tag }}
+          name: {{ .Values.global.images.influxdb.name }}
+          imagePullPolicy: {{ .Values.global.images.influxdb.pullPolicy }}
+          ports:
+            - containerPort: 8086
+              name: influxdb
+          volumeMounts:
+            - mountPath: /var/lib/influxdb2
+              name: influxdb-data
+  volumeClaimTemplates:
+    - metadata:
+        name: influxdb-data
+        namespace: {{ .Values.global.replicaCounts.influxdb.namespace }}
+      spec:
+        storageClassName: {{ $.Values.global.nodeSelectorAndDevPath.pushMethod.dbMethod.influxdb2.storage }}
+        accessModes:
+          - ReadWriteOnce
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.global.services.influxdb.nodePort.serviceName }}
+  namespace: {{ .Values.global.replicaCounts.influxdb.namespace }}
+  labels:
+    service.kubernetes.io/service-proxy-name: "" #不让kube-proxy代理，交由edgeMesh代理
+spec:
+  ports:
+    - name: {{ .Values.global.services.influxdb.nodePort.serviceName }}
+      port: 8086
+      targetPort: 8086
+      nodePort: {{ .Values.global.services.influxdb.nodePort.port }}
+  selector:
+    app: influxdb
+  type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.global.services.influxdb.clusterIP.serviceName }}
+  namespace: {{ .Values.global.replicaCounts.influxdb.namespace }}
+  labels:
+    service.kubernetes.io/service-proxy-name: "" #不让kube-proxy代理，交由edgeMesh代理
+spec:
+  ports:
+    - port: {{ .Values.global.services.influxdb.clusterIP.port }}
+      targetPort: 8086
+      protocol: TCP
+      name: {{ .Values.global.services.influxdb.clusterIP.serviceName }}
+  selector:
+    app: influxdb
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.global.services.influxdb.headless.serviceName }}
+  namespace: {{ .Values.global.replicaCounts.influxdb.namespace }}
+  labels:
+    service.kubernetes.io/service-proxy-name: "" #不让kube-proxy代理，交由edgeMesh代理
+spec:
+  ports:
+    - port: {{ .Values.global.services.influxdb.headless.port }}
+      targetPort: 8086
+      protocol: TCP
+      name: {{ .Values.global.services.influxdb.headless.serviceName }}
+  clusterIP: None
+  selector:
+    app: influxdb
+{{- end }}

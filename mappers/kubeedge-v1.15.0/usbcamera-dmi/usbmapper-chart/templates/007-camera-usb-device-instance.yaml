@@ -1,0 +1,227 @@
+
+{{/*{{- $deviceModelCreated := false -}}*/}}
+{{/*{{- $deviceModelNamespace :=  $.Values.global.deviceModel.namespace -}}*/}}
+{{/*{{- $deviceModelName := $.Values.global.deviceModel.name -}}*/}}
+{{/*{{- $waitTimes := int $.Values.global.deviceModel.waitTimes}}*/}}
+{{/*{{- range $i :=until $waitTimes -}}*/}}
+{{/*  {{- if (lookup "devices.kubeedge.io/v1beta1" "DeviceModel" $deviceModelNamespace $deviceModelName) }}*/}}
+{{/*    {{- break -}}*/}}
+{{/*  {{- else -}}*/}}
+{{/*    {{- print "Waiting for DeviceModel to be created, Retry"  -}}*/}}
+{{/*  {{- end -}}*/}}
+{{/*{{- end -}}*/}}
+
+
+{{- $replicaCount := int .Values.global.replicaCounts.cameraUsbMapper.replicaCount }}
+{{- $mappers := .Values.global.nodeSelectorAndDevPath.mapper }}
+{{- range $i := until $replicaCount }}
+---
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: camera-usb-{{ $i }}
+  labels:
+    model: {{ $.Values.global.deviceModel.name }}
+spec:
+  deviceModelRef:
+    name: {{ $.Values.global.deviceModel.name }}
+  protocol:
+    protocolName: {{ $.Values.global.deviceModel.protocol }}
+    configData:
+      deviceID: {{ $i }}
+      width: 640
+      height: 480
+      format: 0x56595559
+      serialPort: {{ index $mappers $i "devPath" }}
+      protocolID: {{ $i }}
+  nodeName: {{ index $mappers $i "edgeNode" }} #pls give your edge node name
+  properties:
+    - name: Framerate
+      desired:
+        value: "30"
+        metadata:
+          timestamp: '1550049403598'
+      visitors:
+        protocolName: {{ $.Values.global.deviceModel.protocol }}
+        configData:
+          featureName: "Framerate"
+          dataType: float
+      reportToCloud: true
+    - name: Input
+      desired:
+        value: "0"
+        metadata:
+          timestamp: '1550049403598'
+      visitors:
+        protocolName: {{ $.Values.global.deviceModel.protocol }}
+        configData:
+          featureName: "Input"
+          dataType: int
+      reportToCloud: true
+    - name: BusInfo
+      desired:
+        value: "usb-0000:02:02.0-1"
+        metadata:
+          timestamp: '1550049403598'
+      visitors:
+        protocolName: {{ $.Values.global.deviceModel.protocol }}
+        configData:
+          featureName: "BusInfo"
+          dataType: string
+      reportToCloud: true
+    - name: WhiteBalanceTemperatureAuto
+      desired:
+        value: "1"
+        metadata:
+          timestamp: '1550049403598'
+      visitors:
+        protocolName: {{ $.Values.global.deviceModel.protocol }}
+        configData:
+          featureName: "White Balance Temperature, Auto"
+          dataType: int
+      reportToCloud: true
+    - name: WhiteBalanceTemperature
+      desired:
+        value: "4650"
+        metadata:
+          timestamp: '1550049403598'
+      visitors:
+        protocolName: {{ $.Values.global.deviceModel.protocol }}
+        configData:
+          featureName: "White Balance Temperature"
+          dataType: int
+      reportToCloud: true
+    - name: ExposureAbsolute
+      desired:
+        value: "5"
+        metadata:
+          timestamp: '1550049403598'
+      visitors:
+        protocolName: {{ $.Values.global.deviceModel.protocol }}
+        configData:
+          featureName: "Exposure (Absolute)"
+          dataType: int
+      reportToCloud: true
+    - name: ExposureAuto
+      desired:
+        value: "0"
+        metadata:
+          timestamp: '1550049403598'
+      visitors:
+        protocolName: {{ $.Values.global.deviceModel.protocol }}
+        configData:
+          featureName: "Exposure, Auto"
+          dataType: int
+      reportToCloud: true
+    - name: PowerLineFrequency
+      desired:
+        value: "1"
+        metadata:
+          timestamp: '1550049403598'
+      visitors:
+        protocolName: {{ $.Values.global.deviceModel.protocol }}
+        configData:
+          featureName: "Power Line Frequency"
+          dataType: int
+      reportToCloud: true
+    - name: Sharpness
+      desired:
+        value: "128"
+        metadata:
+          timestamp: '1550049403598'
+      visitors:
+        protocolName: {{ $.Values.global.deviceModel.protocol }}
+        configData:
+          featureName: "Sharpness"
+          dataType: int
+      reportToCloud: true
+    - name: Contrast
+      desired:
+        value: "128"
+        metadata:
+          timestamp: '1550049403598'
+      visitors:
+        protocolName: {{ $.Values.global.deviceModel.protocol }}
+        configData:
+          featureName: "Contrast"
+          dataType: int
+      reportToCloud: true
+    - name: Saturation
+      desired:
+        value: "128"
+        metadata:
+          timestamp: '1550049403598'
+      visitors:
+        protocolName: {{ $.Values.global.deviceModel.protocol }}
+        configData:
+          featureName: "Saturation"
+          dataType: int
+      reportToCloud: true
+    - name: Gain
+      desired:
+        value: "50"
+        metadata:
+          timestamp: '1550049403598'
+      visitors:
+        protocolName: {{ $.Values.global.deviceModel.protocol }}
+        configData:
+          featureName: "Gain"
+          dataType: int
+      reportToCloud: true
+    - name: Brightness
+      desired:
+        value: "128"
+        metadata:
+          timestamp: '1550049403598'
+      visitors:
+        protocolName: {{ $.Values.global.deviceModel.protocol }}
+        configData:
+          featureName: "Brightness"
+          dataType: int
+      reportToCloud: true
+    - name: ImageTrigger
+      desired:
+        value: ""
+        metadata:
+          timestamp: '1550049403598'
+      visitors:
+        protocolName: {{ $.Values.global.deviceModel.protocol }}
+        configData:
+          featureName: "ImageTrigger"
+          dataType: string
+      reportToCloud: false
+      {{- if $.Values.global.nodeSelectorAndDevPath.pushMethod.fag }}
+      pushMethod:
+      {{- if  $.Values.global.nodeSelectorAndDevPath.pushMethod.mqtt.flag  }}
+        mqtt:
+          topic: "camera-usb-{{ $i }}"
+          {{- with $.Values.global.nodeSelectorAndDevPath.pushMethod.mqtt.conf }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+      {{- end}}
+      {{- if  $.Values.global.nodeSelectorAndDevPath.pushMethod.http.flag  }}
+        http:
+          {{- with  $.Values.global.nodeSelectorAndDevPath.pushMethod.http.conf }}
+          {{- toYaml . | nindent 10}}
+          {{- end}}
+      {{- end}}
+      {{- if $.Values.global.nodeSelectorAndDevPath.pushMethod.dbMethod.flag }}
+        dbMethod:
+          {{- if $.Values.global.nodeSelectorAndDevPath.pushMethod.dbMethod.influxdb2.flag }}
+          influxdb2:
+            influxdb2ClientConfig:
+              bucket: "camera-usb-{{ $i }}"
+              url: http://{{ $.Values.global.services.influxdb.clusterIP.serviceName }}.{{ $.Values.global.replicaCounts.influxdb.namespace }}.svc.cluster.local:{{ $.Values.global.services.influxdb.clusterIP.port }}
+              {{- with  $.Values.global.nodeSelectorAndDevPath.pushMethod.dbMethod.influxdb2.conf.influxdb2ClientConfig }}
+              {{- toYaml . | nindent 14 }}
+              {{- end }}
+            influxdb2DataConfig:
+              tag:
+                usb-camera-id: camera-usb-{{ $i }}
+              {{- with  $.Values.global.nodeSelectorAndDevPath.pushMethod.dbMethod.influxdb2.conf.influxdb2DataConfig }}
+              {{- toYaml . | nindent 14 }}
+              {{- end }}
+          {{- end }}
+      {{- end}}
+      {{- end}}
+{{- end }}
