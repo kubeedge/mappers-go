@@ -88,7 +88,12 @@ function package() {
   echo "packaging mapper ${mapper}..."
 
   local image_name="${mapper}-mapper"
-  local tag=v1.0
+  
+  if [[ -n "$2" ]]; then
+    local tag=$2
+  else
+    local tag=v1.0
+  fi
 
   local platform
   if [[ "${ARM:-false}" == "true" ]]; then
