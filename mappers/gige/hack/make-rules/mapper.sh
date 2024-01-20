@@ -7,6 +7,7 @@ set -o pipefail
 CURR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 ROOT_DIR="$(cd "${CURR_DIR}/../.." && pwd -P)"
 source "${ROOT_DIR}/hack/lib/init.sh"
+source "${ROOT_DIR}/hack/lib/install.sh"
 
 mkdir -p "${CURR_DIR}/bin"
 mkdir -p "${CURR_DIR}/dist"
@@ -35,6 +36,9 @@ function mod() {
 function lint() {
   [[ "${2:-}" != "only" ]] && mod "$@"
   local mapper="${1}"
+
+  echo "check_golangci-lint..."
+  check_golangci-lint
 
   echo "fmt and linting mapper ${mapper}..."
 
