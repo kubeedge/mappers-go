@@ -30,6 +30,8 @@ spec:
         - test
   propertyVisitors:
     - propertyName: temperature
+      collectCycle: 1000
+      reportCycle: 1000
       modbus:
         register: CoilRegister
         offset: 2

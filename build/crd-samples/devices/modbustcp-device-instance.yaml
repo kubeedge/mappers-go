@@ -44,13 +44,14 @@ spec:
 status:
   twins:
     - propertyName: temperature-enable
-      reported:
-        metadata:
-          timestamp: '1550049403598'
-          type: integer
-        value: "0"
       desired:
         metadata:
           timestamp: '1550049403598'
-          type: integer
-        value: "0"
+          type: int
+        value: "1"
+    - propertyName: temperature
+      desired:
+        metadata:
+          timestamp: '1550049403598'
+          type: int
+        value: "28"

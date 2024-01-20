@@ -42,14 +42,6 @@ func main() {
 
 	grpcclient.Init(&c)
 
-	// start grpc server
-	grpcServer := grpcserver.NewServer(
-		grpcserver.Config{
-			SockPath: c.GrpcServer.SocketPath,
-			Protocol: common.ProtocolModbus,
-		},
-	)
-
 	panel := device.NewDevPanel()
 	err = panel.DevInit(&c)
 	if err != nil && !errors.Is(err, parse.ErrEmptyData) {
@@ -69,7 +61,15 @@ func main() {
 	}
 
 	panel.DevStart()
+	klog.Infoln("devices start finished")
 
+	// start grpc server
+	grpcServer := grpcserver.NewServer(
+		grpcserver.Config{
+			SockPath: c.GrpcServer.SocketPath,
+			Protocol: common.ProtocolModbus,
+		},
+	)
 	if err = grpcServer.Start(); err != nil {
 		klog.Fatal(err)
 	}
