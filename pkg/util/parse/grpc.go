@@ -9,6 +9,7 @@ import (
 
 	"github.com/kubeedge/kubeedge/cloud/pkg/devicecontroller/constants"
 	dmiapi "github.com/kubeedge/kubeedge/pkg/apis/dmi/v1alpha1"
+
 	"github.com/kubeedge/mappers-go/pkg/common"
 )
 
@@ -245,6 +246,7 @@ func ParseDeviceModelFromGrpc(model *dmiapi.DeviceModel) common.DeviceModel {
 			Name:        property.GetName(),
 			Description: property.GetDescription(),
 		}
+		klog.V(2).Infof("Parse device model property from grpc, name %s, type %+v", property.GetName(), property.Type)
 		if property.Type.GetString_() != nil {
 			p.DataType = "string"
 			p.AccessMode = property.Type.String_.GetAccessMode()
