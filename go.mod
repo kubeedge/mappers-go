@@ -19,7 +19,7 @@ require (
 	github.com/sailorvii/modbus v0.1.2
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/pflag v1.0.6-0.20210604193023-d5e0c0615ace
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.8.4
 	github.com/tbrandon/mbserver v0.0.0-20210320091329-a1f8ae952881
 	github.com/use-go/onvif v0.0.1
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
@@ -76,7 +76,7 @@ require (
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/client-go v0.24.1 // indirect
 	k8s.io/component-base v0.22.6 // indirect
 	k8s.io/kube-openapi v0.0.0-20220328201542-3ee0da9b0b42 // indirect
