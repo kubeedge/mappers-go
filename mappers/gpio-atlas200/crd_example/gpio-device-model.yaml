@@ -1,0 +1,26 @@
+apiVersion: devices.kubeedge.io/v1alpha2
+kind: DeviceModel
+metadata:
+  name: led-model
+  namespace: default
+spec:
+  properties:
+    - name: red-power-status
+      description: red
+      type:
+        string:
+          accessMode: ReadWrite
+          defaultValue: "OFF"
+    - name: green-power-status
+      description: green
+      type:
+        string:
+          accessMode: ReadWrite
+          defaultValue: "OFF"
+    - name: yellow-power-status
+      description: yellow
+      type:
+        string:
+          accessMode: ReadWrite
+          defaultValue: "ON"
+    
