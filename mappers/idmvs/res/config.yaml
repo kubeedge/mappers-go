@@ -5,8 +5,8 @@ mqtt:
   password: ""
   clientId: ""
   certification: ""
-  privatekey: ""
-  caCert: ""
+  privatekey:
+  caCert:
 http:
   certification: ""
   privatekey: ""
