@@ -9,3 +9,4 @@ common:
   edgecore_sock: /etc/kubeedge/dmi.sock
 dev_init:
   mode: register #register/configmap
+log_level: 1

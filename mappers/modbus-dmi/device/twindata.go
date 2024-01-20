@@ -28,6 +28,7 @@ import (
 	"k8s.io/klog/v2"
 
 	dmiapi "github.com/kubeedge/kubeedge/pkg/apis/dmi/v1alpha1"
+
 	"github.com/kubeedge/mappers-go/pkg/common"
 	"github.com/kubeedge/mappers-go/pkg/driver/modbus"
 	"github.com/kubeedge/mappers-go/pkg/util/grpcclient"
@@ -36,12 +37,14 @@ import (
 
 // TwinData is the timer structure for getting twin/data.
 type TwinData struct {
+	DeviceID      string
 	DeviceName    string
 	Client        *modbus.ModbusClient
 	Name          string
 	Type          string
 	VisitorConfig *modbus.ModbusVisitorConfig
 	Results       []byte
+	LastValue     string
 	Topic         string
 }
 
@@ -111,51 +114,99 @@ func TransferData(isRegisterSwap bool, isSwap bool,
 		}
 		bits := binary.BigEndian.Uint32(value)
 		data := float64(math.Float32frombits(bits)) * scale
-		sData := strconv.FormatFloat(data, 'f', 6, 64)
+		sData := strconv.FormatFloat(data, 'f', 2, 64)
 		return sData, nil
 	case "boolean":
-		return strconv.FormatBool(value[0] == 1), nil
+		return strconv.FormatBool(value[0] == 0xFF), nil
 	case "string":
-		data := string(value)
+		for i, b := range value {
+			if !isUpper(b) && !isLowercase(b) && !isNumber(b) && !isSpecial(b) {
+				value[i] = ' '
+			}
+		}
+		data := strings.ReplaceAll(string(value), " ", "")
 		return data, nil
 	default:
-		return "", errors.New("Data type is not support")
+		return "", errors.New("data type is not support")
 	}
 }
 
-func (td *TwinData) GetPayload() ([]byte, error) {
+func isUpper(b byte) bool {
+	return 'A' <= b && b <= 'Z'
+}
+
+func isLowercase(b byte) bool {
+	return 'a' <= b && b <= 'z'
+}
+
+func isNumber(b byte) bool {
+	return '0' <= b && b <= '9'
+}
+
+func isSpecial(b byte) bool {
+	whiteList := map[byte]byte{
+		'/': '/',
+		'-': '-',
+		'_': '_',
+		'.': '.',
+		'%': '%',
+		'+': '+',
+		',': ',',
+		'=': '=',
+		'@': '@',
+		'#': '#',
+		':': ':',
+		'^': '^',
+		'~': '~',
+		'?': '?',
+		'&': '&',
+		'!': '!',
+		'*': '*',
+	}
+	_, ok := whiteList[b]
+	return ok
+}
+
+func (td *TwinData) GetPayload() ([]byte, bool, error) {
 	var err error
 
-	td.Results, err = td.Client.Get(td.VisitorConfig.Register, td.VisitorConfig.Offset, uint16(td.VisitorConfig.Limit))
+	td.Results, err = td.Client.GetWithRetry(td.VisitorConfig.Register, td.VisitorConfig.Offset, uint16(td.VisitorConfig.Limit), 2)
 	if err != nil {
-		return nil, fmt.Errorf("get register failed: %v", err)
+		return nil, false, fmt.Errorf("get register failed: %v", err)
 	}
 	// transfer data according to the dpl configuration
 	sData, err := TransferData(td.VisitorConfig.IsRegisterSwap,
 		td.VisitorConfig.IsSwap, td.Type, td.VisitorConfig.Scale, td.Results)
 	if err != nil {
-		return nil, fmt.Errorf("transfer Data failed: %v", err)
+		return nil, false, fmt.Errorf("transfer Data failed: %v", err)
 	}
+
+	// do not report if the twin data is not changed to prevent triggering traffic limiting
+	changed := sData != td.LastValue
+	td.LastValue = sData
 	// construct payload
 	var payload []byte
 	if strings.Contains(td.Topic, "$hw") {
 		if payload, err = common.CreateMessageTwinUpdate(td.Name, td.Type, sData); err != nil {
-			return nil, fmt.Errorf("create message twin update failed: %v", err)
+			return nil, false, fmt.Errorf("create message twin update failed: %v", err)
 		}
 	} else {
 		if payload, err = common.CreateMessageData(td.Name, td.Type, sData); err != nil {
-			return nil, fmt.Errorf("create message data failed: %v", err)
+			return nil, false, fmt.Errorf("create message data failed: %v", err)
 		}
 	}
 	klog.V(2).Infof("Get the %s value as %s", td.Name, sData)
-	return payload, nil
+	return payload, changed, nil
 }
 
 // Run timer function.
 func (td *TwinData) Run() {
-	payload, err := td.GetPayload()
+	payload, changed, err := td.GetPayload()
 	if err != nil {
 		klog.Errorf("twindata %s get payload failed, err: %s", td.Name, err)
+		return
+	}
+	if !changed {
 		return
 	}
 
@@ -168,7 +219,7 @@ func (td *TwinData) Run() {
 	twins := parse.ConvMsgTwinToGrpc(msg.Twin)
 
 	var rdsr = &dmiapi.ReportDeviceStatusRequest{
-		DeviceName: td.DeviceName,
+		DeviceName: td.DeviceID,
 		ReportedDevice: &dmiapi.DeviceStatus{
 			Twins: twins,
 			State: "OK",
