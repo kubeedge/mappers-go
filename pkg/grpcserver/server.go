@@ -10,8 +10,6 @@ import (
 	"k8s.io/klog/v2"
 
 	dmiapi "github.com/kubeedge/kubeedge/pkg/apis/dmi/v1alpha1"
-	modbusdevice "github.com/kubeedge/mappers-go/mappers/modbus-dmi/device"
-	"github.com/kubeedge/mappers-go/pkg/common"
 	"github.com/kubeedge/mappers-go/pkg/global"
 )
 
@@ -21,26 +19,14 @@ type Config struct {
 }
 
 type Server struct {
+	lis      net.Listener
 	cfg      Config
 	devPanel global.DevPanel
 }
 
-func NewServer(cfg Config) Server {
+func NewServer(cfg Config, devPanel global.DevPanel) Server {
 	s := Server{cfg: cfg}
-	switch cfg.Protocol {
-	case common.ProtocolModbus:
-		s.devPanel = modbusdevice.NewDevPanel()
-	case common.ProtocolBlueTooth:
-		// TODO
-	case common.ProtocolOpcua:
-		// TODO
-	case common.ProtocolOnvif:
-		// TODO
-	case common.ProtocolCustomized:
-		// TODO
-	default:
-		klog.Fatalf("unknown device protocol %s for grpc server", cfg.Protocol)
-	}
+	s.devPanel = devPanel
 	return s
 }
 
@@ -52,7 +38,7 @@ func (s *Server) Start() error {
 		return err
 	}
 
-	lis, err := net.Listen("unix", s.cfg.SockPath)
+	s.lis, err = net.Listen("unix", s.cfg.SockPath)
 	if err != nil {
 		klog.Fatalf("failed to remove uds socket with err: %v", err)
 		return err
@@ -60,8 +46,19 @@ func (s *Server) Start() error {
 	grpcServer := grpc.NewServer()
 	dmiapi.RegisterDeviceMapperServiceServer(grpcServer, s)
 	reflection.Register(grpcServer)
+	klog.Info("start grpc server")
+	return grpcServer.Serve(s.lis)
+}
 
-	return grpcServer.Serve(lis)
+func (s *Server) Stop() {
+	err := s.lis.Close()
+	if err != nil {
+		return
+	}
+	err = os.Remove(s.cfg.SockPath)
+	if err != nil {
+		return
+	}
 }
 
 func initSock(sockPath string) error {

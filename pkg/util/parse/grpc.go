@@ -5,6 +5,7 @@ import (
 	"errors"
 	"strconv"
 
+	"github.com/fatih/structs"
 	"k8s.io/klog/v2"
 
 	"github.com/kubeedge/kubeedge/cloud/pkg/devicecontroller/constants"
@@ -33,10 +34,42 @@ func BuildProtocolFromGrpc(device *dmiapi.Device) (common.Protocol, error) {
 	if err != nil {
 		return common.Protocol{}, err
 	}
-	protocolCommonConfig, err := json.Marshal(device.Spec.Protocol.Common)
-	if err != nil {
-		return common.Protocol{}, err
+	var protocolCommonConfig []byte
+
+	if device.Spec.Protocol.Common.CustomizedValues != nil {
+		commonConfig := make(map[string]interface{})
+		recvAdapter := make(map[string]interface{})
+		for k, v := range device.Spec.Protocol.Common.CustomizedValues.Data {
+			value, err := common.DecodeAnyValue(v)
+			if err != nil {
+				continue
+			}
+			recvAdapter[k] = value
+		}
+		if device.Spec.Protocol.Common.Com != nil {
+			commonConfig["com"] = structs.Map(device.Spec.Protocol.Common.Com)
+		}
+		if device.Spec.Protocol.Common.Tcp != nil {
+			commonConfig["tcp"] = structs.Map(device.Spec.Protocol.Common.Tcp)
+		}
+		commonConfig["commType"] = device.Spec.Protocol.Common.CommType
+		commonConfig["reconnTimeout"] = device.Spec.Protocol.Common.ReconnTimeout
+		commonConfig["reconnRetryTimes"] = device.Spec.Protocol.Common.ReconnRetryTimes
+		commonConfig["collectTimeout"] = device.Spec.Protocol.Common.CollectTimeout
+		commonConfig["collectRetryTimes"] = device.Spec.Protocol.Common.CollectRetryTimes
+		commonConfig["collectType"] = device.Spec.Protocol.Common.CollectType
+		commonConfig["customizedValues"] = recvAdapter
+		protocolCommonConfig, err = json.Marshal(commonConfig)
+		if err != nil {
+			return common.Protocol{}, err
+		}
+	} else {
+		protocolCommonConfig, err = json.Marshal(device.Spec.Protocol.Common)
+		if err != nil {
+			return common.Protocol{}, err
+		}
 	}
+
 	var protocolConfig []byte
 	switch protocolName {
 	case constants.Modbus:
@@ -55,7 +88,20 @@ func BuildProtocolFromGrpc(device *dmiapi.Device) (common.Protocol, error) {
 			return common.Protocol{}, err
 		}
 	case constants.CustomizedProtocol:
-		protocolConfig, err = json.Marshal(device.Spec.Protocol.CustomizedProtocol)
+		customizedProtocol := make(map[string]interface{})
+		customizedProtocol["protocolName"] = device.Spec.Protocol.CustomizedProtocol.ProtocolName
+		if device.Spec.Protocol.CustomizedProtocol.ConfigData != nil {
+			recvAdapter := make(map[string]interface{})
+			for k, v := range device.Spec.Protocol.CustomizedProtocol.ConfigData.Data {
+				value, err := common.DecodeAnyValue(v)
+				if err != nil {
+					continue
+				}
+				recvAdapter[k] = value
+			}
+			customizedProtocol["configData"] = recvAdapter
+		}
+		protocolConfig, err = json.Marshal(customizedProtocol)
 		if err != nil {
 			return common.Protocol{}, err
 		}
@@ -106,7 +152,20 @@ func buildTwinsFromGrpc(device *dmiapi.Device) []common.Twin {
 				return nil
 			}
 		case constants.CustomizedProtocol:
-			visitorConfig, err = json.Marshal(visitor.CustomizedProtocol)
+			customizedProtocol := make(map[string]interface{})
+			customizedProtocol["protocolName"] = visitor.CustomizedProtocol.ProtocolName
+			if visitor.CustomizedProtocol.ConfigData != nil {
+				recvAdapter := make(map[string]interface{})
+				for k, v := range visitor.CustomizedProtocol.ConfigData.Data {
+					value, err := common.DecodeAnyValue(v)
+					if err != nil {
+						continue
+					}
+					recvAdapter[k] = value
+				}
+				customizedProtocol["configData"] = recvAdapter
+			}
+			visitorConfig, err = json.Marshal(customizedProtocol)
 			if err != nil {
 				return nil
 			}
@@ -211,7 +270,18 @@ func buildPropertyVisitorsFromGrpc(device *dmiapi.Device) []common.PropertyVisit
 				return nil
 			}
 		case constants.CustomizedProtocol:
-			visitorConfig, err = json.Marshal(pptv.CustomizedProtocol)
+			recvAdapter := make(map[string]interface{})
+			for k, v := range pptv.CustomizedProtocol.ConfigData.Data {
+				value, err := common.DecodeAnyValue(v)
+				if err != nil {
+					continue
+				}
+				recvAdapter[k] = value
+			}
+			customizedProtocol := make(map[string]interface{})
+			customizedProtocol["protocolName"] = pptv.CustomizedProtocol.ProtocolName
+			customizedProtocol["configData"] = recvAdapter
+			visitorConfig, err = json.Marshal(customizedProtocol)
 			if err != nil {
 				klog.Errorf("err: %+v", err)
 				return nil

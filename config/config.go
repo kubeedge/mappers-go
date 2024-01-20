@@ -67,7 +67,7 @@ func (c *Config) Parse() error {
 
 	pflag.StringVar(&loglevel, "v", "1", "log level")
 	pflag.StringVar(&configFile, "config-file", defaultConfigFile, "Config file name")
-
+	pflag.Parse()
 	cf, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		return err
@@ -81,13 +81,11 @@ func (c *Config) Parse() error {
 
 	switch c.DevInit.Mode {
 	case common.DevInitModeConfigmap:
-		if readFile, err := ioutil.ReadFile(c.DevInit.Configmap); err != nil {
+		if _, err := ioutil.ReadFile(c.DevInit.Configmap); err != nil {
 			if !os.IsNotExist(err) {
 				return err
 			}
 			c.DevInit.Configmap = strings.TrimSpace(os.Getenv("DEVICE_PROFILE"))
-		} else {
-			c.DevInit.Configmap = string(readFile)
 		}
 		if strings.TrimSpace(c.DevInit.Configmap) == "" {
 			return errors.New("can not parse configmap")
