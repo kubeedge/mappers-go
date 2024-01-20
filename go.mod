@@ -3,7 +3,7 @@ module github.com/kubeedge/mappers-go
 go 1.17
 
 require (
-	github.com/beevik/etree v1.1.0
+	github.com/beevik/etree v1.2.0
 	github.com/currantlabs/ble v0.0.0-20171229162446-c1d21c164cf8
 	github.com/eclipse/paho.mqtt.golang v1.3.0
 	github.com/go-resty/resty/v2 v2.7.0
