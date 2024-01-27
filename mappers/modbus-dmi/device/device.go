@@ -28,10 +28,10 @@ import (
 
 	"k8s.io/klog/v2"
 
-	"github.com/kubeedge/mappers-go/config"
-	"github.com/kubeedge/mappers-go/pkg/common"
-	"github.com/kubeedge/mappers-go/pkg/driver/modbus"
-	"github.com/kubeedge/mappers-go/pkg/util/parse"
+	"github.com/kubeedge/mappers-go/mappers/config"
+	"github.com/kubeedge/mappers-go/mappers/pkg/common"
+	"github.com/kubeedge/mappers-go/mappers/pkg/driver/modbus"
+	"github.com/kubeedge/mappers-go/mappers/pkg/util/parse"
 )
 
 type DevPanel struct {
