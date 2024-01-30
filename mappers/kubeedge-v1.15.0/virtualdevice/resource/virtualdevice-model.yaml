@@ -1,0 +1,17 @@
+apiVersion: devices.kubeedge.io/v1beta1
+kind: DeviceModel
+metadata:
+  name: random-01
+  namespace: default
+spec:
+  protocol: virtualProtocol
+  properties:
+    - name: random-int
+      description: random int
+      type: INT
+      maximum: '100'
+      accessMode: ReadWrite
+    - name: random-float
+      description: random float
+      type: FLOAT
+      accessMode: ReadOnly
