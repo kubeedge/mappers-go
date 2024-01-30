@@ -19,12 +19,12 @@ import (
 
 	"k8s.io/klog/v2"
 
-	"github.com/kubeedge/mappers-go/config"
+	"github.com/kubeedge/mappers-go/mappers/config"
 	"github.com/kubeedge/mappers-go/mappers/modbus-dmi/device"
-	"github.com/kubeedge/mappers-go/pkg/common"
-	"github.com/kubeedge/mappers-go/pkg/grpcserver"
-	"github.com/kubeedge/mappers-go/pkg/util/grpcclient"
-	"github.com/kubeedge/mappers-go/pkg/util/parse"
+	"github.com/kubeedge/mappers-go/mappers/pkg/common"
+	"github.com/kubeedge/mappers-go/mappers/pkg/grpcserver"
+	"github.com/kubeedge/mappers-go/mappers/pkg/util/grpcclient"
+	"github.com/kubeedge/mappers-go/mappers/pkg/util/parse"
 )
 
 func main() {
