@@ -1,0 +1,45 @@
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: onvif-device-01
+  namespace: default
+spec:
+  deviceModelRef:
+    name: onvif-model   # need to be the same as the model name defined in onvif-model.yaml
+  protocol:
+    protocolName: onvif
+    configData:
+      url: 192.168.168.64:80   # Replace it with the address of your own onvif camera
+      userName: admin          # Replace it with the username of your own onvif camera
+      password: /etc/secret/password   # Fill in the fields according to your secret.yaml
+  nodeName: edge-node          # Replace it with your edge node name
+  properties:
+    - name: getURI
+      visitors:
+        protocolName: onvif
+        configData:
+          url: 192.168.168.64:80
+          userName: admin
+          password: /etc/secret/password
+          dataType: string
+      reportCycle: 10000000000        # Data publish frequency, default is once every 10 seconds
+      collectCycle: 10000000000       # Data reporting frequency to the cloud, default is once every 10 seconds
+      reportToCloud: true
+    - name: saveFrame
+      visitors:
+        protocolName: onvif
+        configData:
+          format: jpg
+          outputDir: /tmp/case/
+          frameCount: 30
+          frameInterval: 1000000
+          dataType: stream
+    - name: saveVideo
+      visitors:
+        protocolName: onvif
+        configData:
+          frameCount: 1000
+          format: mp4
+          outputDir: /tmp/case/
+          videoNum: 2
+          dataType: stream

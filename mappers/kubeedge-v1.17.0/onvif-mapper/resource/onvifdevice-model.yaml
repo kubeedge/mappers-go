@@ -1,0 +1,20 @@
+apiVersion: devices.kubeedge.io/v1beta1
+kind: DeviceModel
+metadata:
+  name: onvif-model
+  namespace: default
+spec:
+  protocol: onvif
+  properties:
+    - name: getURI
+      description: get camera uri
+      type: STRING
+      accessMode: ReadOnly
+    - name: saveFrame
+      description: get camera uri
+      type: STREAM
+      accessMode: ReadOnly
+    - name: saveVideo
+      description: get camera uri
+      type: STREAM
+      accessMode: ReadOnly
