@@ -52,7 +52,7 @@ func setVisitor(visitorConfig *modbus.ModbusVisitorConfig, twin *common.Twin, cl
 	}
 
 	klog.V(2).Infof("Convert type: %s, value: %s ", twin.PVisitor.PProperty.DataType, twin.Desired.Value)
-	value, err := common.Convert(twin.PVisitor.PProperty.DataType, twin.Desired.Value)
+	value, err := common.Convert(twin.Desired.Metadatas.Type, twin.Desired.Value)
 	if err != nil {
 		klog.Errorf("Convert error: %v", err)
 		return
@@ -127,7 +127,7 @@ func initTwin(ctx context.Context, dev *modbus.ModbusDev) {
 			VisitorConfig: &visitorConfig,
 			Topic:         fmt.Sprintf(common.TopicTwinUpdate, dev.Instance.ID),
 			DeviceName:    dev.Instance.Name}
-		collectCycle := time.Duration(dev.Instance.Twins[i].PVisitor.CollectCycle)
+		collectCycle := time.Duration(dev.Instance.Twins[i].PVisitor.CollectCycle) * time.Millisecond
 		// If the collect cycle is not set, set it to 1 second.
 		if collectCycle == 0 {
 			collectCycle = 1 * time.Second
@@ -172,7 +172,6 @@ func (d *DevPanel) start(ctx context.Context, dev *modbus.ModbusDev) {
 
 	go initTwin(ctx, dev)
 
-	<-ctx.Done()
 	d.wg.Done()
 }
 
