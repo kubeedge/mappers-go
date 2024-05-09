@@ -4,14 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
+
+	"k8s.io/klog/v2"
 
 	dmiapi "github.com/kubeedge/kubeedge/pkg/apis/dmi/v1alpha1"
 	"github.com/kubeedge/mappers-go/pkg/common"
 	"github.com/kubeedge/mappers-go/pkg/driver/modbus"
 	"github.com/kubeedge/mappers-go/pkg/util/parse"
-
-	"k8s.io/klog/v2"
 )
 
 func (s *Server) RegisterDevice(ctx context.Context, request *dmiapi.RegisterDeviceRequest) (*dmiapi.RegisterDeviceResponse, error) {
@@ -21,7 +22,8 @@ func (s *Server) RegisterDevice(ctx context.Context, request *dmiapi.RegisterDev
 		return nil, errors.New("device is nil")
 	}
 	if _, err := s.devPanel.GetDevice(device.Name); err == nil {
-		return nil, fmt.Errorf("add device %s failed, has existed", device.Name)
+		// The device has been registered
+		return &dmiapi.RegisterDeviceResponse{DeviceName: device.Name}, nil
 	}
 
 	var model common.DeviceModel
@@ -167,17 +169,16 @@ func (s *Server) GetDevice(ctx context.Context, request *dmiapi.GetDeviceRequest
 			Status: &dmiapi.DeviceStatus{},
 		},
 	}
-	switch s.cfg.Protocol {
-	case common.ProtocolModbus:
-		d := device.(*modbus.ModbusDev)
-		twins, err := parse.ConvTwinsToGrpc(d.Instance.Twins)
-		if err != nil {
-			return nil, err
-		}
-		res.Device.Status.Twins = twins
-		res.Device.Status.State = common.DEVSTOK
-	default:
-		return nil, fmt.Errorf("current mapper only support protocol %s's device", s.cfg.Protocol)
+	deviceValue := reflect.ValueOf(device)
+	twinsValue := deviceValue.FieldByName("Instance").FieldByName("Twins")
+	if !twinsValue.IsValid() {
+		return nil, fmt.Errorf("twins field not found")
 	}
+	twins, err := parse.ConvTwinsToGrpc(twinsValue.Interface().([]common.Twin))
+	if err != nil {
+		return nil, err
+	}
+	res.Device.Status.Twins = twins
+	res.Device.Status.State = common.DEVSTOK
 	return res, nil
 }

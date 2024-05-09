@@ -17,8 +17,16 @@ limitations under the License.
 package common
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
+	"reflect"
 	"strconv"
+	"strings"
+
+	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 // Convert string to other types
@@ -37,4 +45,126 @@ func Convert(valueType string, value string) (result interface{}, err error) {
 	default:
 		return nil, errors.New("Convert failed")
 	}
+}
+
+// ConvertToString other types to string
+func ConvertToString(value interface{}) (string, error) {
+	var result string
+	if value == nil {
+		return result, nil
+	}
+	switch value.(type) {
+	case float64:
+		ft := value.(float64)
+		result = strconv.FormatFloat(ft, 'f', -1, 64)
+	case float32:
+		ft := value.(float32)
+		result = strconv.FormatFloat(float64(ft), 'f', -1, 64)
+	case int:
+		it := value.(int)
+		result = strconv.Itoa(it)
+	case uint:
+		it := value.(uint)
+		result = strconv.Itoa(int(it))
+	case int8:
+		it := value.(int8)
+		result = strconv.Itoa(int(it))
+	case uint8:
+		it := value.(uint8)
+		result = strconv.Itoa(int(it))
+	case int16:
+		it := value.(int16)
+		result = strconv.Itoa(int(it))
+	case uint16:
+		it := value.(uint16)
+		result = strconv.Itoa(int(it))
+	case int32:
+		it := value.(int32)
+		result = strconv.Itoa(int(it))
+	case uint32:
+		it := value.(uint32)
+		result = strconv.Itoa(int(it))
+	case int64:
+		it := value.(int64)
+		result = strconv.FormatInt(it, 10)
+	case uint64:
+		it := value.(uint64)
+		result = strconv.FormatUint(it, 10)
+	case string:
+		result = value.(string)
+	case []byte:
+		result = string(value.([]byte))
+	default:
+		newValue, err := json.Marshal(value)
+		if err != nil {
+			return "", err
+		}
+		result = string(newValue)
+	}
+	return result, nil
+}
+
+// DecodeAnyValue Any to interface
+func DecodeAnyValue(value *anypb.Any) (interface{}, error) {
+	typeURL := value.GetTypeUrl()
+
+	messageTypeName := getMessageTypeName(typeURL)
+	if messageTypeName == "" {
+		return nil, fmt.Errorf("cant get message type：%s", typeURL)
+	}
+	if strings.Contains(messageTypeName, "google.protobuf.") {
+		switch messageTypeName {
+		case "google.protobuf.Int32Value":
+			return decodeWrapperValue(value, &wrapperspb.Int32Value{})
+		case "google.protobuf.StringValue":
+			return decodeWrapperValue(value, &wrapperspb.StringValue{})
+		case "google.protobuf.FloatValue":
+			return decodeWrapperValue(value, &wrapperspb.FloatValue{})
+		case "google.protobuf.BoolValue":
+			return decodeWrapperValue(value, &wrapperspb.BoolValue{})
+		case "google.protobuf.Int64Value":
+			return decodeWrapperValue(value, &wrapperspb.Int64Value{})
+		default:
+			return nil, fmt.Errorf("unknown type : %s", messageTypeName)
+		}
+
+	}
+	messageType := proto.MessageType(messageTypeName)
+	if messageType == nil {
+		return nil, fmt.Errorf("cant get message type：%s", messageTypeName)
+	}
+
+	if !reflect.TypeOf((*proto.Message)(nil)).Elem().AssignableTo(messageType) {
+		return nil, fmt.Errorf("assiganbleto proto.Message error：%s", messageTypeName)
+	}
+	message := reflect.New(messageType.Elem()).Interface().(proto.Message)
+	if err := proto.Unmarshal(value.Value, message); err != nil {
+		return nil, fmt.Errorf("unmarshal value error：%v", err)
+	}
+	return message, nil
+}
+
+// decodeWrapperValue get proto.Message, then convert to interface
+func decodeWrapperValue(value *anypb.Any, wrapper proto.Message) (interface{}, error) {
+	if err := proto.Unmarshal(value.Value, wrapper); err != nil {
+		return nil, fmt.Errorf("decode wrapperValue,proto unmarshal error：%v", err)
+	}
+	wrapperValue := reflect.ValueOf(wrapper).Elem()
+	valueField := wrapperValue.FieldByName("Value")
+	if !valueField.IsValid() {
+		return nil, fmt.Errorf("cant get wrapperValue")
+	}
+	return valueField.Interface(), nil
+}
+
+// getMessageTypeName get type by parse type url
+func getMessageTypeName(typeURL string) string {
+	index := len(typeURL) - 1
+	for index >= 0 && typeURL[index] != '/' {
+		index--
+	}
+	if index >= 0 && index < len(typeURL)-1 {
+		return typeURL[index+1:]
+	}
+	return ""
 }
