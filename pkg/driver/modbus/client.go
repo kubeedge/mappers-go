@@ -23,8 +23,9 @@ import (
 
 	"k8s.io/klog/v2"
 
-	"github.com/kubeedge/mappers-go/pkg/common"
 	"github.com/sailorvii/modbus"
+
+	"github.com/kubeedge/mappers-go/pkg/common"
 )
 
 // ModbusTCP is the configurations of modbus TCP.
@@ -158,7 +159,7 @@ func (c *ModbusClient) Get(registerType string, addr uint16, quantity uint16) (r
 	case "InputRegister":
 		results, err = c.Client.ReadInputRegisters(addr, quantity)
 	default:
-		return nil, errors.New("Bad register type")
+		return nil, errors.New("bad register type")
 	}
 	klog.V(2).Info("Get result: ", results)
 	return results, err
@@ -180,15 +181,48 @@ func (c *ModbusClient) Set(registerType string, addr uint16, value uint16) (resu
 		case 1:
 			valueSet = 0xFF00
 		default:
-			return nil, errors.New("Wrong value")
+			return nil, errors.New("wrong value")
 		}
 		results, err = c.Client.WriteSingleCoil(addr, valueSet)
 	case "HoldingRegister":
 		results, err = c.Client.WriteSingleRegister(addr, value)
 	default:
-		return nil, errors.New("Bad register type")
+		return nil, errors.New("bad register type")
 	}
 	klog.V(1).Info("Set result:", err, results)
+	return results, err
+}
+
+// SetString set string.
+func (c *ModbusClient) SetString(registerType string, offset uint16, limit int, value string) (results []byte, err error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	klog.V(1).InfoS("ModbusClient Set:", "register", registerType, "offset", offset, "limit", limit, "value", value)
+
+	switch registerType {
+	case "CoilRegister":
+		var valueSet uint16
+		switch value {
+		case "0":
+			valueSet = 0x0000
+		case "1":
+			valueSet = 0xFF00
+		default:
+			return nil, errors.New("wrong value")
+		}
+		results, err = c.Client.WriteSingleCoil(offset, valueSet)
+	case "HoldingRegister":
+		valueBytes := make([]byte, limit*2)
+		copy(valueBytes, value)
+		results, err = c.Client.WriteMultipleRegisters(offset, uint16(limit), valueBytes)
+		if err != nil {
+			klog.ErrorS(err, "Failed to set HoldingRegister", "offset", offset, "limit", limit, "value", value)
+		}
+	default:
+		return nil, errors.New("bad register type")
+	}
+	klog.V(1).InfoS("ModbusClient Set result", "results", results)
 	return results, err
 }
 
@@ -204,4 +238,78 @@ func parity(ori string) string {
 		p = "N"
 	}
 	return p
+}
+
+// Reconnect close the connection and reconnect to device.
+func (c *ModbusClient) Reconnect() error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	err := c.Client.Close()
+	if err != nil {
+		klog.Errorf("fail to close the modbus connection with error: %+v", err)
+		return err
+	}
+
+	err = c.Client.Connect()
+	if err != nil {
+		klog.Errorf("fail to connect the modbus connection with error: %+v", err)
+		return err
+	}
+
+	return nil
+}
+
+// GetWithRetry get register with retry.
+func (c *ModbusClient) GetWithRetry(registerType string, addr uint16, quantity uint16, retryTime int) (results []byte, err error) {
+	for i := 0; i < retryTime; i++ {
+		results, err = c.Get(registerType, addr, quantity)
+		if err == nil {
+			return results, nil
+		}
+
+		klog.Warningf("fail to get register, reconnect and retry")
+		errConn := c.Reconnect()
+		if errConn != nil {
+			klog.Errorf("fail to reconnect with error: %+v", errConn)
+			continue
+		}
+	}
+	return results, err
+}
+
+// SetWithRetry set register with retry.
+func (c *ModbusClient) SetWithRetry(registerType string, addr uint16, value uint16, retryTime int) (results []byte, err error) {
+	for i := 0; i < retryTime; i++ {
+		results, err = c.Set(registerType, addr, value)
+		if err == nil {
+			return results, nil
+		}
+
+		klog.Warningf("fail to set register, reconnect and retry")
+		errConn := c.Reconnect()
+		if errConn != nil {
+			klog.Errorf("fail to reconnect with error: %+v", errConn)
+			continue
+		}
+	}
+	return results, err
+}
+
+// SetStringWithRetry set string with retry.
+func (c *ModbusClient) SetStringWithRetry(registerType string, offset uint16, limit int, value string, retryTime int) (results []byte, err error) {
+	for i := 0; i < retryTime; i++ {
+		results, err = c.SetString(registerType, offset, limit, value)
+		if err == nil {
+			return results, nil
+		}
+
+		klog.Warningf("fail to set string, reconnect and retry")
+		errConn := c.Reconnect()
+		if errConn != nil {
+			klog.Errorf("fail to reconnect with error: %+v", errConn)
+			continue
+		}
+	}
+	return results, err
 }

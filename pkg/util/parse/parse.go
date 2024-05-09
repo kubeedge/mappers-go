@@ -139,6 +139,7 @@ func ParseByUsingRegister(cfg *config.Config,
 	if err != nil {
 		return err
 	}
+	klog.Infof("RegisterMapper success, deviceList %+v, deviceModelList %+v", deviceList, deviceModelList)
 
 	if len(deviceList) == 0 || len(deviceModelList) == 0 {
 		return ErrEmptyData
@@ -162,7 +163,7 @@ func ParseByUsingRegister(cfg *config.Config,
 		instance.PProtocol = protocol
 		devices[instance.ID] = new(common.DeviceInstance)
 		devices[instance.ID] = instance
-		klog.V(4).Info("Instance: ", instance.ID)
+		klog.Info("Instance: ", instance.ID)
 		dms[instance.Model] = modelMap[instance.Model]
 		protocols[instance.ProtocolName] = protocol
 	}

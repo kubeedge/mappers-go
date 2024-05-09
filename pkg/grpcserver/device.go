@@ -7,6 +7,7 @@ import (
 	"time"
 
 	dmiapi "github.com/kubeedge/kubeedge/pkg/apis/dmi/v1alpha1"
+
 	"github.com/kubeedge/mappers-go/pkg/common"
 	"github.com/kubeedge/mappers-go/pkg/driver/modbus"
 	"github.com/kubeedge/mappers-go/pkg/util/parse"
@@ -63,7 +64,7 @@ func (s *Server) RemoveDevice(ctx context.Context, request *dmiapi.RemoveDeviceR
 }
 
 func (s *Server) UpdateDevice(ctx context.Context, request *dmiapi.UpdateDeviceRequest) (*dmiapi.UpdateDeviceResponse, error) {
-	klog.V(2).Info("UpdateDevice")
+	klog.Info("UpdateDevice")
 	device := request.GetDevice()
 	if device == nil {
 		return nil, errors.New("device is nil")
@@ -78,7 +79,7 @@ func (s *Server) UpdateDevice(ctx context.Context, request *dmiapi.UpdateDeviceR
 		return nil, fmt.Errorf("parse device %s protocol failed, err: %s", device.Name, err)
 	}
 
-	klog.Infof("model: %+v", model)
+	klog.Infof("UpdateDevice model: %+v", model)
 	deviceInstance, err := parse.ParseDeviceFromGrpc(device, &model)
 	if err != nil {
 		return nil, fmt.Errorf("parse device %s instance failed, err: %s", device.Name, err)
@@ -86,6 +87,7 @@ func (s *Server) UpdateDevice(ctx context.Context, request *dmiapi.UpdateDeviceR
 	deviceInstance.PProtocol = protocol
 
 	s.devPanel.UpdateDev(&model, deviceInstance, &protocol)
+	klog.Infof("UpdateDevice success, device: %+v", deviceInstance)
 
 	return &dmiapi.UpdateDeviceResponse{}, nil
 }
@@ -107,6 +109,7 @@ func (s *Server) CreateDeviceModel(ctx context.Context, request *dmiapi.CreateDe
 }
 
 func (s *Server) UpdateDeviceModel(ctx context.Context, request *dmiapi.UpdateDeviceModelRequest) (*dmiapi.UpdateDeviceModelResponse, error) {
+	klog.Info("UpdateDeviceModel")
 	deviceModel := request.GetModel()
 	if deviceModel == nil {
 		return nil, errors.New("deviceModel is nil")
@@ -118,6 +121,7 @@ func (s *Server) UpdateDeviceModel(ctx context.Context, request *dmiapi.UpdateDe
 	model := parse.ParseDeviceModelFromGrpc(deviceModel)
 
 	s.devPanel.UpdateModel(&model)
+	klog.Infof("UpdateDeviceModel model: %+v", model)
 
 	return &dmiapi.UpdateDeviceModelResponse{}, nil
 }
