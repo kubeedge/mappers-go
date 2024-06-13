@@ -1,0 +1,53 @@
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: modbus-instance-01
+  labels:
+    model: modbus-01
+spec:
+  deviceModelRef:
+    name: modbus-01
+  protocol:
+    protocolName: modbus
+    configData:
+      slaveID: 1
+      serialPort: '1'
+      baudRate: 115200
+      dataBits: 8
+      parity: even
+      stopBits: 1
+  nodeName: edge-node
+  properties:
+    - name: temperature
+      visitors:
+        protocolName: modbus
+        configData:
+          register: CoilRegister
+          offset: 2
+          limit: 1
+          scale: 1
+          isSwap: true
+          isRegisterSwap: true
+      reportCycle: 10000000000
+      collectCycle: 10000000000
+      reportToCloud: true
+      pushMethod:
+        mqtt:
+          address: tcp://127.0.0.1:1883
+          topic: temperature
+          qos: 0
+          retained: false
+
+status:
+  twins:
+    - propertyName: temperature
+      reported:
+        metadata:
+          timestamp: '1550049403598'
+          type: int
+        value: "20"
+      observedDesired:
+        metadata:
+          timestamp: '1550049403598'
+          type: int
+        value: "20"

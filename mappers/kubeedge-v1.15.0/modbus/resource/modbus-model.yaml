@@ -1,0 +1,12 @@
+apiVersion: devices.kubeedge.io/v1beta1
+kind: DeviceModel
+metadata:
+  name: modbus-01
+  namespace: default
+spec:
+  protocol: modbus
+  properties:
+    - name: temperature
+      description:  temperature in degree celsius
+      type: INT
+      accessMode: ReadWrite
