@@ -9,7 +9,7 @@ require (
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/goburrow/modbus v0.1.0
 	github.com/goburrow/serial v0.1.0
-	github.com/gopcua/opcua v0.1.13
+	github.com/gopcua/opcua v0.3.4
 	github.com/gorilla/mux v1.8.0
 	github.com/kubeedge/kubeedge v1.12.0-beta.0
 	github.com/onsi/ginkgo v1.16.4
