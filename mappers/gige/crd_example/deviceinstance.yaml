@@ -1,12 +1,12 @@
 apiVersion: devices.kubeedge.io/v1alpha2
 kind: Device
 metadata:
-  name: camera-instance
+  name: gige-camera-instance01
   labels:
     model: camera-instance-model
 spec:
   deviceModelRef:
-    name: camera-instance-model
+    name: basler-ac5472
   protocol:
     common:
       customizedValues:
@@ -20,52 +20,52 @@ spec:
             operator: In
             values:
               - edge51
-  propertyVisitors:
-    - propertyName: PixelFormat
-      collectCycle: 1000000000
-      reportCycle: 1000000000
+  propertyVisitors:          
+    - propertyName: PixelFormat 
+      collectCycle: 3000000000  
+      reportCycle:  3000000000
       customizedProtocol:
         protocolName: GigEVision
-        configData:
+        configData: 
           FeatureName: 'PixelFormat'
     - propertyName: ImageTrigger
-      collectCycle: -1
-      reportCycle: -1
+      collectCycle: 3000000000
+      reportCycle: 3000000000
       customizedProtocol:
         protocolName: GigEVision
         configData:
           FeatureName: 'ImageTrigger'
     - propertyName: ImageFormat
-      collectCycle: 1000000000
-      reportCycle: 1000000000
+      collectCycle: 3000000000
+      reportCycle: 3000000000
       customizedProtocol:
         protocolName: GigEVision
         configData:
           FeatureName: 'ImageFormat'
     - propertyName: ImageURL
-      collectCycle: 1000000000
-      reportCycle: 1000000000
+      collectCycle: 3000000000
+      reportCycle: 3000000000
       customizedProtocol:
         protocolName: GigEVision
         configData:
           FeatureName: 'ImageURL'
-    - propertyName: Width
-      collectCycle: 1000000000
-      reportCycle: 1000000000
+    - propertyName: Width         
+      collectCycle: 3000000000
+      reportCycle: 3000000000
       customizedProtocol:
         protocolName: GigEVision
         configData:
           FeatureName: 'Width'
     - propertyName: Height
-      collectCycle: 1000000000
-      reportCycle: 1000000000
+      collectCycle: 3000000000
+      reportCycle: 3000000000
       customizedProtocol:
         protocolName: GigEVision
         configData:
           FeatureName: 'Height'
     - propertyName: OffsetX
-      collectCycle: 1000000000
-      reportCycle: 1000000000
+      collectCycle: 3000000000
+      reportCycle: 3000000000
       customizedProtocol:
         protocolName: GigEVision
         configData:
@@ -78,29 +78,29 @@ spec:
         configData:
           FeatureName: 'OffsetY'
     - propertyName: AcquisitionFrameRateAbs
-      collectCycle: 1000000000
-      reportCycle: 1000000000
+      collectCycle: 3000000000
+      reportCycle: 3000000000
       customizedProtocol:
         protocolName: GigEVision
         configData:
           FeatureName: 'AcquisitionFrameRateAbs'
     - propertyName: AcquisitionFrameRateEnable
-      collectCycle: 1000000000
-      reportCycle: 1000000000
+      collectCycle: 3000000000
+      reportCycle: 3000000000
       customizedProtocol:
         protocolName: GigEVision
         configData:
           FeatureName: 'AcquisitionFrameRateEnable'
     - propertyName: ExposureTimeAbs
-      collectCycle: 1000000000
-      reportCycle: 1000000000
+      collectCycle: 3000000000
+      reportCycle: 3000000000
       customizedProtocol:
         protocolName: GigEVision
         configData:
           FeatureName: 'ExposureTimeAbs'
     - propertyName: AutoFunctionAOIUsageWhiteBalance
-      collectCycle: 1000000000
-      reportCycle: 1000000000
+      collectCycle: 3000000000
+      reportCycle: 3000000000
       customizedProtocol:
         protocolName: GigEVision
         configData:
@@ -138,11 +138,11 @@ status:
       desired:
         metadata:
           type: string
-        value: ''
+        value: 'http://127.0.0.1:5000/v2/push/picture'
       reported:
         metadata:
           type: string
-        value: '192.168.137.61'
+        value: 'http://127.0.0.1:5000/v2/push/picture'
     - propertyName: Width
       desired:
         metadata:
@@ -151,16 +151,16 @@ status:
       reported:
         metadata:
           type: integer
-        value: '659'
+        value: '600'
     - propertyName: Height
       desired:
         metadata:
           type: integer
-        value: '494'
+        value: '400'
       reported:
         metadata:
           type: integer
-        value: '494'
+        value: '400'
     - propertyName: OffsetX
       desired:
         metadata:
