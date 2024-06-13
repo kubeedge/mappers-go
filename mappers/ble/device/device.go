@@ -19,7 +19,6 @@ package device
 import (
 	"encoding/json"
 	"fmt"
-	"regexp"
 	"sync"
 	"time"
 
@@ -31,7 +30,6 @@ import (
 	"github.com/kubeedge/mappers-go/mappers/ble/driver"
 	"github.com/kubeedge/mappers-go/mappers/ble/globals"
 	"github.com/kubeedge/mappers-go/mappers/common"
-	mappercommon "github.com/kubeedge/mappers-go/mappers/common"
 )
 
 var devices map[string]*globals.BleDev
@@ -61,17 +59,11 @@ func setVisitor(visitorConfig *configmap.BleVisitorConfig, twin *common.Twin, bl
 	}
 }
 
-// getDeviceID extract the device ID from Mqtt topic.
-func getDeviceID(topic string) (id string) {
-	re := regexp.MustCompile(`hw/events/device/(.+)/twin/update/delta`)
-	return re.FindStringSubmatch(topic)[1]
-}
-
 // onMessage callback function of Mqtt subscribe message.
 func onMessage(client mqtt.Client, message mqtt.Message) {
 	klog.V(2).Info("Receive message", message.Topic())
 	// Get device ID and get device instance
-	id := getDeviceID(message.Topic())
+	id := common.GetDeviceID(message.Topic())
 	if id == "" {
 		klog.Error("Wrong topic")
 		return
@@ -142,7 +134,7 @@ func initTwin(dev *globals.BleDev) {
 			Name:             dev.Instance.Twins[i].PropertyName,
 			Type:             dev.Instance.Twins[i].Desired.Metadatas.Type,
 			BleVisitorConfig: visitorConfig,
-			Topic:            fmt.Sprintf(mappercommon.TopicTwinUpdate, dev.Instance.ID)}
+			Topic:            fmt.Sprintf(common.TopicTwinUpdate, dev.Instance.ID)}
 		collectCycle := time.Duration(dev.Instance.Twins[i].PVisitor.CollectCycle)
 		// If the collect cycle is not set, set it to 1 second.
 		if collectCycle == 0 {
@@ -167,7 +159,7 @@ func initTwin(dev *globals.BleDev) {
 					}
 				}()
 			} else if (c.Property & ble.CharRead) != 0 { // // read data actively
-				timer := mappercommon.Timer{Function: twinData.Run, Duration: collectCycle, Times: 0}
+				timer := common.Timer{Function: twinData.Run, Duration: collectCycle, Times: 0}
 				wg.Add(1)
 				go func() {
 					defer wg.Done()
@@ -192,7 +184,7 @@ func initData(dev *globals.BleDev) {
 			Name:             dev.Instance.Datas.Properties[i].PropertyName,
 			Type:             dev.Instance.Datas.Properties[i].Metadatas.Type,
 			BleVisitorConfig: visitorConfig,
-			Topic:            fmt.Sprintf(mappercommon.TopicDataUpdate, dev.Instance.ID)}
+			Topic:            fmt.Sprintf(common.TopicDataUpdate, dev.Instance.ID)}
 		collectCycle := time.Duration(dev.Instance.Datas.Properties[i].PVisitor.CollectCycle)
 		// If the collect cycle is not set, set it to 1 second.
 		if collectCycle == 0 {
@@ -204,7 +196,7 @@ func initData(dev *globals.BleDev) {
 				klog.Errorf("can't find uuid %s", uuid.String())
 				continue
 			}
-			timer := mappercommon.Timer{Function: twinData.Run, Duration: collectCycle, Times: 0}
+			timer := common.Timer{Function: twinData.Run, Duration: collectCycle, Times: 0}
 			// If this Characteristic supports notifications and there's a CCCD
 			// Then subscribe to it, the notifications operation is different from reading operation, notifications will keep looping when connected
 			// so we can't use timer.Start() for notifications
@@ -228,7 +220,7 @@ func initData(dev *globals.BleDev) {
 
 // initSubscribeMqtt subscribe Mqtt topics.
 func initSubscribeMqtt(instanceID string) error {
-	topic := fmt.Sprintf(mappercommon.TopicTwinUpdateDelta, instanceID)
+	topic := fmt.Sprintf(common.TopicTwinUpdateDelta, instanceID)
 	klog.V(1).Info("Subscribe topic: ", topic)
 	return globals.MqttClient.Subscribe(topic, onMessage)
 }
@@ -236,8 +228,8 @@ func initSubscribeMqtt(instanceID string) error {
 // initGetStatus start timer to get device status and send to eventbus.
 func initGetStatus(dev *globals.BleDev) {
 	getStatus := GetStatus{Client: dev.BleClient,
-		topic: fmt.Sprintf(mappercommon.TopicStateUpdate, dev.Instance.ID)}
-	timer := mappercommon.Timer{Function: getStatus.Run, Duration: 1 * time.Second, Times: 0}
+		topic: fmt.Sprintf(common.TopicStateUpdate, dev.Instance.ID)}
+	timer := common.Timer{Function: getStatus.Run, Duration: 1 * time.Second, Times: 0}
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -274,8 +266,8 @@ func start(dev *globals.BleDev) {
 // DevInit initialize the device datas.
 func DevInit(configmapPath string) error {
 	devices = make(map[string]*globals.BleDev)
-	models = make(map[string]mappercommon.DeviceModel)
-	protocols = make(map[string]mappercommon.Protocol)
+	models = make(map[string]common.DeviceModel)
+	protocols = make(map[string]common.Protocol)
 	return configmap.Parse(configmapPath, devices, models, protocols)
 }
 
