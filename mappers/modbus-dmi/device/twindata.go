@@ -28,10 +28,10 @@ import (
 	"k8s.io/klog/v2"
 
 	dmiapi "github.com/kubeedge/kubeedge/pkg/apis/dmi/v1alpha1"
-	"github.com/kubeedge/mappers-go/pkg/common"
-	"github.com/kubeedge/mappers-go/pkg/driver/modbus"
-	"github.com/kubeedge/mappers-go/pkg/util/grpcclient"
-	"github.com/kubeedge/mappers-go/pkg/util/parse"
+	"github.com/kubeedge/mappers-go/mappers/pkg/common"
+	"github.com/kubeedge/mappers-go/mappers/pkg/driver/modbus"
+	"github.com/kubeedge/mappers-go/mappers/pkg/util/grpcclient"
+	"github.com/kubeedge/mappers-go/mappers/pkg/util/parse"
 )
 
 // TwinData is the timer structure for getting twin/data.
