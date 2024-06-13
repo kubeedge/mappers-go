@@ -43,7 +43,12 @@ func setVisitor(visitorConfig *configmap.VisitorConfigOPCUA, twin *mappercommon.
 		klog.V(1).Info("Visit readonly register: ", visitorConfig.NodeID)
 		return
 	}
-
+	
+	if twin.Desired.Value == "" {
+                klog.V(1).Info("twin Desired Value is null. ", visitorConfig)
+                return
+        }
+	
 	results, err := client.Set(visitorConfig.NodeID, twin.Desired.Value)
 	if err != nil || results != "OK" {
 		klog.Errorf("Set error: %v, %v", err, visitorConfig)
