@@ -10,7 +10,7 @@ require (
 	github.com/goburrow/modbus v0.1.0
 	github.com/goburrow/serial v0.1.0
 	github.com/gopcua/opcua v0.1.13
-	github.com/gorilla/mux v1.8.0
+	github.com/gorilla/mux v1.8.1
 	github.com/kubeedge/kubeedge v1.12.0-beta.0
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.19.0
