@@ -40,20 +40,18 @@ type VisitorConfig struct {
 type VisitorConfigData struct {
 	DataType string `json:"dataType"`
 
-	ClientID          string                `json:"clientID"`     // MQTT Client ID
-	DeviceInfo        string                `json:"deviceInfo"`    // Device information, such as device identification or other important information.
-	OperationInfo     OperationInfoType     `json:"operationInfo"` // Operation information, such as adding, deleting, modifying and so on.
-	SerializedFormat  SerializedFormatType  `json:"fileType"`      // Supported formats: json, xml and yaml.
-	ParsedMessage     interface{}           `json:"parsedMessage"` // The parsed message
+	ClientID          string                 `json:"clientID"`      // MQTT Client ID
+	DeviceInfo        string                 `json:"deviceInfo"`    // Device information, such as device identification or other important information.
+	OperationInfo     OperationInfoType      `json:"operationInfo"` // Operation information, such as adding, deleting, modifying and so on.
+	SerializedFormat  SerializedFormatType   `json:"fileType"`      // Supported formats: json, xml and yaml.
+	ParsedMessage     map[string]interface{} `json:"parsedMessage"` // The parsed message
 }
 
 // OperationInfoType defines the enumeration values for device operation.
 type OperationInfoType uint
 
 const (
-	FULLTEXTMODIFY OperationInfoType = iota   // full text revision
-	PATHMODIFY                          	  // path revision
-	VALUEMODIFY                               // value revision
+	UPDATE OperationInfoType = iota   // revision
 )
 
 // SerializedFormatType defines the enumeration values for serialized types.
