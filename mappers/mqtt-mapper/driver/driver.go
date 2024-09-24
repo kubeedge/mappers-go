@@ -6,85 +6,46 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"sync"
 
+	"github.com/kubeedge/mapper-framework/pkg/common"
 	"gopkg.in/yaml.v3"
 )
 
-func NewClientWithMessageQueue(protocol ProtocolConfig, queue MessageQueue) (*CustomizedClient, error) {
-    return &CustomizedClient{
-        ProtocolConfig: protocol,
-        deviceMutex:    sync.Mutex{},
-        MessageQueue:   queue,
-    }, nil
-}
-
-// Thread-safe access to ProtocolConfig.
-func (client *CustomizedClient) GetProtocolConfig() ProtocolConfig {
-	client.deviceMutex.Lock()    
-	defer client.deviceMutex.Unlock()  
-
-	return client.ProtocolConfig
-}
-
-// Thread-safe setting of ProtocolConfig.
-func (client *CustomizedClient) SetProtocolConfig(config ProtocolConfig) {
-	client.deviceMutex.Lock()    
-	defer client.deviceMutex.Unlock()  
-
-	client.ProtocolConfig = config
-}
-
-// Thread-safe publishing of messages to MQTT.
-func (client *CustomizedClient) SafePublish(topic string, message interface{}) error {
-	client.deviceMutex.Lock()    
-	defer client.deviceMutex.Unlock()  
-
-	if client.MessageQueue == nil {
-		return errors.New("message queue is not initialized")
+func NewClient(protocol ProtocolConfig) (*CustomizedClient, error) {
+	client := &CustomizedClient{
+		ProtocolConfig:   protocol,
+		deviceMutex:      sync.Mutex{},
+		DeviceInfo:       "",
+		ParsedDeviceInfo: make(map[string]interface{}),
 	}
+	return client, nil
+}
 
-	// Calls the Publish method of the message queue
-	err := client.MessageQueue.Publish(topic, message)
-	if err != nil {
-		return fmt.Errorf("failed to publish message: %v", err)
-	}
+func (c *CustomizedClient) InitDevice() error {
+	configData := &c.ProtocolConfig.ConfigData
+	_, _, format, _ := configData.SplitTopic()
+	c.DeviceInfo = c.ProtocolConfig.ConfigData.Message
+	c.ParsedDeviceInfo, _ = c.ParseMessage(format)
 	return nil
 }
 
-// Thread-safe subscription to MQTT topics
-func (client *CustomizedClient) SafeSubscribe(topic string) (interface{}, error) {
-	client.deviceMutex.Lock()    
-	defer client.deviceMutex.Unlock()  
+func (c *CustomizedClient) GetDeviceData(visitor *VisitorConfig) (interface{}, error) {
 
-	if client.MessageQueue == nil {
-		return nil, errors.New("message queue is not initialized")
-	}
-
-	// Call the Subscribe method of the message queue
-	msg, err := client.MessageQueue.Subscribe(topic)
-	if err != nil {
-		return nil, fmt.Errorf("failed to subscribe to topic: %v", err)
-	}
-	return msg, nil
+	return nil, nil
 }
 
-// Thread-Safe Unsubscription to MQTT Topics
-func (client *CustomizedClient) SafeUnsubscribe(topic string) error {
-	client.deviceMutex.Lock()  
-	defer client.deviceMutex.Unlock()  
-
-	if client.MessageQueue == nil {
-		return errors.New("message queue is not initialized")
-	}
-
-	// Call the Unsubscribe method of the message queue
-	err := client.MessageQueue.Unsubscribe(topic)
-	if err != nil {
-		return fmt.Errorf("failed to unsubscribe from topic: %v", err)
-	}
+func (c *CustomizedClient) SetDeviceData(data interface{}, visitor *VisitorConfig) error {
+	vPointer := visitor.VisitorConfigData
+	vPointer.ModifyVisitorConfigData(c.ParsedDeviceInfo)
 	return nil
+}
+
+func (c *CustomizedClient) GetDeviceStates() (string, error) {
+	// TODO: GetDeviceStates
+	return common.DeviceStatusOK, nil
 }
 
 /* --------------------------------------------------------------------------------------- */
@@ -195,12 +156,12 @@ func (c *ConfigData) ParseMessage(parseType SerializedFormatType) (map[string]in
 		return c.parseJSON()
 
 	case XML: // xml
-		convertedMessage, err := convertXMLToJSON(c.Message)
+		convertedMessage, err := convertXMLToMap(c.Message)
 		if err != nil {
 			return nil, err
 		}
-		c.Message = convertedMessage
-		originalMap, err := c.parseJSON()
+		// c.Message = convertedMessage
+		originalMap := convertedMessage
 		var mp map[string]interface{}
 		for _, value := range originalMap {
 			if nestedMap, ok := value.(map[string]interface{}); ok {
@@ -246,33 +207,33 @@ func (c *ConfigData) ValidateMessage() error {
 
 // NewVisitorConfigData creates a new instance of VisitorConfigData using ConfigData pointer and the result of SplitTopic.
 func (c *ConfigData) NewVisitorConfigData() (*VisitorConfigData, error) {
-    // get ClientID
-    clientID, err := c.GetClientID()
-    if err != nil {
-        return nil, err
-    }
+	// get ClientID
+	clientID, err := c.GetClientID()
+	if err != nil {
+		return nil, err
+	}
 
-    // get DeviceInfo, OperationInfo and SerializedFormat
-    deviceInfo, operationInfo, serializedFormat, err := c.SplitTopic()
-    if err != nil {
-        return nil, err
-    }
+	// get DeviceInfo, OperationInfo and SerializedFormat
+	deviceInfo, operationInfo, serializedFormat, err := c.SplitTopic()
+	if err != nil {
+		return nil, err
+	}
 
-    // get ParsedMessage
-    parsedMessage, err := c.ParseMessage(serializedFormat)
-    if err != nil {
-        return nil, err
-    }
+	// get ParsedMessage
+	parsedMessage, err := c.ParseMessage(serializedFormat)
+	if err != nil {
+		return nil, err
+	}
 
-    // create
-    return &VisitorConfigData{
-        DataType:         "string",            
-        ClientID:         clientID,               
-        DeviceInfo:       deviceInfo,             
-        OperationInfo:    operationInfo,          
-        SerializedFormat: serializedFormat,       
-        ParsedMessage:    parsedMessage,          
-    }, nil
+	// create
+	return &VisitorConfigData{
+		DataType:         "string",
+		ClientID:         clientID,
+		DeviceInfo:       deviceInfo,
+		OperationInfo:    operationInfo,
+		SerializedFormat: serializedFormat,
+		ParsedMessage:    parsedMessage,
+	}, nil
 }
 
 /* --------------------------------------------------------------------------------------- */
@@ -313,20 +274,26 @@ func updateStructFields(structValue reflect.Value, data map[string]interface{}, 
 		fieldType := structType.Field(i)
 		tagValue := fieldType.Tag.Get(tagName)
 
-		if tagValue == "" {
-			// Skip fields without the specified tag
-			continue
+		var value interface{}
+		var exists bool
+
+		if tagValue != "" {
+			// Attempt to get value using tag
+			value, exists = data[tagValue]
 		}
 
-		// Get the corresponding value from the map
-		value, exists := data[tagValue]
+		if !exists {
+			// Fallback to field name if tag is not found
+			tagValue = fieldType.Name
+			value, exists = data[tagValue]
+		}
+
 		if !exists {
 			continue
 		}
 
 		// Update the field based on its kind
 		if field.Kind() == reflect.Struct {
-			// Recursively update nested structs
 			nestedData, ok := value.(map[string]interface{})
 			if !ok {
 				return fmt.Errorf("type mismatch for nested field %s", tagValue)
@@ -335,7 +302,6 @@ func updateStructFields(structValue reflect.Value, data map[string]interface{}, 
 				return err
 			}
 		} else if field.Kind() == reflect.Slice {
-			// Handle slices if necessary
 			sliceData, ok := value.([]interface{})
 			if !ok {
 				return fmt.Errorf("type mismatch for slice field %s", tagValue)
@@ -351,7 +317,6 @@ func updateStructFields(structValue reflect.Value, data map[string]interface{}, 
 			}
 			field.Set(newSlice)
 		} else {
-			// Set the field value
 			fieldValue := reflect.ValueOf(value)
 			if field.Type() == fieldValue.Type() {
 				field.Set(fieldValue)
@@ -362,7 +327,6 @@ func updateStructFields(structValue reflect.Value, data map[string]interface{}, 
 	}
 	return nil
 }
-
 
 /* --------------------------------------------------------------------------------------- */
 // The function ConvertYAMLToJSON converts a YAML string to a JSON string.
@@ -381,21 +345,6 @@ func convertYAMLToJSON(yamlString string) (string, error) {
 	}
 
 	return string(jsonData), nil
-}
-
-// The function convertXMLToJSON converts an XML string to a JSON string.
-func convertXMLToJSON(xmlString string) (string, error) {
-	xmlData, err := convertXMLToMap(xmlString)
-	if err != nil {
-		return "", err
-	}
-
-	jsonData, err := mapToJSON(xmlData)
-	if err != nil {
-		return "", err
-	}
-
-	return jsonData, nil
 }
 
 // The function ConvertXMLToMap converts XML string to map[string]interface{}.
@@ -422,7 +371,6 @@ func wrapXMLWithRoot(xmlString string) string {
 	}
 
 	// Wrap the remaining XML content with <root></root>
-	// wrappedXML := "<root>" + xmlString + "</root>"
 	wrappedXML := xmlString
 	return wrappedXML
 }
@@ -435,15 +383,29 @@ type Node struct {
 	Attr    []xml.Attr `xml:"-"`
 }
 
+// convertValue attempts to convert string content to appropriate type.
+func convertValue(content string) interface{} {
+	if f, err := strconv.ParseFloat(content, 64); err == nil {
+		return f
+	} else if i, err := strconv.Atoi(content); err == nil {
+		return i
+	} else if b, err := strconv.ParseBool(content); err == nil {
+		return b
+	} else {
+		return content
+	}
+}
+
 // The function nodeToMap recursively converts XML nodes to map[string]interface{}.
 func nodeToMap(node Node) map[string]interface{} {
 	result := make(map[string]interface{})
 
+	// If the node has no children, it is a leaf node, apply type conversion.
 	if len(node.Nodes) == 0 {
-		// Leaf node
-		return map[string]interface{}{node.XMLName.Local: node.Content}
+		return map[string]interface{}{node.XMLName.Local: convertValue(strings.TrimSpace(node.Content))}
 	}
 
+	// Process child nodes recursively.
 	for _, child := range node.Nodes {
 		childMap := nodeToMap(child)
 		if existing, found := result[child.XMLName.Local]; found {
@@ -464,6 +426,14 @@ func nodeToMap(node Node) map[string]interface{} {
 // The function MapToJSON converts map[string]interface{} to JSON string.
 func mapToJSON(data map[string]interface{}) (string, error) {
 	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return "", err
+	}
+	return string(jsonData), nil
+}
+
+func StructToJSON(v interface{}) (string, error) {
+	jsonData, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
 		return "", err
 	}
