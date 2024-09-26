@@ -17,8 +17,8 @@ type CustomizedClient struct {
 	// TODO add some variables to help you better implement device drivers
 	deviceMutex sync.Mutex
 	ProtocolConfig
-	DeviceInfo       string                 `json:"deviceInfo"`
-	ParsedDeviceInfo map[string]interface{} `json:"parsedDeviceInfo"`
+	TempMessage      string      `json:"tempMessage"`
+	DeviceConfigData interface{} `json:"deviceConfigData"`
 }
 
 type ProtocolConfig struct {
@@ -36,7 +36,6 @@ type ConfigData struct {
 	Password      string        `json:"password"`      // Password for MQTT broker authentication
 	ConnectionTTL time.Duration `json:"connectionTTL"` // Connection timeout duration
 	LastMessage   time.Time     `json:"lastMessage"`   // Timestamp of the last received message
-	IsData        bool          `json:"isData"`        // Indicates if there is valid data
 }
 
 type VisitorConfig struct {
@@ -58,7 +57,10 @@ type VisitorConfigData struct {
 type OperationInfoType uint
 
 const (
-	UPDATE OperationInfoType = iota // revision
+	DEVICEINfO     OperationInfoType = iota // set global device config data
+	UPDATE                                  // update the device config data
+	SETSINGLEVALUE                          // find the most related setting value and update
+	GETSINGLEVALUE                          // find the most related setting value
 )
 
 // SerializedFormatType defines the enumeration values for serialized types.
@@ -68,5 +70,4 @@ const (
 	JSON SerializedFormatType = iota // json
 	YAML                             // yaml
 	XML                              // xml
-	JSONPATH
 )

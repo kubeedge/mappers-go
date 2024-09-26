@@ -1,0 +1,15 @@
+   apiVersion: devices.kubeedge.io/v1beta1
+   kind: DeviceModel
+   metadata:
+     name: temperture-model
+     namespace: default
+   spec:
+     properties:
+       - name: temperture
+         description: Temperture sensor model
+         type: INT
+         accessMode: ReadWrite
+         maximum: "100"
+         minimum: "1"
+         unit: "Celsius"
+     protocol: mqtt

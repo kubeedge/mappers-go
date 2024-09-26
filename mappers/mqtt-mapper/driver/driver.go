@@ -5,67 +5,125 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"gopkg.in/yaml.v3"
 	"reflect"
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/kubeedge/mapper-framework/pkg/common"
-	"gopkg.in/yaml.v3"
 )
 
 func NewClient(protocol ProtocolConfig) (*CustomizedClient, error) {
 	client := &CustomizedClient{
-		ProtocolConfig:   protocol,
-		deviceMutex:      sync.Mutex{},
-		DeviceInfo:       "",
-		ParsedDeviceInfo: make(map[string]interface{}),
+		ProtocolConfig:    protocol,
+		deviceMutex:       sync.Mutex{},
+		TempMessage:       "",
+		DeviceConfigData:  nil,
 	}
 	return client, nil
 }
 
 func (c *CustomizedClient) InitDevice() error {
 	configData := &c.ProtocolConfig.ConfigData
-	_, _, format, _ := configData.SplitTopic()
-	c.DeviceInfo = c.ProtocolConfig.ConfigData.Message
-	c.ParsedDeviceInfo, _ = c.ParseMessage(format)
+	_, operationInfo, _, err := configData.SplitTopic()
+	if operationInfo != DEVICEINfO {
+		return errors.New("This is not a device config.")
+	}
+	if err != nil {
+		return err
+	}
+	c.TempMessage = configData.Message
 	return nil
 }
 
 func (c *CustomizedClient) GetDeviceData(visitor *VisitorConfig) (interface{}, error) {
-
-	return nil, nil
+	configData := &c.ProtocolConfig.ConfigData
+	_, operationInfo, _, err := configData.SplitTopic()
+	if operationInfo != DEVICEINfO {
+		return nil, errors.New("This is not a device config.")
+	}
+	if err != nil {
+		return nil, err
+	}
+	visitor.ProcessOperation(c.DeviceConfigData)
+	return c.DeviceConfigData, nil
 }
 
-func (c *CustomizedClient) SetDeviceData(data interface{}, visitor *VisitorConfig) error {
-	vPointer := visitor.VisitorConfigData
-	vPointer.ModifyVisitorConfigData(c.ParsedDeviceInfo)
+func (c *CustomizedClient) SetDeviceData(visitor *VisitorConfig) error {
+	configData := &c.ProtocolConfig.ConfigData
+	_, operationInfo, _, err := configData.SplitTopic()
+	if operationInfo == DEVICEINfO {
+		return errors.New("This is a device config, not to set device data.")
+	}
+	if err != nil {
+		return err
+	}
+	visitor.ProcessOperation(c.DeviceConfigData)
+	return  nil
+}
+
+func (c *CustomizedClient) StopDevice() error {
+	updateFieldsByTag(c.DeviceConfigData, map[string]interface{}{
+		"status": common.DeviceStatusDisCONN,
+		"Status": common.DeviceStatusDisCONN,
+	}, "json")
+	updateFieldsByTag(c.DeviceConfigData, map[string]interface{}{
+		"status": common.DeviceStatusDisCONN,
+		"Status": common.DeviceStatusDisCONN,
+	}, "yaml")
+	updateFieldsByTag(c.DeviceConfigData, map[string]interface{}{
+		"status": common.DeviceStatusDisCONN,
+		"Status": common.DeviceStatusDisCONN,
+	}, "xml")
 	return nil
 }
 
-func (c *CustomizedClient) GetDeviceStates() (string, error) {
-	// TODO: GetDeviceStates
-	return common.DeviceStatusOK, nil
+func (c *CustomizedClient) GetDeviceStates(visitor *VisitorConfig) (string, error) {
+	res, err := visitor.getFieldByTag(c.DeviceConfigData)
+	if err != nil {
+		return common.DeviceStatusOK, nil
+	}
+	return res, nil
+	
 }
 
 /* --------------------------------------------------------------------------------------- */
 // The function NewConfigData is a constructor for ConfigData to initialize the structure.
 // It returns the ConfigData instance and an error value to handle the validity of the passed parameters.
-func NewConfigData(clientID, topic, message string) (*ConfigData, error) {
+func NewConfigData(clientID, brokerURL, topic, message, username, password string, connectionTTL time.Duration) (*ConfigData, error) {
 	if clientID == "" {
 		return nil, errors.New("clientID cannot be empty")
+	}
+	if brokerURL == "" {
+		return nil, errors.New("borkerURL cannot be empty")
 	}
 	if topic == "" {
 		return nil, errors.New("topic cannot be empty")
 	}
 	if message == "" {
-		message = "default message"
+		return nil, errors.New("message cannot be empty")
+	}
+	if username == "" {
+		username = "defaultUser"
+	}
+	if password == "" {
+		password = "defaultPass"
+	}
+	if connectionTTL == 0 {
+		connectionTTL = 30 * time.Second // default timeout of 30 seconds
 	}
 
 	return &ConfigData{
-		ClientID: clientID,
-		Topic:    topic,
-		Message:  message,
+		ClientID:      clientID,
+		BrokerURL:     brokerURL,
+		Topic:         topic,
+		Message:       message,
+		Username:      username,
+		Password:      password,
+		ConnectionTTL: connectionTTL,
+		LastMessage:   time.Now(), // set last message time to current time
 	}, nil
 }
 
@@ -96,6 +154,9 @@ func (c *ConfigData) GetMessage() (string, error) {
 // OperationInfoType and SerializedFormatType mappings
 var operationTypeMap = map[string]OperationInfoType{
 	"update": UPDATE,
+	"deviceinfo": DEVICEINfO,
+	"setsinglevalue" : SETSINGLEVALUE,
+	"getsinglevalue" : GETSINGLEVALUE,
 }
 
 var serializedFormatMap = map[string]SerializedFormatType{
@@ -145,31 +206,13 @@ func (c *ConfigData) ParseMessage(parseType SerializedFormatType) (map[string]in
 
 	switch parseType {
 	case JSON: // json
-		return c.parseJSON()
+		return c.jsonParse()
 
 	case YAML: // yaml
-		convertedMessage, err := convertYAMLToJSON(c.Message)
-		if err != nil {
-			return nil, err
-		}
-		c.Message = convertedMessage
-		return c.parseJSON()
+		return c.yamlParse()
 
 	case XML: // xml
-		convertedMessage, err := convertXMLToMap(c.Message)
-		if err != nil {
-			return nil, err
-		}
-		// c.Message = convertedMessage
-		originalMap := convertedMessage
-		var mp map[string]interface{}
-		for _, value := range originalMap {
-			if nestedMap, ok := value.(map[string]interface{}); ok {
-				mp = nestedMap
-				break
-			}
-		}
-		return mp, err
+		return c.xmlParse()
 
 	default:
 		return nil, errors.New("unsupported parse type")
@@ -177,67 +220,123 @@ func (c *ConfigData) ParseMessage(parseType SerializedFormatType) (map[string]in
 }
 
 // The function parseJSON parses the Message field of the ConfigData (assumed to be a JSON string).
-func (c *ConfigData) parseJSON() (map[string]interface{}, error) {
+func (c *ConfigData) jsonParse() (map[string]interface{}, error) {
 	if c.Message == "" {
 		return nil, errors.New("message is empty")
 	}
 
-	var result map[string]interface{}
-	err := json.Unmarshal([]byte(c.Message), &result)
+	var jsonMsg map[string]interface{}
+	err := json.Unmarshal([]byte(c.Message), &jsonMsg)
 	if err != nil {
 		return nil, err
 	}
-	return result, nil
+	return jsonMsg, nil
 }
 
-// The function ValidateMessage checks if the message content is valid.
-func (c *ConfigData) ValidateMessage() error {
+// The function parseYAML parses the Message field of the ConfigData (assumed to be a YAML string).
+func (c *ConfigData)yamlParse() (map[string]interface{}, error) {
 	if c.Message == "" {
-		return errors.New("message is empty")
+		return nil, errors.New("message is empty")
 	}
 
-	// Example: Check if the message is valid JSON (you can expand for other formats)
-	var temp map[string]interface{}
-	if err := json.Unmarshal([]byte(c.Message), &temp); err != nil {
-		return errors.New("message is not valid JSON")
+	var yamlMsg map[string]interface{}
+	err := yaml.Unmarshal([]byte(c.Message), &yamlMsg)
+	if err != nil {
+		return nil, err
 	}
-
-	return nil
+	return yamlMsg, nil
 }
 
-// NewVisitorConfigData creates a new instance of VisitorConfigData using ConfigData pointer and the result of SplitTopic.
-func (c *ConfigData) NewVisitorConfigData() (*VisitorConfigData, error) {
-	// get ClientID
-	clientID, err := c.GetClientID()
+// The function xmlParse parses the Message field of the ConfigData (assumed to be a XML string).
+func (c *ConfigData)xmlParse() (map[string]interface{}, error) {
+	msg := c.Message
+	if strings.HasPrefix(msg, "<?xml") {
+		end := strings.Index(msg, "?>")
+		if end != -1 {
+			msg = msg[end+2:]
+		}
+	}
+
+	var node Node
+	err := xml.Unmarshal([]byte(msg), &node)
 	if err != nil {
 		return nil, err
 	}
 
-	// get DeviceInfo, OperationInfo and SerializedFormat
-	deviceInfo, operationInfo, serializedFormat, err := c.SplitTopic()
-	if err != nil {
-		return nil, err
+	xmlMsg := nodeToMap(node)
+	var mp map[string]interface{}
+	for _, value := range xmlMsg {
+		if nestedMap, ok := value.(map[string]interface{}); ok {
+			mp = nestedMap
+			break
+		}
 	}
+	return mp, err
+}
 
-	// get ParsedMessage
-	parsedMessage, err := c.ParseMessage(serializedFormat)
-	if err != nil {
-		return nil, err
-	}
+// NewVisitorConfig creates a new instance of VisitorConfig using ConfigData pointer and the result of SplitTopic.
+func (c *ConfigData) NewVisitorConfig() (*VisitorConfig, error) {
+    // get ClientID
+    clientID, err := c.GetClientID()
+    if err != nil {
+        return nil, err
+    }
 
-	// create
-	return &VisitorConfigData{
-		DataType:         "string",
-		ClientID:         clientID,
-		DeviceInfo:       deviceInfo,
-		OperationInfo:    operationInfo,
-		SerializedFormat: serializedFormat,
-		ParsedMessage:    parsedMessage,
+    // get DeviceInfo, OperationInfo and SerializedFormat
+    deviceInfo, operationInfo, serializedFormat, err := c.SplitTopic()
+    if err != nil {
+        return nil, err
+    }
+
+    // get ParsedMessage
+    parsedMessage, err := c.ParseMessage(serializedFormat)
+    if err != nil {
+        return nil, err
+    }
+
+    // create
+	return &VisitorConfig{
+		ProtocolName: "mqtt",
+		VisitorConfigData: VisitorConfigData{
+			DataType:         "DefaultDataType", 
+			ClientID:         clientID,
+			DeviceInfo:       deviceInfo,
+			OperationInfo:    operationInfo,
+			SerializedFormat: serializedFormat,
+			ParsedMessage:    parsedMessage,
+		},
 	}, nil
 }
 
 /* --------------------------------------------------------------------------------------- */
-func (v *VisitorConfigData) ModifyVisitorConfigData(destDataConfig interface{}) error {
+// The function ParseMessage parses the Message field according to the incoming type.
+// parseType(0: json, 1: yaml, 2: xml)
+// The value interface{} represents the parsed structure.
+func (v *VisitorConfig) ProcessOperation(deviceConfigData interface{}) error {
+	if v.VisitorConfigData.ParsedMessage == nil {
+		return errors.New("visitor message is empty")
+	}
+
+	if deviceConfigData == nil {
+		return errors.New("device message is empty")
+	}
+
+	switch v.VisitorConfigData.OperationInfo {
+	case DEVICEINfO:  // device config data
+		v.updateFullConfig(deviceConfigData)
+		return nil
+	case UPDATE:  // update the full text according the visitor config and the tag (json, yaml, xml)
+		v.updateFullConfig(deviceConfigData)
+		return nil
+	case SETSINGLEVALUE:  // update the single value according the visitor config and the tag (json, yaml, xml)
+		v.updateFieldsByTag(deviceConfigData)
+		return nil
+	default:
+		return errors.New("unsupported operation type")
+	}
+}
+
+func (v *VisitorConfig) updateFullConfig(destDataConfig interface{}) error {
 	destValue := reflect.ValueOf(destDataConfig)
 	if destValue.Kind() != reflect.Ptr || destValue.Elem().Kind() != reflect.Struct {
 		return errors.New("destDataConfig must be a pointer to a struct")
@@ -246,7 +345,7 @@ func (v *VisitorConfigData) ModifyVisitorConfigData(destDataConfig interface{}) 
 	destValue = destValue.Elem()
 
 	var tagName string
-	switch v.SerializedFormat {
+	switch v.VisitorConfigData.SerializedFormat {
 	case JSON:
 		tagName = "json"
 	case YAML:
@@ -258,13 +357,37 @@ func (v *VisitorConfigData) ModifyVisitorConfigData(destDataConfig interface{}) 
 	}
 
 	// Update the destination struct using JSON tag
-	if err := updateStructFields(destValue, v.ParsedMessage, tagName); err != nil {
+	if err := updateStructFields(destValue, v.VisitorConfigData.ParsedMessage, tagName); err != nil {
 		return err
 	}
 
 	return nil
 }
 
+func (v *VisitorConfig)updateFieldsByTag(destDataConfig interface{}) error {
+	vv := reflect.ValueOf(destDataConfig).Elem()
+
+	var tagName string
+	switch v.VisitorConfigData.SerializedFormat {
+	case JSON:
+		tagName = "json"
+	case YAML:
+		tagName = "yaml"
+	case XML:
+		tagName = "xml"
+	default:
+		return errors.New("unknown serialized format")
+	}
+
+	for key, value := range v.VisitorConfigData.ParsedMessage {
+		if err := setFieldByTag(vv, key, value, tagName); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+/* --------------------------------------------------------------------------------------- */
 // updateStructFields recursively updates struct fields from the given map using specified tag type
 func updateStructFields(structValue reflect.Value, data map[string]interface{}, tagName string) error {
 	structType := structValue.Type()
@@ -328,53 +451,6 @@ func updateStructFields(structValue reflect.Value, data map[string]interface{}, 
 	return nil
 }
 
-/* --------------------------------------------------------------------------------------- */
-// The function ConvertYAMLToJSON converts a YAML string to a JSON string.
-func convertYAMLToJSON(yamlString string) (string, error) {
-	// Converting a YAML string to a generic map object
-	var yamlData map[string]interface{}
-	err := yaml.Unmarshal([]byte(yamlString), &yamlData)
-	if err != nil {
-		return "", err
-	}
-
-	// Convert a map object to a JSON string
-	jsonData, err := json.Marshal(yamlData)
-	if err != nil {
-		return "", err
-	}
-
-	return string(jsonData), nil
-}
-
-// The function ConvertXMLToMap converts XML string to map[string]interface{}.
-func convertXMLToMap(xmlString string) (map[string]interface{}, error) {
-	// Wrap the XML content with <root></root>
-	wrappedXML := wrapXMLWithRoot(xmlString)
-
-	var node Node
-	err := xml.Unmarshal([]byte(wrappedXML), &node)
-	if err != nil {
-		return nil, err
-	}
-	return nodeToMap(node), nil
-}
-
-// The function WrapXMLWithRoot wraps XML strings in <root></root> tags.
-func wrapXMLWithRoot(xmlString string) string {
-	// Remove the XML declaration if it exists
-	if strings.HasPrefix(xmlString, "<?xml") {
-		end := strings.Index(xmlString, "?>")
-		if end != -1 {
-			xmlString = xmlString[end+2:]
-		}
-	}
-
-	// Wrap the remaining XML content with <root></root>
-	wrappedXML := xmlString
-	return wrappedXML
-}
-
 // Node structure
 type Node struct {
 	XMLName xml.Name
@@ -396,31 +472,74 @@ func convertValue(content string) interface{} {
 	}
 }
 
+// Convert XML attributes to map entries
+func attrsToMap(attrs []xml.Attr) map[string]interface{} {
+	attrMap := make(map[string]interface{})
+	for _, attr := range attrs {
+		attrMap[attr.Name.Local] = attr.Value
+	}
+	return attrMap
+}
+
 // The function nodeToMap recursively converts XML nodes to map[string]interface{}.
 func nodeToMap(node Node) map[string]interface{} {
-	result := make(map[string]interface{})
+	xmlMsg := make(map[string]interface{})
+
+	// Process attributes
+	if len(node.Attr) > 0 {
+		xmlMsg["attributes"] = attrsToMap(node.Attr)
+	}
 
 	// If the node has no children, it is a leaf node, apply type conversion.
 	if len(node.Nodes) == 0 {
-		return map[string]interface{}{node.XMLName.Local: convertValue(strings.TrimSpace(node.Content))}
+		xmlMsg[node.XMLName.Local] = convertValue(strings.TrimSpace(node.Content))
+		return xmlMsg
 	}
 
 	// Process child nodes recursively.
+	children := make(map[string]interface{})
 	for _, child := range node.Nodes {
 		childMap := nodeToMap(child)
-		if existing, found := result[child.XMLName.Local]; found {
+		if existing, found := children[child.XMLName.Local]; found {
 			switch v := existing.(type) {
 			case []interface{}:
-				result[child.XMLName.Local] = append(v, childMap[child.XMLName.Local])
+				children[child.XMLName.Local] = append(v, childMap[child.XMLName.Local])
 			default:
-				result[child.XMLName.Local] = []interface{}{v, childMap[child.XMLName.Local]}
+				children[child.XMLName.Local] = []interface{}{v, childMap[child.XMLName.Local]}
 			}
 		} else {
-			result[child.XMLName.Local] = childMap[child.XMLName.Local]
+			children[child.XMLName.Local] = childMap[child.XMLName.Local]
 		}
 	}
 
-	return map[string]interface{}{node.XMLName.Local: result}
+	xmlMsg[node.XMLName.Local] = children
+	return xmlMsg
+}
+
+func setFieldByTag(v reflect.Value, key string, value interface{}, tagName string) error {
+	if v.Kind() == reflect.Pointer {
+		v = v.Elem()
+	}
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Type().Field(i)
+		fieldVal := v.Field(i)
+
+		if field.Tag.Get(tagName) == key {
+			val := reflect.ValueOf(value)
+			if fieldVal.Type() != val.Type() {
+				return fmt.Errorf("type mismatch: cannot assign %s to %s", val.Type(), fieldVal.Type())
+			}
+			fieldVal.Set(val)
+			return nil
+		}
+
+		if fieldVal.Kind() == reflect.Struct {
+			if err := setFieldByTag(fieldVal, key, value, tagName); err == nil {
+				return nil
+			}
+		}
+	}
+	return fmt.Errorf("no such field with tag: %s", key)
 }
 
 // The function MapToJSON converts map[string]interface{} to JSON string.
@@ -440,4 +559,62 @@ func StructToJSON(v interface{}) (string, error) {
 	return string(jsonData), nil
 }
 
+func updateFieldsByTag(s interface{}, updates map[string]interface{}, tagName string) error {
+	v := reflect.ValueOf(s).Elem()
+	for key, value := range updates {
+		if err := setFieldByTag(v, key, value, tagName); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (v * VisitorConfig)getFieldByTag(s interface{}) (string, error) {
+	vv := reflect.ValueOf(s).Elem()
+
+	var tagName string
+	switch v.VisitorConfigData.SerializedFormat {
+	case JSON:
+		tagName = "json"
+	case YAML:
+		tagName = "yaml"
+	case XML:
+		tagName = "xml"
+	default:
+		return "", errors.New("unknown serialized format")
+	}
+
+	res, err := findFieldByTag(vv, "status", tagName)
+	if err != nil {
+		res, err = findFieldByTag(vv, "Status", tagName)
+		if err != nil {
+			return "", err
+		} else {
+			return res, nil
+		}
+	} else {
+		return res, nil
+	}
+}
+
+func findFieldByTag(v reflect.Value, key string, tagName string) (string, error) {
+	if v.Kind() == reflect.Pointer {
+		v = v.Elem()
+	}
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Type().Field(i)
+		fieldVal := v.Field(i)
+
+		if field.Tag.Get(tagName) == key {
+			return fieldVal.String(), nil
+		}
+
+		if fieldVal.Kind() == reflect.Struct {
+			if value, err := findFieldByTag(fieldVal, key, tagName); err == nil {
+				return value, nil
+			}
+		}
+	}
+	return "", fmt.Errorf("no such field with tag: %s", key)
+}
 /* --------------------------------------------------------------------------------------- */
