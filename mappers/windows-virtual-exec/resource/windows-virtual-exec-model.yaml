@@ -1,0 +1,32 @@
+apiVersion: devices.kubeedge.io/v1alpha2
+kind: DeviceModel
+metadata: 
+  name: win-exec-model
+  namespace: default
+spec:
+  properties:
+    - name: exec-file-content
+      description: custom content to execute
+      type:
+        string: 
+          accessMode: ReadOnly
+    - name: exec-file-name
+      description: save custom content as filename
+      type: 
+        string:
+          accessMode: ReadOnly
+    - name: exec-command
+      description: entrypoint of target
+      type:
+        string:
+          accessMode: ReadOnly
+    - name: status
+      description: status of current executation
+      type:
+        string:
+          accessMode: ReadWrite
+    - name: output
+      description: console output of current executation
+      type:
+        string:
+          accessMode: ReadWrite

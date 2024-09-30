@@ -1,0 +1,33 @@
+apiVersion: devices.kubeedge.io/v1alpha2
+kind: Device
+metadata:
+  name: exec-instance-001
+  labels:
+    description: "test"
+    model: win-exec-model
+spec:
+  deviceModelRef:
+    name: win-exec-model
+  nodeSelector:
+    nodeSelectorTerms:
+      - matchExpressions:
+        - key: ''
+          operator: In
+          values:
+            - win11-node
+  protocol:
+    customizedProtocal:
+      protocolName: winExec
+status:
+  twins:
+    - propertyName: status
+    - propertyName: output
+    - propertyName: exec-file-content
+      desired:
+        value: 'echo "hello,world"'
+    - propertyName: exec-file-name
+      desired:
+        value: 'run.bat'
+    - propertyName: exec-command
+      desired:
+        value: 'run.bat'
