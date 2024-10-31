@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"regexp"
 	"strconv"
 	"sync"
 	"time"
@@ -61,17 +60,11 @@ func setVisitor(visitorConfig *configmap.ModbusVisitorConfig, twin *common.Twin,
 	}
 }
 
-// getDeviceID extract the device ID from Mqtt topic.
-func getDeviceID(topic string) (id string) {
-	re := regexp.MustCompile(`hw/events/device/(.+)/twin/update/delta`)
-	return re.FindStringSubmatch(topic)[1]
-}
-
 // onMessage callback function of Mqtt subscribe message.
 func onMessage(client mqtt.Client, message mqtt.Message) {
 	klog.V(2).Info("Receive message", message.Topic())
 	// Get device ID and get device instance
-	id := getDeviceID(message.Topic())
+	id := common.GetDeviceID(message.Topic())
 	if id == "" {
 		klog.Error("Wrong topic")
 		return
