@@ -293,6 +293,7 @@ func (gigEClient *GigEVisionDevice) PostImage(DeviceSN string) {
 	go func() {
 		var buffer []byte
 		var bufferHdr = (*reflect.SliceHeader)(unsafe.Pointer(&buffer))
+		defer C.free_image((**C.char)(unsafe.Pointer(&imageBuffer)))
 		bufferHdr.Data = uintptr(unsafe.Pointer(imageBuffer))
 		bufferHdr.Len = size
 		bufferHdr.Cap = size
