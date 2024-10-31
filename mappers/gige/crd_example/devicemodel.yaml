@@ -1,7 +1,7 @@
 apiVersion: devices.kubeedge.io/v1alpha2
 kind: DeviceModel
 metadata:
-  name: camera-instance-model
+  name: basler-ac5472
 spec:
   properties:
     - name: PixelFormat
@@ -10,29 +10,25 @@ spec:
           accessMode: ReadWrite
           defaultValue: 'Mono8'
     - name: ImageTrigger
-      type:
-        bytes:
-          accessMode: ReadOnly
-    - name: ImageFormat
-      type:
-        boolean:
-          accessMode: ReadWrite
-          defaultValue: "jpeg"
-    - name: ImageURL
+      description:  imageproc
       type:
         string:
           accessMode: ReadWrite
+          defaultValue: 'stop'
     - name: AutoFunctionAOIUsageWhiteBalance
+      description: White Balance
       type:
         boolean:
           accessMode: ReadWrite
           defaultValue: false
-    - name: AcquisitionFrameRateEnable
+    - name: AcquisitionFrameRateEnable 
+      description:  Acquisition FrameRate
       type:
         boolean:
           accessMode: ReadWrite
           defaultValue: false
     - name: ExposureTimeAbs
+      description:  Exposure Time
       type:
         float:
           accessMode: ReadWrite
@@ -41,12 +37,14 @@ spec:
           maximum: 100000
           unit: 'us'
     - name: AcquisitionFrameRateAbs
+      description:  Acquisition Frame Rate
       type:
         float:
           accessMode: ReadWrite
           defaultValue: 10.0
           unit: 'Hz'
     - name: Width
+      description:  picture width
       type:
         int:
           accessMode: ReadWrite
@@ -54,6 +52,7 @@ spec:
           minimum: 0
           maximum: 659
     - name: Height
+      description:  picture height
       type:
         int:
           accessMode: ReadWrite
@@ -61,12 +60,26 @@ spec:
           minimum: 0
           maximum: 494
     - name: OffsetX
+      description:  offset of x
       type:
         int:
           accessMode: ReadWrite
           defaultValue: 0
     - name: OffsetY
+      description:  offset of Y
       type:
         int:
           accessMode: ReadWrite
           defaultValue: 0
+    - name: ImageFormat
+      description:  mage format, jpeg,png,pnm
+      type:
+        string:
+          accessMode: ReadWrite
+          defaultValue: "jpeg"
+    - name: ImageURL
+      description:  url for post picture
+      type:
+        string:
+          accessMode: ReadWrite
+          defaultValue: "https://127.0.0.1/push/picture"

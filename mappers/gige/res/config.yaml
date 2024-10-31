@@ -1,5 +1,5 @@
 mqtt:
-  server: mqtt://127.0.0.1:1883
+  server: mqtt://127.0.0.1:1884
   servername: 127.0.0.1
   username: ""
   password: ""

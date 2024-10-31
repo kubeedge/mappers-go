@@ -24,8 +24,8 @@ help:
 	#   ARM64 : true or undefined
 	#
 	# Example:
-	#   -  make mapper modbus ARM64=true :  execute `build` "modbus" mapper for ARM64.
-	#   -        make mapper modbus test :  execute `test` "modbus" mapper.
+	#   -  make mapper gige ARM64=true :  execute `build` "gige" mapper for ARM64.
+	#   -        make mapper gige test :  execute `test` "gige" mapper.
 	@echo
 
 make_rules := $(shell ls $(curr_dir)/hack/make-rules | sed 's/.sh//g')
