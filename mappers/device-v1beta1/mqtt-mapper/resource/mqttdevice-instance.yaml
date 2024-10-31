@@ -1,0 +1,49 @@
+apiVersion: devices.kubeedge.io/v1beta1
+   kind: Device
+   metadata:
+     name: beta1-device
+   spec:
+     deviceModelRef:
+       name: temperture-model
+     nodeName: k8s-worker1
+     properties:
+       - name: temperature
+         collectCycle: 10000000000  # The frequency of reporting data to the cloud, once every 10 seconds
+         reportCycle: 10000000000   # The frequency of data push to user applications or databases, once every 10 seconds
+         reportToCloud: true
+         desired:
+           value: "30"
+         pushMethod:
+           mqtt:
+             address: tcp://101.133.150.110:1883
+             topic: temperture/update/json
+             qos: 0
+             retained: false
+           dbMethod:
+             influxdb2:
+               influxdb2ClientConfig:
+                 url: http://127.0.0.1:8086
+                 org: test-org
+                 bucket: test-bucket
+               influxdb2DataConfig:
+                 measurement: temperture_stats
+                 tag:
+                   unit: temperature
+                 fieldKey: temperture_value
+         visitors:
+           protocolName: mqtt
+           configData:
+             topic: "sensor/data"
+             qos: 1
+             retain: false
+             clientId: "temperture_client"
+             username: "user"
+             password: "pass"
+             cleanSession: true
+             keepAlive: 60
+
+     protocol:
+       protocolName: mqtt
+       configData:
+         ip: 101.133.150.110
+         port: 1883
