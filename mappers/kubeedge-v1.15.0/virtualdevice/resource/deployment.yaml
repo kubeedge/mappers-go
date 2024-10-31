@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mapper-test
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demo
+  template:
+    metadata:
+      labels:
+        app: demo
+    spec:
+      nodeName: edge-node
+      containers:
+        - name: demo
+          volumeMounts:
+            - mountPath: /etc/kubeedge
+              name: test-volume
+          env:
+            - name: TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: mysecret
+                  key: token
+          image:  # Fill in the name of the image you created
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              cpu: 300m
+              memory: 500Mi
+            requests:
+              cpu: 100m
+              memory: 100Mi
+          command: [ "/bin/sh","-c" ]
+          args: [ "/kubeedge/main --config-file /kubeedge/config.yaml --v 4" ]
+      volumes:
+        - name: test-volume
+          hostPath:
+            path: /etc/kubeedge
+            type: Directory
