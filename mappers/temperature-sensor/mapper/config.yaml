@@ -1,0 +1,10 @@
+grpc_server:
+  socket_path: /etc/kubeedge/temperature-sensor-mapper.sock
+common:
+  name: Temperature-Sensor-Mapper-mapper
+  version: v1.13.0
+  api_version: v1.0.0
+  protocol: modbus    
+  address: 127.0.0.1
+  # http_port: 7777     #change if neccessary
+  edgecore_sock: /etc/kubeedge/dmi.sock
