@@ -1,0 +1,9 @@
+grpc_server:
+  socket_path: /etc/kubeedge/opcua-mapper.sock
+common:
+  name: opcua-mapper
+  version: v1.13.0
+  api_version: v1beta1
+  protocol:  opcua # TODO add your protocol name
+  address: 127.0.0.1:1234 # TODO add your protocol address
+  edgecore_sock: /etc/kubeedge/dmi.sock

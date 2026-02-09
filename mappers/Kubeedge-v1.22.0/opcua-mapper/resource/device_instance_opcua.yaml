@@ -1,0 +1,37 @@
+apiVersion: devices.kubeedge.io/v1beta1
+kind: Device
+metadata:
+  name: opcua-lamp
+  namespace: default
+spec:
+  deviceModelRef:
+    name: opcua-model
+  nodeName: edge-node
+
+  protocol:
+    protocolName: opcua
+    configData:
+      url: "opc.tcp://localhost:4840"
+      userName: "testuser"
+      password: "testpassword"
+      securityPolicy: "None"
+      securityMode: "None"
+
+  properties:
+    - name: temperature
+      collectCycle: 5000000000   # 5s (nanoseconds)
+      reportCycle: 5000000000
+      reportToCloud: true
+      visitors:
+        protocolName: opcua
+        configData:
+          nodeID: "ns=2;i=2"
+
+    - name: switcher
+      collectCycle: 5000000000
+      reportCycle: 5000000000
+      reportToCloud: true
+      visitors:
+        protocolName: opcua
+        configData:
+          nodeID: "ns=2;i=3"
